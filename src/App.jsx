@@ -1,12 +1,7 @@
-import { useState } from 'react'
-
+import Login from "./page/login";
 
 function App() {
-  return (
-    <h1>Hola mundo{` `}<span>bienvenido</span></h1>
-      
-   
-  );
+  return <Login />;
 }
 
 export default App;

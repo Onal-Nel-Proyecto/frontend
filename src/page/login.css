@@ -1,0 +1,12 @@
+.loginContainer {
+    width: 100%;
+    max-width: 450px;
+    padding: 20px;
+}
+
+.loginCard {
+    background: white;
+    padding: 50px 40px;
+    border-radius: 30px;
+    box-shadow: var(--shadow);
+}
