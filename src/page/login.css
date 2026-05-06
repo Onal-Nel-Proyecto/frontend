@@ -1,24 +1,39 @@
-.loginContainer {
-    width: 100%;
-    max-width: 450px;
-    padding: 20px;
+:root {
+  --shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+  --text-dark: #1a1a1a;
+  --text-gray: #888;
 }
 
-.loginCard {
-    background: white;
-    padding: 50px 40px;
-    border-radius: 30px;
-    box-shadow: var(--shadow);
-    text-align: center;
-    position: relative;
-    overflow: hidden;
+body {
+  margin: 0;
+  background-color: #f5ede8;
 }
 
-.decorativeNeedle {
-    position: absolute;
-    bottom: -10px;
-    right: -10px;
-    font-size: 4rem;
-    opacity: 0.05;
-    transform: rotate(-15deg);
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.login-card {
+  background: white;
+  width: 100%;
+  max-width: 420px;
+  padding: 48px 40px 40px;
+  border-radius: 28px;
+  box-shadow: var(--shadow);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.decorative-needle {
+  position: absolute;
+  bottom: -10px;
+  right: -10px;
+  font-size: 4rem;
+  opacity: 0.05;
+  transform: rotate(-15deg);
 }

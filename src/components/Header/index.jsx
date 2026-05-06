@@ -1,14 +1,17 @@
+
+import styles from './hdr.module.css'; // primero renombra el archivo a hdr.module.css
+
 const Header = () => {
   return (
     <>
-      <div className="logo-section">
-        <span className="logo-text">ona&nel</span>
-        <div className="logo-subtext">
+      <div className={styles.logoSection}>
+        <span className={styles.logoText}>ona&nel</span>
+        <div className={styles.logoSubtext}>
           Atelier Management System
         </div>
       </div>
 
-      <div className="welcome-header">
+      <div className={styles.welcomeHeader}>
         <h1>Bienvenido de nuevo</h1>
         <p>Ingresa tus credenciales para acceder al dashboard</p>
       </div>
@@ -17,5 +20,3 @@ const Header = () => {
 };
 
 export default Header;
-
-

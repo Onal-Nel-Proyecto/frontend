@@ -1,10 +1,8 @@
-import style from './btn.module.css';
-
 const Botones = ({ children, active, type, eventoClick, tipoDeEstilo }) => {
 
   const styleFinal = tipoDeEstilo
     ? {
-        backgroundColor: active ? "#333" : "var(--text-dark)",
+        backgroundColor: active ? "#333" : "#1a1a1a",
         color: "white",
         border: "none",
         borderRadius: "12px",
@@ -18,8 +16,8 @@ const Botones = ({ children, active, type, eventoClick, tipoDeEstilo }) => {
       }
     : {
         backgroundColor: "transparent",
-        color: "var(--white-200)",
-        border: "2px solid var(--white-200)",
+        color: "#fff",
+        border: "2px solid #fff",
         borderRadius: "12px",
         padding: "14px",
         width: "100%",
@@ -32,7 +30,6 @@ const Botones = ({ children, active, type, eventoClick, tipoDeEstilo }) => {
   return (
     <button
       type={type}
-      className={style.btn}
       style={styleFinal}
       onClick={eventoClick}
     >
