@@ -1,6 +1,6 @@
-import Header from "../componets/Header";
-import Formulario from "../componets/Formulario";
-import Footer from "../componets/Footer";
+import Header from "../components/Header";
+import Formulario from "../components/Formulario";
+import Footer from "../components/Footer";
 import "./login.css";
 
 const Login = () => {
