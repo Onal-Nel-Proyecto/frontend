@@ -24,7 +24,9 @@ const Formulario = () => {
           ¿Olvidaste tu contraseña?
         </a>
       </div>
-      <Button>Iniciar Sesión</Button>
+   <Button type="submit" tipoDeEstilo={true} active={false}>
+  Iniciar Sesión
+</Button>
     </form>
   );
 };
