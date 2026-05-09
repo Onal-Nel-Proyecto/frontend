@@ -1,35 +1,25 @@
-:root {
-  --shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
-  --text-dark: #1a1a1a;
-  --text-gray: #888;
-}
-
-body {
-  margin: 0;
-  background-color: #f5ede8;
-}
-
-.login-container {
+.loginContainer {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
+  background-color: #f5ede8;
 }
 
-.login-card {
+.loginCard {
   background: white;
-  width: 50%;
+  width: 100%;
   max-width: 350px;
   padding: 48px 40px 40px;
   border-radius: 28px;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-lg);
   text-align: center;
   position: relative;
   overflow: hidden;
 }
 
-.decorative-needle {
+.decorativeNeedle {
   position: absolute;
   bottom: -10px;
   right: -10px;

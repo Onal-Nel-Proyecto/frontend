@@ -1,4 +1,4 @@
-const Botones = ({ children, active, type, eventoClick, tipoDeEstilo }) => {
+const Button = ({ children, active, type, eventoClick, tipoDeEstilo, disable }) => {
 
   const styleFinal = tipoDeEstilo
     ? {
@@ -32,10 +32,11 @@ const Botones = ({ children, active, type, eventoClick, tipoDeEstilo }) => {
       type={type}
       style={styleFinal}
       onClick={eventoClick}
+      disabled={disable}
     >
       {children}
     </button>
   );
 };
 
-export default Botones;
+export default Button;
