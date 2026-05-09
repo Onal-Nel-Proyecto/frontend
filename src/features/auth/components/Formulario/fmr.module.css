@@ -1,0 +1,29 @@
+.loginForm {
+    text-align: left;
+}
+
+.formOptions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.8rem;
+    margin-bottom: 30px;
+}
+
+.rememberMe {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    color: var(--text-gray);
+}
+
+.forgotPassword {
+    color: var(--text-gray);
+    text-decoration: none;
+}
+
+.forgotPassword:hover {
+    color: var(--text-dark);
+    text-decoration: underline;
+}

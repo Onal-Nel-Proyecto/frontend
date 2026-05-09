@@ -1,0 +1,147 @@
+.header {
+  position: fixed;
+
+  top: 0;
+  right: 0;
+  left: 0;
+
+  height: 5rem;
+
+  padding: 0 1.5rem;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  background: var(--color-primary);
+
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+
+  z-index: 40;
+
+  backdrop-filter: blur(14px);
+
+  transition: all .3s ease;
+}
+
+.leftSection {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.menuButton {
+  width: 2.75rem;
+  height: 2.75rem;
+
+  border: none;
+  border-radius: 999px;
+
+  cursor: pointer;
+
+  background: rgba(255,255,255,0.5);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  transition:
+    background .3s ease;
+}
+
+.menuButton:hover {
+  background: white;
+}
+
+.menuButton svg {
+  font-size: 1.5rem;
+  color: var(--text-dark);
+}
+
+.title {
+  font-size: 1.2rem;
+  font-weight: 600;
+
+  color: var(--text-dark);
+   font-family: 'Playfair Display', serif;
+    font-style: italic;
+  letter-spacing: -0.02em;
+
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.brand {
+  color: #f472b6;
+
+  font-weight: 700;
+  font-style: italic;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+}
+
+.actionButton {
+  width: 2.75rem;
+  height: 2.75rem;
+
+  /* border: 1px solid rgba(255,255,255,0.4); */
+  border-radius: 999px;
+
+  background: transparent;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+
+  /* box-shadow: 0 2px 8px rgba(0,0,0,.06); */
+
+  transition:
+    background .3s ease,
+    box-shadow .3s ease;
+}
+
+.actionButton:hover {
+  background: rgba(255,255,255,0.6);
+
+  box-shadow: 0 4px 14px rgba(0,0,0,.08);
+}
+
+.actionIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 1.2rem;
+
+  color: var(--text-dark);
+}
+
+@media (min-width: 768px) {
+
+  .header {
+    padding: 0 2.5rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .actionButton {
+    width: 3rem;
+    height: 3rem;
+  }
+}
+
+@media (min-width: 1024px) {
+
+  .menuButton {
+    display: none;
+  }
+}

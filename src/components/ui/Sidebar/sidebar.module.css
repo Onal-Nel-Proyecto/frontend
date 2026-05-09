@@ -1,0 +1,199 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(4px);
+  z-index: 50;
+}
+
+.sidebar {
+  position: fixed;
+
+  top: 5rem;
+  left: 0;
+  bottom: 0;
+
+  width: 18rem; 
+
+  background: var(--color-primary);
+
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+
+  z-index: 50;
+
+  transition:
+    transform .5s ease-in-out;
+}
+
+.sidebarOpen {
+  transform: translateX(0);
+}
+
+.sidebarClosed {
+  transform: translateX(-100%);
+}
+
+.container {
+  padding: 2rem;
+
+  display: flex;
+  flex-direction: column;
+
+  height: 100%;
+}
+
+.mobileHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+/* top: 0; */
+  margin-bottom: 2rem;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 700;
+
+  color: var(--color-natural);
+}
+
+.closeButton {
+  border: none;
+  cursor: pointer;
+
+  padding: .5rem;
+
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.5);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 1.2rem;
+}
+
+.desktopIndicator {
+  display: none;
+
+  margin-bottom: 2.5rem;
+}
+
+.indicatorBar {
+  width: 4rem;
+  height: .25rem;
+
+  border-radius: 999px;
+
+  background: #f9a8d4;
+
+  opacity: .5;
+}
+
+.nav {
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: .5rem;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+
+  padding: 1rem 1.5rem;
+
+  border-radius: 1rem;
+
+  text-decoration: none;
+
+  transition:
+    background .3s,
+    color .3s,
+    transform .3s;
+}
+
+.active {
+  background: white;
+  color: var(--text-dark);
+
+  border: 1px solid rgba(255, 255, 255, 0.4);
+
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
+}
+
+.inactive {
+  color: var(--text-soft);
+}
+
+.inactive:hover {
+  background: rgba(255, 255, 255, 0.4);
+  color: var(--text-dark);
+}
+
+.icon {
+  font-size: 1.2rem;
+
+  display: flex;
+  align-items: center;
+}
+
+.label {
+  font-weight: 500;
+}
+
+.dot {
+  margin-left: auto;
+
+  width: .4rem;
+  height: .4rem;
+
+  border-radius: 999px;
+
+  background: #f472b6;
+
+  opacity: 0;
+
+  transition: opacity .3s;
+}
+
+.navItem:hover .dot {
+  opacity: 1;
+}
+
+.footer {
+  margin-top: auto;
+
+  padding-top: 1.5rem;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+@media (min-width: 1024px) {
+
+  .overlay {
+    display: none;
+  }
+
+  .sidebar {
+    transform: translateX(0);
+  }
+
+  .mobileHeader {
+    display: none;
+  }
+
+  .desktopIndicator {
+    display: block;
+  }
+}
+
+@media (max-width: 1023px) {
+  .sidebar{
+    top: 0;
+  }
+}
