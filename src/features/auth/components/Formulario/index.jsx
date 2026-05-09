@@ -44,7 +44,7 @@ const Formulario = () => {
   const handleSubmit = async (e) => {
 
     e.preventDefault();
-console.log(formData);
+    console.log(formData);
     setLoading(true);
 
     setError("");
@@ -99,7 +99,7 @@ console.log(formData);
         value={formData.pass}
         onChange={handleChange}
       />
-
+{/* 
       <div className={styles.formOptions}>
 
         <label className={styles.rememberMe}>
@@ -111,7 +111,7 @@ console.log(formData);
           ¿Olvidaste tu contraseña?
         </a>
 
-      </div>
+      </div> */}
 
 
       {

@@ -25,7 +25,7 @@
 
 .container {
   max-width: 80rem;
-
+  position: relative;
   margin-inline: auto;
 }
 
