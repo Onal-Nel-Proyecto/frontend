@@ -1,0 +1,33 @@
+/* MaintenanceCard.css */
+.maintenance-card {
+  background: #f8f5f2;
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.maintenance-card img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.maintenance-card h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.maintenance-card p {
+  font-size: 14px;
+  color: #666;
+}
+
+.maintenance-card span {
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+}
