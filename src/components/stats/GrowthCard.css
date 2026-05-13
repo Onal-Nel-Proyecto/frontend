@@ -1,0 +1,45 @@
+.growth-card {
+  background: #1e1e1e;
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  min-width: 220px;
+}
+
+.growth-card__period {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #888;
+  font-weight: 500;
+}
+
+.growth-card__percent-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.growth-card__percent {
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1;
+}
+.growth-card__percent.positive { color: #6fcf97; }
+.growth-card__percent.negative { color: #eb5757; }
+
+.growth-card__percent-row i {
+  font-size: 22px;
+  color: #6fcf97;
+}
+
+.growth-card__desc {
+  font-size: 13px;
+  color: #aaa;
+  line-height: 1.6;
+  margin: 0;
+  max-width: 280px;
+}
