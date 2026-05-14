@@ -92,15 +92,29 @@ const ClientDirectory = () => {
             </button>
           </div>
 
-          {/* Fila de estadísticas */}
-          <div className="stats-row">
+          {/* Grid de estadísticas */}
+          <div className="stats-grid">
             <StatCard
               icon="ti-users"
               label="Total Clientes"
               value={342}
             />
-           
-           
+            <StatCard
+              icon="ti-star"
+              label="Clientes VIP"
+              value={48}
+              highlight
+            />
+            <StatCard
+              icon="ti-shopping-cart"
+              label="Pedidos Activos"
+              value={127}
+            />
+            <GrowthCard
+              percentage="+12.4%"
+              period="Crecimiento Mensual"
+              description="Continúas expandiendo tu presencia en el mercado de alta costura este trimestre."
+            />
           </div>
 
           {/* Sección tabla */}

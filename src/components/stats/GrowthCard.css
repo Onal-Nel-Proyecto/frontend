@@ -5,8 +5,14 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  flex: 1;
-  min-width: 220px;
+  min-width: 0;
+  height: 100%;
+  box-sizing: border-box;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.growth-card:hover {
+  box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+  transform: translateY(-2px);
 }
 
 .growth-card__period {
