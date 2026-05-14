@@ -1,6 +1,7 @@
+import "@tabler/icons-webfont/dist/tabler-icons.min.css"; // ← agrega esta línea
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./page/login";
-import ClientDirectory from "./page/ClientDirectory";  
+import ClientDirectory from "./page/ClientDirectory";
 
 function App() {
   return (

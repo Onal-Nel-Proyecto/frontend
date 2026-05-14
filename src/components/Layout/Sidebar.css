@@ -6,8 +6,11 @@
   display: flex;
   flex-direction: column;
   padding: 1.5rem 0;
+  position: fixed;
+  top: 0;        /* ← agrega */
+  left: 0;       /* ← agrega */
+  z-index: 100;  /* ← agrega */
 }
-
 .sidebar-logo {
   display: flex;
   flex-direction: column;

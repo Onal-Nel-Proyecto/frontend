@@ -8,6 +8,7 @@
 .main-area {
   flex: 1;
   display: flex;
+  margin-left: 200px; /* ← empuja el contenido a la derecha */
   flex-direction: column;
   min-width: 0;
   background: #f5f3ef;
@@ -70,6 +71,7 @@
 /* Sección tabla */
 .table-section {
   display: flex;
+  transition: cubic-bezier();
   flex-direction: column;
   gap: 0;
 }

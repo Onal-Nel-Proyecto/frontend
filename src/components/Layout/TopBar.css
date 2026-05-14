@@ -11,33 +11,11 @@
   z-index: 10;
 }
 
-.topbar-search {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #f5f4f1;
-  border-radius: 8px;
-  padding: 0 12px;
-  max-width: 360px;
-}
-.topbar-search i    { font-size: 16px; color: #aaa; }
-.search-input {
-  border: none;
-  background: transparent;
-  font-size: 13px;
-  outline: none;
-  width: 100%;
-  color: #333;
-  padding: 8px 0;
-}
-.search-input::placeholder { color: #bbb; }
-
 .topbar-right {
   display: flex;
   align-items: center;
   gap: 4px;
-  margin-left: auto;
+  margin-left: auto; /* ← empuja todo a la derecha */
 }
 
 .icon-btn {

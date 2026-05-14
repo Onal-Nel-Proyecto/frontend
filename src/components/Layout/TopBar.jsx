@@ -5,15 +5,7 @@ const TopBar = ({ userName = 'Elena Rossi', userRole = 'Atelier Manager' }) => {
   return (
     <header className="topbar">
 
-      {/* Buscador */}
-      <div className="topbar-search">
-        <i className="ti ti-search" aria-hidden="true" />
-        <input
-          type="text"
-          placeholder="Buscar cliente o pedido..."
-          className="search-input"
-        />
-      </div>
+
 
       {/* Acciones + perfil */}
       <div className="topbar-right">
