@@ -1,17 +1,21 @@
+/* ═══════════════════════════════════════════
+   GrowthCard — ona&nel Dashboard
+   ═══════════════════════════════════════════ */
+
 .growth-card {
-  background: #1e1e1e;
-  border-radius: 12px;
+  background: #1D1D1F;
+  border-radius: 18px;
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   min-width: 0;
   height: 100%;
   box-sizing: border-box;
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  transition: box-shadow 0.25s ease, transform 0.25s ease;
 }
 .growth-card:hover {
-  box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+  box-shadow: 0 10px 32px rgba(0,0,0,0.28);
   transform: translateY(-2px);
 }
 
@@ -19,7 +23,7 @@
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 1.5px;
-  color: #888;
+  color: #999;
   font-weight: 500;
 }
 
@@ -34,17 +38,17 @@
   font-weight: 700;
   line-height: 1;
 }
-.growth-card__percent.positive { color: #6fcf97; }
-.growth-card__percent.negative { color: #eb5757; }
+.growth-card__percent.positive { color: #6BE39A; }
+.growth-card__percent.negative { color: #EB5757; }
 
 .growth-card__percent-row i {
   font-size: 22px;
-  color: #6fcf97;
+  color: #6BE39A;
 }
 
 .growth-card__desc {
   font-size: 13px;
-  color: #aaa;
+  color: #B0B0B0;
   line-height: 1.6;
   margin: 0;
   max-width: 280px;

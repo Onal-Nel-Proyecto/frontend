@@ -12,13 +12,13 @@
 }
 
 .status-badge--date {
-  background: #fde8e0;
-  color: #993C1D;
+  background: #F8D8CC;
+  color: #B8553A;
 }
 .status-badge__month { font-weight: 600; }
 .status-badge__year  { font-size: 10px; opacity: 0.8; }
 
 .status-badge--inactive {
-  background: #f0ede8;
-  color: #999;
+  background: #F5F4F1;
+  color: #B0B0B0;
 }

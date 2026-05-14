@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import Sidebar          from '../components/layout/Sidebar'
+import NewClientPanel from '../page/RegisterClient'
 import TopBar           from '../components/layout/TopBar'
 import StatCard         from '../components/stats/StatCard'
 import GrowthCard       from '../components/stats/GrowthCard'
@@ -47,6 +48,7 @@ const MOCK_CLIENTS = [
 
 const ClientDirectory = () => {
   const [activeNav, setActiveNav]     = useState('clients')
+  const [showRegister, setShowRegister] = useState(false)
   const [clients, setClients]         = useState(MOCK_CLIENTS)
 
   const handleFilterChange = (filters) => {
@@ -86,7 +88,10 @@ const ClientDirectory = () => {
                 el proceso de pedidos personalizados y seguimiento de confección.
               </p>
             </div>
-            <button className="btn-primary">
+            <button
+              className="btn-primary"
+              onClick={() => setShowRegister(true)}
+            >
               <i className="ti ti-user-plus" aria-hidden="true" />
               Nuevo Cliente
             </button>
@@ -138,6 +143,12 @@ const ClientDirectory = () => {
 
         </div>
       </div>
+
+      {/* Modal de registro */}
+      {showRegister && (
+        <NewClientPanel isOpen={showRegister} onClose={() => setShowRegister(false)} />
+      )}
+
     </div>
   )
 }

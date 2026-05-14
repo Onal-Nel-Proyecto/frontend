@@ -1,0 +1,290 @@
+/* ═══════════════════════════════════════════
+   NewClientPanel — Slide-in drawer
+   ona&nel Atelier
+   ═══════════════════════════════════════════ */
+
+/* ── Overlay ──────────────────────────── */
+
+.ncp-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  animation: ncpOverlayIn 0.3s ease both;
+}
+
+@keyframes ncpOverlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Drawer ──────────────────────────────── */
+
+.ncp-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 420px;
+  height: 100vh;
+  height: 100dvh;
+  background: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -8px 0 40px rgba(0, 0, 0, 0.08);
+  animation: ncpSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  overflow-y: auto;
+}
+
+@keyframes ncpSlideIn {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+/* Scrollbar */
+.ncp-drawer::-webkit-scrollbar { width: 4px; }
+.ncp-drawer::-webkit-scrollbar-thumb { background: #e8e5e0; border-radius: 999px; }
+.ncp-drawer::-webkit-scrollbar-track { background: transparent; }
+
+/* ── Header ──────────────────────────────── */
+
+.ncp-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 1.5rem 1.5rem 1rem;
+  border-bottom: 0.5px solid #f5f3ef;
+  flex-shrink: 0;
+}
+
+.ncp-header__left {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.ncp-header__icon {
+  width: 40px;
+  height: 40px;
+  background: #f5f3ef;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: #1a1a1a;
+  flex-shrink: 0;
+}
+
+.ncp-header__title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 3px;
+  letter-spacing: -0.3px;
+}
+
+.ncp-header__subtitle {
+  font-size: 12.5px;
+  color: #1a1a1a;
+  opacity: 0.5;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ── Botón cerrar ──────────────────────── */
+
+.ncp-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  color: #1a1a1a;
+  opacity: 0.35;
+  flex-shrink: 0;
+  transition: opacity 0.2s ease, background 0.2s ease;
+}
+
+.ncp-close:hover {
+  opacity: 1;
+  background: #f5f3ef;
+}
+
+/* ── Formulario ──────────────────────────── */
+
+.ncp-form {
+  flex: 1;
+  padding: 1.25rem 1.5rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ── Filas ──────────────────────────────── */
+
+.ncp-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+/* ── Grupos ──────────────────────────────── */
+
+.ncp-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.ncp-group--full {
+  grid-column: span 2;
+}
+
+/* ── Label ──────────────────────────────── */
+
+.ncp-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1a1a1a;
+  letter-spacing: 0.2px;
+}
+
+/* ── Input wrapper ──────────────────────── */
+
+.ncp-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #FFFFFF;
+  border: 0.5px solid #e8e5e0;
+  border-radius: 10px;
+  padding: 0 13px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ncp-input-wrap:focus-within {
+  border-color: #1a1a1a;
+  box-shadow: 0 0 0 3px rgba(26, 26, 26, 0.06);
+}
+
+.ncp-input-wrap i {
+  font-size: 16px;
+  color: #1a1a1a;
+  opacity: 0.3;
+  flex-shrink: 0;
+  transition: opacity 0.2s ease;
+}
+
+.ncp-input-wrap:focus-within i {
+  opacity: 0.7;
+}
+
+/* ── Input ──────────────────────────────── */
+
+.ncp-input {
+  flex: 1;
+  padding: 10px 0;
+  font-size: 14px;
+  font-family: inherit;
+  color: #1a1a1a;
+  background: transparent;
+  border: none;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.ncp-input::placeholder {
+  color: #1a1a1a;
+  opacity: 0.25;
+  font-size: 13px;
+}
+
+/* ── Footer ──────────────────────────────── */
+
+.ncp-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 1rem 1.5rem 1.5rem;
+  border-top: 0.5px solid #f5f3ef;
+  flex-shrink: 0;
+}
+
+/* ── Botones ──────────────────────────────── */
+
+.ncp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  flex: 1;
+}
+
+.ncp-btn:active {
+  transform: scale(0.97);
+}
+
+/* Primario */
+.ncp-btn--primary {
+  background: #1a1a1a;
+  color: #fff;
+  border: none;
+  box-shadow: 0 4px 14px rgba(26, 26, 26, 0.12);
+}
+
+.ncp-btn--primary:hover {
+  background: #333;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(26, 26, 26, 0.18);
+}
+
+/* Outline */
+.ncp-btn--outline {
+  background: transparent;
+  color: #1a1a1a;
+  border: 0.5px solid #e8e5e0;
+}
+
+.ncp-btn--outline:hover {
+  background: #f5f3ef;
+  border-color: #d5d1ca;
+}
+
+/* ── Responsive ──────────────────────────── */
+
+@media (max-width: 480px) {
+  .ncp-drawer {
+    width: 100%;
+  }
+
+  .ncp-row {
+    grid-template-columns: 1fr;
+  }
+
+  .ncp-group--full {
+    grid-column: span 1;
+  }
+
+  .ncp-footer {
+    flex-direction: column-reverse;
+  }
+
+  .ncp-btn {
+    width: 100%;
+  }
+}

@@ -11,7 +11,7 @@
   letter-spacing: 0.5px;
 }
 
-.avatar-badge--gray  { background: #e8e5e0; color: #555; }
-.avatar-badge--blue  { background: #dceefb; color: #185FA5; }
-.avatar-badge--green { background: #d6f0e0; color: #0F6E56; }
-.avatar-badge--coral { background: #fde8e0; color: #993C1D; }
+.avatar-badge--gray  { background: #E7E5E0; color: #8A8A8A; }
+.avatar-badge--blue  { background: #E2EAF5; color: #2B5F8A; }
+.avatar-badge--green { background: #DCF0E5; color: #1A6E4E; }
+.avatar-badge--coral { background: #F8D8CC; color: #B8553A; }
