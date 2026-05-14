@@ -1,4 +1,4 @@
-import 'react';
+import { useEffect, useState } from 'react';
 
 import { motion } from 'framer-motion';
 
@@ -12,10 +12,18 @@ import { useNavigate } from 'react-router-dom';
 
 import styles from './gestion-personal.module.css';
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
+import { isAdmin } from '../../utils/session';
 
 const GestionPersonal = () => {
   useDocumentTitle("Gestión Personal");
   const navigate = useNavigate();
+
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const refresh = () => setTick((t) => t + 1);
+    window.addEventListener("userUpdate", refresh);
+    return () => window.removeEventListener("userUpdate", refresh);
+  }, []);
 
   const options = [
     {
@@ -24,13 +32,17 @@ const GestionPersonal = () => {
       path: '/gestion-clientes',
       iconClass: styles.blueIcon
     },
-    {
+  ];
+
+  // Solo admin puede ver "Gestionar Usuarios"
+  if (isAdmin()) {
+    options.push({
       title: 'Gestionar Usuarios',
       icon: <FiUserCheck />,
       path: '/gestion-usuarios',
       iconClass: styles.violetIcon
-    }
-  ];
+    });
+  }
 
   return (
     <div className={styles.page}>

@@ -17,9 +17,11 @@ const Formulario = () => {
     pass: "",
   });
 
+  const [fieldErrors, setFieldErrors] = useState({});
+
   const [loading, setLoading] = useState(false);
 
-  const [error, setError] = useState("");
+  const [generalError, setGeneralError] = useState("");
 
 
 
@@ -33,6 +35,14 @@ const Formulario = () => {
       ...formData,
       [e.target.name]: e.target.value,
     });
+
+    // Limpiar error del campo al escribir
+    if (fieldErrors[e.target.name]) {
+      setFieldErrors((prev) => ({ ...prev, [e.target.name]: "" }));
+    }
+
+    // Limpiar error general al escribir
+    if (generalError) setGeneralError("");
   };
 
 
@@ -44,27 +54,48 @@ const Formulario = () => {
   const handleSubmit = async (e) => {
 
     e.preventDefault();
-    console.log(formData);
     setLoading(true);
-
-    setError("");
+    setGeneralError("");
+    setFieldErrors({});
 
     try {
 
-      const data = await loginUser(formData);
+      const response = await loginUser(formData);
 
-      console.log(data);
+      console.log(response.data);
+
+      // Guardar datos del usuario en sessionStorage
+      sessionStorage.setItem("user", JSON.stringify(response.data));
 
       // Redireccionar dashboard
       navigate("/dashboard");
 
-    } catch (error) {
+    } catch (err) {
 
-      console.log(error);
+      const data = err.response?.data;
+      const status = err.response?.status;
 
-      setError(
-        error.response?.data?.message ||
-        "Error al iniciar sesión"
+      console.log(err);
+
+      // Error de validación (express-validator) → errores por campo
+      if (data?.errors) {
+        const mapped = {};
+        for (const [field, msgs] of Object.entries(data.errors)) {
+          mapped[field] = msgs[0]; // primer mensaje de error del campo
+        }
+        setFieldErrors(mapped);
+        return;
+      }
+
+      // Error de autenticación / negocio (AppError) → mensaje general
+      if (data?.error) {
+        setGeneralError(data.error);
+        return;
+      }
+
+      // Otro error inesperado
+      setGeneralError(
+        data?.message || "Error al iniciar sesión"
       );
 
     } finally {
@@ -89,6 +120,7 @@ const Formulario = () => {
         placeholder="ejemplo@onaandnel.com"
         value={formData.email}
         onChange={handleChange}
+        error={fieldErrors.email}
       />
 
       <Input
@@ -98,30 +130,8 @@ const Formulario = () => {
         placeholder="••••••••"
         value={formData.pass}
         onChange={handleChange}
+        error={fieldErrors.pass}
       />
-{/* 
-      <div className={styles.formOptions}>
-
-        <label className={styles.rememberMe}>
-          <input type="checkbox" />
-          Recordarme
-        </label>
-
-        <a href="#" className={styles.forgotPassword}>
-          ¿Olvidaste tu contraseña?
-        </a>
-
-      </div> */}
-
-
-      {
-        error && (
-          <p className={styles.errorMessage}>
-            {error}
-          </p>
-        )
-      }
-
 
       <Button
         type="submit"
@@ -135,6 +145,14 @@ const Formulario = () => {
             : "Iniciar Sesión"
         }
       </Button>
+
+      {
+        generalError && (
+          <p className={styles.generalError}>
+            {generalError}
+          </p>
+        )
+      }
 
     </form>
   );

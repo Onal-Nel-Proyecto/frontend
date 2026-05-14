@@ -1,4 +1,4 @@
-import 'react';
+import { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 // import { motion } from 'framer-motion';
 import {
@@ -10,8 +10,19 @@ import {
 } from 'react-icons/fi';
 
 import styles from './sidebar.module.css';
+import { isAdmin } from '../../../utils/session.js';
 
 const Sidebar = ({ isOpen, onClose }) => {
+
+  // Re-renderizar cuando cambie el usuario (login/logout en misma pestaña)
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const refresh = () => setTick((t) => t + 1);
+    window.addEventListener("userUpdate", refresh);
+    return () => window.removeEventListener("userUpdate", refresh);
+  }, []);
+
+  const esAdmin = isAdmin();
 
   const menuItems = [
     { name: 'Dashboard', icon: <FiHome />, path: '/dashboard' },
@@ -63,16 +74,18 @@ const Sidebar = ({ isOpen, onClose }) => {
             }
           </nav>
 
-          <div className={styles.footer}>
-            <SidebarItem
-              item={{
-                name: 'Configuración',
-                icon: <FiSettings />,
-                path: '/config'
-              }}
-              onClose={onClose}
-            />
-          </div>
+          {esAdmin && (
+            <div className={styles.footer}>
+              <SidebarItem
+                item={{
+                  name: 'Configuración',
+                  icon: <FiSettings />,
+                  path: '/config'
+                }}
+                onClose={onClose}
+              />
+            </div>
+          )}
 
         </div>
 

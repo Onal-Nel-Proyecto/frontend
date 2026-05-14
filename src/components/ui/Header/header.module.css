@@ -85,6 +85,16 @@
   gap: .75rem;
 }
 
+.userName {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-dark);
+  padding: 0.35rem 0.75rem;
+  background: rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
 .actionButton {
   width: 2.75rem;
   height: 2.75rem;
