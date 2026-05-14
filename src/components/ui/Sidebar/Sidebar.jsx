@@ -1,6 +1,11 @@
+// ================================================================
+// Sidebar — Barra de navegación lateral
+// Muestra enlaces a las secciones principales del sistema.
+// El footer con "Configuración" solo es visible para administradores.
+// ================================================================
+
 import { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
-// import { motion } from 'framer-motion';
 import {
   FiHome,
   FiShoppingBag,
@@ -10,11 +15,11 @@ import {
 } from 'react-icons/fi';
 
 import styles from './sidebar.module.css';
-import { isAdmin } from '../../../utils/session.js';
+import { isAdmin } from '../../../utils/session';
 
 const Sidebar = ({ isOpen, onClose }) => {
 
-  // Re-renderizar cuando cambie el usuario (login/logout en misma pestaña)
+  // Forzar re-render cuando cambie el usuario (login/logout)
   const [, setTick] = useState(0);
   useEffect(() => {
     const refresh = () => setTick((t) => t + 1);
@@ -24,6 +29,7 @@ const Sidebar = ({ isOpen, onClose }) => {
 
   const esAdmin = isAdmin();
 
+  // Ítems del menú principal (visibles para todos los roles)
   const menuItems = [
     { name: 'Dashboard', icon: <FiHome />, path: '/dashboard' },
     { name: 'Pedidos', icon: <FiShoppingBag />, path: '/pedidos' },
@@ -32,92 +38,52 @@ const Sidebar = ({ isOpen, onClose }) => {
 
   return (
     <>
-      {isOpen && (
-        <div
-          className={styles.overlay}
-          onClick={onClose}
-        />
-      )}
+      {/* Overlay para móvil */}
+      {isOpen && <div className={styles.overlay} onClick={onClose} />}
 
-      <aside
-        className={`${styles.sidebar} ${
-          isOpen ? styles.sidebarOpen : styles.sidebarClosed
-        }`}
-      >
-
+      <aside className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : styles.sidebarClosed}`}>
         <div className={styles.container}>
-
+          {/* Header móvil */}
           <div className={styles.mobileHeader}>
             <span className={styles.title}>Menú</span>
-
-            <button
-              onClick={onClose}
-              className={styles.closeButton}
-            >
+            <button onClick={onClose} className={styles.closeButton}>
               <FiX />
             </button>
           </div>
 
-          {/* <div className={styles.desktopIndicator}>
-            <div className={styles.indicatorBar} />
-          </div> */}
-
+          {/* Navegación principal */}
           <nav className={styles.nav}>
-            {
-              menuItems.map(item => (
-                <SidebarItem
-                  key={item.name}
-                  item={item}
-                  onClose={onClose}
-                />
-              ))
-            }
+            {menuItems.map((item) => (
+              <SidebarItem key={item.name} item={item} onClose={onClose} />
+            ))}
           </nav>
 
+          {/* Footer: Configuración — solo admin */}
           {esAdmin && (
             <div className={styles.footer}>
               <SidebarItem
-                item={{
-                  name: 'Configuración',
-                  icon: <FiSettings />,
-                  path: '/config'
-                }}
+                item={{ name: 'Configuración', icon: <FiSettings />, path: '/config' }}
                 onClose={onClose}
               />
             </div>
           )}
-
         </div>
-
       </aside>
     </>
   );
 };
 
+// Componente interno para cada ítem del menú
 const SidebarItem = ({ item, onClose }) => (
   <NavLink
     to={item.path}
     onClick={onClose}
     className={({ isActive }) =>
-      `${styles.navItem} ${
-        isActive ? styles.active : styles.inactive
-      }`
+      `${styles.navItem} ${isActive ? styles.active : styles.inactive}`
     }
   >
-
-    <span className={styles.icon}>
-      {item.icon}
-    </span>
-
-    <span className={styles.label}>
-      {item.name}
-    </span>
-
-
-    {/* <motion.div
-      layoutId='active-indicator'
-      className={styles.dot}
-    /> */}
+    <span className={styles.icon}>{item.icon}</span>
+    <span className={styles.label}>{item.name}</span>
   </NavLink>
 );
 

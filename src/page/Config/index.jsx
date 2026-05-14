@@ -1,3 +1,11 @@
+// ================================================================
+// Configuración — Página de administración del sistema
+// Agrupa módulos de configuración (Categorías, Copia de seguridad,
+// Medidas) como cards en filas verticales. Al hacer clic en una
+// card se muestra un placeholder InConstruction.
+// Solo visible para usuarios con rol ADMINISTRADOR.
+// ================================================================
+
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
@@ -11,6 +19,8 @@ import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import InConstruction from '../../components/ui/feedback/InConstruction/InConstruction';
 import styles from './config.module.css';
 
+// ─── Opciones de configuración ───
+// Cada objeto: id único, título, descripción, icono y color para el icono.
 const opciones = [
   {
     id: 'categorias',
@@ -35,19 +45,21 @@ const opciones = [
   },
 ];
 
+// ================================================================
+// COMPONENTE PRINCIPAL
+// ================================================================
+
 const Config = () => {
   useDocumentTitle('Configuración');
+  // selected = { id, titulo, ... } cuando el usuario hace clic en una card
   const [selected, setSelected] = useState(null);
 
-  // Si hay un módulo seleccionado, mostrar InConstruction
+  // Si hay un módulo seleccionado → mostrar InConstruction con botón volver
   if (selected) {
     return (
       <div className={styles.page}>
         <div className={styles.header}>
-          <button
-            className={styles.backBtn}
-            onClick={() => setSelected(null)}
-          >
+          <button className={styles.backBtn} onClick={() => setSelected(null)}>
             <FiArrowLeft />
             Volver a configuración
           </button>
@@ -57,8 +69,10 @@ const Config = () => {
     );
   }
 
+  // Vista principal: lista de módulos de configuración
   return (
     <div className={styles.page}>
+      {/* Header de la página */}
       <div className={styles.header}>
         <h2 className={styles.title}>Configuración</h2>
         <p className={styles.subtitle}>
@@ -67,6 +81,7 @@ const Config = () => {
         </p>
       </div>
 
+      {/* Lista de cards en filas (cada card ocupa todo el ancho) */}
       <div className={styles.list}>
         {opciones.map((item, index) => (
           <motion.button
@@ -77,6 +92,7 @@ const Config = () => {
             className={styles.card}
             onClick={() => setSelected(item)}
           >
+            {/* Icono con fondo semitransparente del color del módulo */}
             <div
               className={styles.iconWrapper}
               style={{ background: `${item.color}18`, color: item.color }}
@@ -84,11 +100,13 @@ const Config = () => {
               {item.icono}
             </div>
 
+            {/* Título + descripción */}
             <div className={styles.cardBody}>
               <h3 className={styles.cardTitle}>{item.titulo}</h3>
               <p className={styles.cardDesc}>{item.descripcion}</p>
             </div>
 
+            {/* Flecha indicadora → */}
             <div className={styles.arrow}>
               <FiArrowRight />
             </div>

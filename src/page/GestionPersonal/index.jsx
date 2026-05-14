@@ -1,13 +1,16 @@
+// ================================================================
+// Gestión Personal — Página de acceso a gestión de clientes y usuarios
+// Muestra dos cards de acceso: "Gestionar Clientes" (visible para
+// todos) y "Gestionar Usuarios" (solo administradores).
+// ================================================================
+
 import { useEffect, useState } from 'react';
-
 import { motion } from 'framer-motion';
-
 import {
   FiUsers,
   FiUserCheck,
   FiArrowRight
 } from 'react-icons/fi';
-
 import { useNavigate } from 'react-router-dom';
 
 import styles from './gestion-personal.module.css';
@@ -18,6 +21,7 @@ const GestionPersonal = () => {
   useDocumentTitle("Gestión Personal");
   const navigate = useNavigate();
 
+  // Forzar re-render cuando cambie el usuario (para ocultar/mostrar opciones admin)
   const [, setTick] = useState(0);
   useEffect(() => {
     const refresh = () => setTick((t) => t + 1);
@@ -25,6 +29,7 @@ const GestionPersonal = () => {
     return () => window.removeEventListener("userUpdate", refresh);
   }, []);
 
+  // Opciones disponibles — "Gestionar Usuarios" solo si es admin
   const options = [
     {
       title: 'Gestionar Clientes',
@@ -34,7 +39,6 @@ const GestionPersonal = () => {
     },
   ];
 
-  // Solo admin puede ver "Gestionar Usuarios"
   if (isAdmin()) {
     options.push({
       title: 'Gestionar Usuarios',
@@ -46,68 +50,39 @@ const GestionPersonal = () => {
 
   return (
     <div className={styles.page}>
-
+      {/* Header de la página */}
       <div className={styles.header}>
-
-        <h2 className={styles.title}>
-          Gestión Personal
-        </h2>
-
+        <h2 className={styles.title}>Gestión Personal</h2>
         <p className={styles.subtitle}>
           Administra la base de datos de clientes y usuarios del sistema
         </p>
-
       </div>
 
+      {/* Grid de cards de acceso */}
       <div className={styles.grid}>
-
-        {
-          options.map((option, index) => (
-
-            <motion.button
-              key={option.title}
-
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-
-              transition={{
-                delay: index * 0.1
-              }}
-
-              onClick={() => navigate(option.path)}
-
-              className={styles.card}
-            >
-
-              <div className={`${styles.iconWrapper} ${option.iconClass}`}>
-                {option.icon}
-              </div>
-
-              <h3 className={styles.cardTitle}>
-                {option.title}
-              </h3>
-
-              <p className={styles.cardDescription}>
-                Accede a la configuración avanzada y listados detallados de este módulo.
-              </p>
-
-              <div className={styles.action}>
-
-                <span>
-                  Configurar
-                </span>
-
-                <FiArrowRight />
-
-              </div>
-
-            </motion.button>
-
-          ))
-        }
-
+        {options.map((option, index) => (
+          <motion.button
+            key={option.title}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: index * 0.1 }}
+            onClick={() => navigate(option.path)}
+            className={styles.card}
+          >
+            <div className={`${styles.iconWrapper} ${option.iconClass}`}>
+              {option.icon}
+            </div>
+            <h3 className={styles.cardTitle}>{option.title}</h3>
+            <p className={styles.cardDescription}>
+              Accede a la configuración avanzada y listados detallados de este módulo.
+            </p>
+            <div className={styles.action}>
+              <span>Configurar</span>
+              <FiArrowRight />
+            </div>
+          </motion.button>
+        ))}
       </div>
-
     </div>
   );
 };

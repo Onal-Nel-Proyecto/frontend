@@ -1,18 +1,20 @@
+// ================================================================
+// Card — Componente reutilizable tipo "card" con fondo blanco
+// semitransparente, backdrop-filter blur, bordes redondeados y
+// sombra suave. Soporta hover con elevación.
+//
+// Props:
+//   children  → contenido interno
+//   className → clases CSS adicionales
+//   onClick   → manejador de clic
+//   as        → etiqueta HTML: 'div' (default) | 'button' | 'a'
+// ================================================================
+
 import styles from './card.module.css';
 
-/**
- * Componente Card reutilizable.
- * Fondo blanco semitransparente + backdrop-filter, bordes redondeados, sombra.
- *
- * @param {{ children, className, onClick, as }} props
- *   - as: 'div' (default) | 'button' | 'a' — cambia la etiqueta HTML
- */
 const Card = ({ children, className = '', onClick, as: Tag = 'div' }) => {
   return (
-    <Tag
-      className={`${styles.card} ${className}`}
-      onClick={onClick}
-    >
+    <Tag className={`${styles.card} ${className}`} onClick={onClick}>
       {children}
     </Tag>
   );

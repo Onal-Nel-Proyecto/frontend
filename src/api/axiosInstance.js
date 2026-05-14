@@ -1,3 +1,9 @@
+// ================================================================
+// axiosInstance — Instancia central de Axios
+// Configura baseURL, credenciales (cookies) e intercepta
+// respuestas 401 para refrescar el token automáticamente.
+// ================================================================
+
 import axios from "axios";
 import { AUTH_ENDPOINTS } from "./endpoints/authEndpoints";
 

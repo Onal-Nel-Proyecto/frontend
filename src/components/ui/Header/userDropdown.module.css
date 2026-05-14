@@ -92,3 +92,36 @@
   color: var(--text-soft);
   font-size: 0.9rem;
 }
+
+/* ── Notificaciones ── */
+
+.notifTitle {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.notifEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.5rem 0.5rem;
+}
+
+.notifIcon {
+  font-size: 2rem;
+  color: var(--text-soft);
+  opacity: 0.5;
+}
+
+.notifText {
+  font-size: 0.82rem;
+  color: var(--text-soft);
+  text-align: center;
+  line-height: 1.5;
+  max-width: 14rem;
+}

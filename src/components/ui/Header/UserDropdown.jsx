@@ -1,3 +1,10 @@
+// ================================================================
+// UserDropdown — Menú contextual del usuario
+// Aparece al hacer clic en el icono FiUser del Header.
+// Muestra: avatar, nombre completo, rol del usuario y botón
+// "Cerrar sesión". Maneja logout limpio (cookies + sessionStorage).
+// ================================================================
+
 import { useState, useRef, useEffect } from 'react';
 import { FiLogOut, FiUser } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
@@ -11,7 +18,7 @@ const UserDropdown = () => {
   const ref = useRef(null);
   const navigate = useNavigate();
 
-  // Leer usuario desde sessionStorage
+  // Leer usuario desde sessionStorage y escuchar actualizaciones
   const syncUser = () => {
     try {
       const raw = sessionStorage.getItem("user");
@@ -27,7 +34,7 @@ const UserDropdown = () => {
     return () => window.removeEventListener("userUpdate", syncUser);
   }, []);
 
-  // Cerrar dropdown al hacer clic fuera
+  // Cerrar menú al hacer clic fuera del componente
   useEffect(() => {
     if (!open) return;
     const handleClick = (e) => {
@@ -39,11 +46,12 @@ const UserDropdown = () => {
     return () => document.removeEventListener("mousedown", handleClick);
   }, [open]);
 
+  // Cerrar sesión: llama al backend, limpia sessionStorage y redirige
   const handleLogout = async () => {
     try {
-      await logoutUser();
+      await logoutUser();          // limpia cookies en el backend
     } catch {
-      // aunque falle, limpiamos sesión local
+      /* incluso si falla el backend, limpiamos sesión local */
     }
     sessionStorage.removeItem("user");
     window.dispatchEvent(new Event("userUpdate"));
@@ -52,6 +60,7 @@ const UserDropdown = () => {
 
   return (
     <div className={styles.wrapper} ref={ref}>
+      {/* Botón que abre/cierra el menú */}
       <button
         className={`${styles.trigger} ${open ? styles.triggerActive : ''}`}
         onClick={() => setOpen((o) => !o)}
@@ -60,10 +69,12 @@ const UserDropdown = () => {
         <FiUser />
       </button>
 
+      {/* Card desplegable */}
       {open && (
         <Card className={styles.dropdown} as="div">
           {user ? (
             <>
+              {/* Info del usuario */}
               <div className={styles.userInfo}>
                 <div className={styles.avatar}>
                   <FiUser />
@@ -78,10 +89,8 @@ const UserDropdown = () => {
                 </div>
               </div>
 
-              <button
-                className={styles.logoutBtn}
-                onClick={handleLogout}
-              >
+              {/* Botón de cerrar sesión */}
+              <button className={styles.logoutBtn} onClick={handleLogout}>
                 <FiLogOut />
                 Cerrar sesión
               </button>
