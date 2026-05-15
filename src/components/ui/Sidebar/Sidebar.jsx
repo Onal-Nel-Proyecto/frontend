@@ -32,7 +32,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   // Ítems del menú principal (visibles para todos los roles)
   const menuItems = [
     { name: 'Dashboard', icon: <FiHome />, path: '/dashboard' },
-    { name: 'Pedidos', icon: <FiShoppingBag />, path: '/pedidos' },
+    { name: 'Pedidos', icon: <FiShoppingBag />, path: '/pedidos/dash' },
     { name: 'Gestión Personal', icon: <FiUsers />, path: '/gestion-personal' },
   ];
 

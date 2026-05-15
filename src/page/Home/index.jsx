@@ -14,7 +14,7 @@ import {
   FiCheckCircle,
   FiAlertTriangle,
   FiFileText,
-  FiTrendingUp,
+  // FiTrendingUp,
   FiPlusCircle,
   FiUserPlus,
   FiShoppingCart,
@@ -32,42 +32,42 @@ import styles from "./home.module.css";
 // Cada objeto define: key (para mapear desde la API), label visible,
 // icono de react-icons y color pastel asociado.
 const kpiConfig = [
-  { key: "activos",   label: "Pedidos Activos",  icon: <FiShoppingBag />,  color: "var(--pastel-blue)" },
-  { key: "pendientes", label: "Pendientes",       icon: <FiClock />,        color: "var(--pastel-orange)" },
-  { key: "en_proceso", label: "En Proceso",    icon: <FiActivity />,     color: "var(--pastel-violet)" },
-  { key: "terminados", label: "Entregados",       icon: <FiCheckCircle />,  color: "var(--pastel-green)" },
+  { key: "activos", label: "Pedidos Activos", icon: <FiShoppingBag />, color: "var(--pastel-blue)" },
+  { key: "pendientes", label: "Pendientes", icon: <FiClock />, color: "var(--pastel-orange)" },
+  { key: "en_proceso", label: "En Proceso", icon: <FiActivity />, color: "var(--pastel-violet)" },
+  { key: "terminados", label: "Entregados", icon: <FiCheckCircle />, color: "var(--pastel-green)" },
 ];
 
 // Mapa de estados que vienen del backend → etiqueta + color para el gráfico
 const estadoMap = {
-  pendiente:  { label: "Pendiente",  color: "var(--pastel-orange)" },
+  pendiente: { label: "Pendiente", color: "var(--pastel-orange)" },
   en_proceso: { label: "En proceso", color: "var(--pastel-violet)" },
-  terminado:  { label: "Terminado",  color: "var(--pastel-green)" },
+  terminado: { label: "Terminado", color: "var(--pastel-green)" },
 };
 
 // ─── Datos mock (provisionales hasta que existan endpoints) ───
 
 const activities = [
-  { type: "critical", msg: "Stock bajo: Tela seda blanca (5mts)",  time: "hace 5 min",  icon: <FiAlertTriangle /> },
-  { type: "warning",  msg: "Pago pendiente: Cliente Juan Pérez",    time: "hace 20 min", icon: <FiClock /> },
-  { type: "info",     msg: "Pedido #450 próximo a entrega",         time: "hace 1 hora", icon: <FiActivity /> },
-  { type: "blue",     msg: "Compra registrada: Insumos costura",    time: "hace 3 horas",icon: <FiFileText /> },
-  { type: "success",  msg: "Pedido #445 completado",                time: "hace 5 horas",icon: <FiCheckCircle /> },
+  { type: "critical", msg: "Stock bajo: Tela seda blanca (5mts)", time: "hace 5 min", icon: <FiAlertTriangle /> },
+  { type: "warning", msg: "Pago pendiente: Cliente Juan Pérez", time: "hace 20 min", icon: <FiClock /> },
+  { type: "info", msg: "Pedido #450 próximo a entrega", time: "hace 1 hora", icon: <FiActivity /> },
+  { type: "blue", msg: "Compra registrada: Insumos costura", time: "hace 3 horas", icon: <FiFileText /> },
+  { type: "success", msg: "Pedido #445 completado", time: "hace 5 horas", icon: <FiCheckCircle /> },
 ];
 
 const stockCritico = [
   { nombre: "Tela Seda Blanca", cantidad: 5, max: 50, color: "#ef4444" },
-  { nombre: "Hilo Dorado",      cantidad: 12, max: 60, color: "#f59e0b" },
-  { nombre: "Botones Perla",    cantidad: 8, max: 40, color: "#ef4444" },
+  { nombre: "Hilo Dorado", cantidad: 12, max: 60, color: "#f59e0b" },
+  { nombre: "Botones Perla", cantidad: 8, max: 40, color: "#ef4444" },
 ];
 
 // ─── Acciones de acceso rápido ───
 // admin: true → solo visible para usuarios con rol ADMINISTRADOR
 const actions = [
-  { label: "Nuevo Pedido",       icon: <FiPlusCircle />,    path: "/pedidos",            color: "#3b82f6", admin: false },
-  { label: "Registrar Cliente",  icon: <FiUserPlus />,      path: "/gestion-clientes",   color: "#8b5cf6", admin: false },
-  { label: "Registrar Compra",   icon: <FiShoppingCart />,  path: "/compras",            color: "#10b981", admin: false },
-  { label: "Generar Reporte",    icon: <FiBarChart2 />,     path: "/reportes",           color: "#f59e0b", admin: true },
+  { label: "Nuevo Pedido", icon: <FiPlusCircle />, path: "/pedidos", color: "#3b82f6", admin: false },
+  { label: "Registrar Cliente", icon: <FiUserPlus />, path: "/gestion-clientes", color: "#8b5cf6", admin: false },
+  { label: "Registrar Compra", icon: <FiShoppingCart />, path: "/compras", color: "#10b981", admin: false },
+  { label: "Generar Reporte", icon: <FiBarChart2 />, path: "/reportes", color: "#f59e0b", admin: true },
 ];
 
 // ================================================================
@@ -107,7 +107,7 @@ const Home = () => {
     let value = 0;
     if (resumen) {
       switch (cfg.key) {
-        case "activos":    value = resumen.total_pedidos - resumen.terminados; break;
+        case "activos": value = resumen.total_pedidos - resumen.terminados; break;
         case "pendientes": value = resumen.pendientes; break;
         case "en_proceso": value = resumen.en_proceso; break;
         case "terminados": value = resumen.terminados; break;
@@ -117,13 +117,26 @@ const Home = () => {
   });
 
   // Filtrar y mapear estados que existen en estadoMap para el gráfico
-  const chartData = pedidosEstado
-    .filter((e) => estadoMap[e.estado])
-    .map((e) => ({
-      label: estadoMap[e.estado].label,
+const chartData = pedidosEstado
+  .map((e) => {
+
+    const key = e.estado
+      .toLowerCase()
+      .replace(/\s+/g, '_');
+
+    const estado = estadoMap[key];
+
+    if (!estado) return null;
+
+    return {
+      label: estado.label,
       value: e.cantidad,
-      color: estadoMap[e.estado].color,
-    }));
+      color: estado.color,
+    };
+
+  })
+  .filter(Boolean);
+  console.log(chartData)
   const chartTotal = chartData.reduce((s, d) => s + d.value, 0);
 
   return (
@@ -200,10 +213,10 @@ const KPICard = ({ label, value, icon, color, delay, loading }) => (
 // Cada activity tiene: tipo (critical/warning/info/blue/success), mensaje y tiempo.
 const typeStyle = {
   critical: { bg: "#fef2f2", text: "#ef4444", border: "#fecaca" },
-  warning:  { bg: "#fffbeb", text: "#f59e0b", border: "#fde68a" },
-  success:  { bg: "#ecfdf5", text: "#10b981", border: "#a7f3d0" },
-  blue:     { bg: "#eff6ff", text: "#3b82f6", border: "#bfdbfe" },
-  info:     { bg: "#f0f9ff", text: "#0ea5e9", border: "#bae6fd" },
+  warning: { bg: "#fffbeb", text: "#f59e0b", border: "#fde68a" },
+  success: { bg: "#ecfdf5", text: "#10b981", border: "#a7f3d0" },
+  blue: { bg: "#eff6ff", text: "#3b82f6", border: "#bfdbfe" },
+  info: { bg: "#f0f9ff", text: "#0ea5e9", border: "#bae6fd" },
 };
 
 const SystemActivities = () => (

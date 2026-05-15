@@ -7,6 +7,7 @@ import AdminRoute from "./adminRoute";
 import NotFound from "../page/NotFount";
 import MainLayout from "../layout/MainLayout/mainLayout";
 import GestionPersonal from "../page/GestionPersonal";
+import Pedidos from "../page/Pedidos";
 import Config from "../page/Config";
 import InConstruction from "../components/ui/feedback/InConstruction/InConstruction";
 
@@ -43,8 +44,12 @@ const AppRoutes = () => {
             element={<InConstruction title="Pedidos - Inicio" />}
           />
           <Route
-            path="/pedidos/pedidos"
-            element={<InConstruction title="Pedidos" />}
+            path="/pedidos"
+            element={<Pedidos />}
+          />
+          <Route
+            path="/pedidos/:id"
+            element={<InConstruction title="Detalle del pedido" />}
           />
           <Route
             path="/pedidos/entregas"

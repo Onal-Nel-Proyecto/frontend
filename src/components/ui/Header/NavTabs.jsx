@@ -22,8 +22,8 @@ const modules = [
   {
     path: '/pedidos',
     tabs: [
-      { label: 'Inicio',    to: '/pedidos',          icon: <FiHome /> },
-      { label: 'Pedidos',   to: '/pedidos/pedidos',  icon: <FiShoppingBag /> },
+      { label: 'Inicio',    to: '/pedidos/dash', icon: <FiHome /> },
+      { label: 'Pedidos',   to: '/pedidos', icon: <FiShoppingBag />, matchPattern: /^\/pedidos\/(?!dash$|entregas).+/ },
       { label: 'Entregas',  to: '/pedidos/entregas', icon: <FiTruck /> },
     ],
   },
@@ -63,7 +63,12 @@ const NavTabs = ({ className = '' }) => {
           to={tab.to}
           end={tab.to === activeModule.path}
           className={({ isActive }) =>
-            `${styles.tab} ${isActive ? styles.active : ''}`
+            `${styles.tab} ${
+              /* activar también cuando la ruta es /pedidos/:id */
+              isActive || (tab.matchPattern && tab.matchPattern.test(pathname))
+                ? styles.active
+                : ''
+            }`
           }
         >
           <span className={styles.tabIcon}>{tab.icon}</span>
