@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 
-
 import styles from './main-layout.module.css';
+import navTabsStyles from '../../components/ui/Header/navTabs.module.css';
 import Sidebar from '../../components/ui/Sidebar/Sidebar';
 import Header from '../../components/ui/Header/Header';
+import NavTabs from '../../components/ui/Header/NavTabs';
+
 
 const MainLayout = () => {
 
@@ -33,6 +35,9 @@ const MainLayout = () => {
         </main>
 
       </div>
+
+      {/* NavTabs versión móvil — barra inferior fija */}
+      <NavTabs className={navTabsStyles.navMobile} />
 
     </div>
   );

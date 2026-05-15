@@ -1,0 +1,154 @@
+/* ───────────────────────────────────────
+   NavTabs — versión escritorio (en header)
+   Se usa con className="navDesktop"
+   ─────────────────────────────────────── */
+
+.navDesktop {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ───────────────────────────────────────
+   NavTabs — versión móvil (barra inferior)
+   Se usa con className="navMobile"
+   ─────────────────────────────────────── */
+
+.navMobile {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 30;
+  display: flex;
+  justify-content: space-around;
+  align-items: stretch;
+  gap: 0;
+  height: auto;
+  padding: 0.35rem 0.5rem;
+  background: var(--color-primary);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.06);
+}
+
+/* ── Cada tab (compartido) ── */
+
+.navDesktop .tab,
+.navMobile .tab {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 100%;
+  padding: 0 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-soft);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.2s ease;
+}
+
+/* Línea inferior solo en escritorio */
+.navDesktop .tab::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0.85rem;
+  right: 0.85rem;
+  height: 2.5px;
+  border-radius: 999px;
+  background: transparent;
+  transition:
+    background 0.25s ease,
+    transform 0.25s ease;
+  transform: scaleX(0);
+}
+
+.navDesktop .tab:hover {
+  color: var(--text-dark);
+}
+
+.navDesktop .tab:hover::after {
+  background: rgba(0, 0, 0, 0.18);
+  transform: scaleX(1);
+}
+
+.navDesktop .tab.active {
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+.navDesktop .tab.active::after {
+  background: rgba(0, 0, 0, 0.55);
+  transform: scaleX(1);
+}
+
+/* ── Estilo móvil ── */
+
+.navMobile .tab {
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  height: auto;
+  padding: 0.3rem 0.25rem;
+  border-radius: 0.65rem;
+  font-size: 0.65rem;
+  transition: background 0.2s ease;
+}
+
+.navMobile .tab::after {
+  display: none;
+}
+
+.navMobile .tab:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.navMobile .tab.active {
+  background: rgba(0, 0, 0, 0.06);
+  font-weight: 600;
+}
+
+.navMobile .tabIcon {
+  font-size: 1.15rem;
+}
+
+.navMobile .tabLabel {
+  font-size: 0.62rem;
+  white-space: nowrap;
+}
+
+/* ── Icono compartido ── */
+
+.tabIcon {
+  display: flex;
+  align-items: center;
+  font-size: 0.95rem;
+}
+
+.tabLabel {
+  line-height: 1;
+}
+
+/* ───────────────────────────────────────
+   Visibilidad por pantalla
+   ─────────────────────────────────────── */
+
+@media (max-width: 1024px) {
+  .navDesktop {
+    display: none;
+  }
+}
+
+@media (min-width: 1025px) {
+  .navMobile {
+    display: none;
+  }
+}
