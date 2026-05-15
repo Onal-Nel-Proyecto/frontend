@@ -24,12 +24,6 @@ const AppRoutes = () => {
 
       </Route>
 
-      {/* ClientDirectory con su propio layout (sidebar + topbar) */}
-      <Route
-        path="/gestion-clientes"
-        element={<ClientDirectory />}
-      />
-
       <Route path="/" element={<MainLayout />}>
         {/* PRIVATE ROUTES */}
         <Route element={<PrivateRoute />}>
@@ -37,6 +31,10 @@ const AppRoutes = () => {
           <Route
             path="/dashboard"
             element={<Home />}
+          />
+          <Route
+            path="/gestion-clientes"
+            element={<ClientDirectory />}
           />
           <Route
             path="/pedidos"

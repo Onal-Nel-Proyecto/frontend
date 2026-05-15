@@ -1,7 +1,5 @@
 import React, { useState } from 'react'
-import Sidebar          from '../components/layout/Sidebar'
-import NewClientPanel from '../page/RegisterClient'
-import TopBar           from '../components/layout/TopBar'
+import NewClientPanel   from '../page/RegisterClient'
 import StatCard         from '../components/stats/StatCard'
 import GrowthCard       from '../components/stats/GrowthCard'
 import TableFilters     from '../components/table/TableFilters'
@@ -47,9 +45,8 @@ const MOCK_CLIENTS = [
 ]
 
 const ClientDirectory = () => {
-  const [activeNav, setActiveNav]     = useState('clients')
   const [showRegister, setShowRegister] = useState(false)
-  const [clients, setClients]         = useState(MOCK_CLIENTS)
+  const [clients, setClients]           = useState(MOCK_CLIENTS)
 
   const handleFilterChange = (filters) => {
     // Aquí conectarías con tu API para filtrar
@@ -62,89 +59,71 @@ const ClientDirectory = () => {
   }
 
   return (
-    <div className="app-shell">
+    <div className="cd-content">
 
-      {/* Sidebar izquierdo */}
-      <Sidebar
-        activeItem={activeNav}
-        onNavigate={setActiveNav}
-      />
-
-      {/* Área principal */}
-      <div className="main-area">
-
-        {/* Barra superior */}
-        <TopBar userName="Elena Rossi" userRole="Atelier Manager" />
-
-        {/* Contenido scrollable */}
-        <div className="page-content">
-
-          {/* Encabezado de página */}
-          <div className="page-header">
-            <div>
-              <h1 className="page-title">Directorio de Clientes</h1>
-              <p className="page-subtitle">
-                Gestiona tu base de datos de clientes para agilizar
-                el proceso de pedidos personalizados y seguimiento de confección.
-              </p>
-            </div>
-            <button
-              className="btn-primary"
-              onClick={() => setShowRegister(true)}
-            >
-              <i className="ti ti-user-plus" aria-hidden="true" />
-              Nuevo Cliente
-            </button>
-          </div>
-
-          {/* Grid de estadísticas */}
-          <div className="stats-grid">
-            <StatCard
-              icon="ti-users"
-              label="Total Clientes"
-              value={342}
-            />
-            <StatCard
-              icon="ti-star"
-              label="Clientes VIP"
-              value={48}
-              highlight
-            />
-            <StatCard
-              icon="ti-shopping-cart"
-              label="Pedidos Activos"
-              value={127}
-            />
-            <GrowthCard
-              percentage="+12.4%"
-              period="Crecimiento Mensual"
-              description="Continúas expandiendo tu presencia en el mercado de alta costura este trimestre."
-            />
-          </div>
-
-          {/* Sección tabla */}
-          <div className="table-section">
-            <TableFilters
-              onFilterChange={handleFilterChange}
-              onExport={handleExport}
-            />
-            <ContactTable clients={clients} />
-          </div>
-
-          {/* Fila inferior de cards */}
-          <div className="bottom-row">
-            <MaintenanceCard
-              onCta={() => console.log('Configurar alertas')}
-            />
-            <InsightsCard
-              onCta={() => console.log('Ver reporte')}
-            />
-          </div>
-
+      {/* Encabezado de página */}
+      <div className="cd-header">
+        <div>
+          <h1 className="cd-title">Directorio de Clientes</h1>
+          <p className="cd-subtitle">
+            Gestiona tu base de datos de clientes para agilizar
+            el proceso de pedidos personalizados y seguimiento de confección.
+          </p>
         </div>
+        <button
+          className="cd-btn-primary"
+          onClick={() => setShowRegister(true)}
+        >
+          <i className="ti ti-user-plus" aria-hidden="true" />
+          Nuevo Cliente
+        </button>
       </div>
 
-      {/* Modal de registro */}
+      {/* Grid de estadísticas */}
+      <div className="stats-grid">
+        <StatCard
+          icon="ti-users"
+          label="Total Clientes"
+          value={342}
+        />
+        <StatCard
+          icon="ti-star"
+          label="Clientes VIP"
+          value={48}
+          highlight
+        />
+        <StatCard
+          icon="ti-shopping-cart"
+          label="Pedidos Activos"
+          value={127}
+        />
+        <GrowthCard
+          percentage="+12.4%"
+          period="Crecimiento Mensual"
+          description="Continúas expandiendo tu presencia en el mercado de alta costura este trimestre."
+        />
+      </div>
+
+      {/* Sección tabla */}
+      <div className="table-section">
+        <TableFilters
+          onFilterChange={handleFilterChange}
+          onExport={handleExport}
+        />
+        <ContactTable clients={clients} />
+      </div>
+
+      {/* Fila inferior de cards */}
+      <div className="bottom-row">
+        <MaintenanceCard
+          onCta={() => console.log('Configurar alertas')}
+        />
+        <InsightsCard
+          onCta={() => console.log('Ver reporte')}
+        />
+      </div>
+
+      {/* Drawer de registro */}
       {showRegister && (
         <NewClientPanel isOpen={showRegister} onClose={() => setShowRegister(false)} />
       )}

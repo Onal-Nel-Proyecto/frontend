@@ -1,10 +1,10 @@
 /* ═══════════════════════════════════════════
-   GrowthCard — ona&nel Dashboard
+   GrowthCard — Dashboard
    ═══════════════════════════════════════════ */
 
 .growth-card {
-  background: #1D1D1F;
-  border-radius: 18px;
+  background: var(--color-neutral, #2E2E2E);
+  border-radius: var(--radius-md, 18px);
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
@@ -38,12 +38,12 @@
   font-weight: 700;
   line-height: 1;
 }
-.growth-card__percent.positive { color: #6BE39A; }
+.growth-card__percent.positive { color: var(--pastel-green, #86efac); }
 .growth-card__percent.negative { color: #EB5757; }
 
 .growth-card__percent-row i {
   font-size: 22px;
-  color: #6BE39A;
+  color: var(--pastel-green, #86efac);
 }
 
 .growth-card__desc {
