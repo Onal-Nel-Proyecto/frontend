@@ -1,6 +1,6 @@
 import { FiPlus } from 'react-icons/fi';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import TablaPedidos from './TablaPedidos';
+import TablaPedidos from '../../features/pedidos/components/TablaPedidos';
 import styles from './pedidos.module.css';
 
 const Pedidos = () => {
