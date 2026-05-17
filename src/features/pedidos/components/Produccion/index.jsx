@@ -58,7 +58,7 @@ const Produccion = () => {
     .filter((d) => d.pendiente > 0);
 
   const todosCompletos = detallesPendientes.length === 0;
-  const totalEnProduccion = producciones.filter((p) => p.estado?.toUpperCase() !== 'TERMINADO').length;
+  const totalEnProduccion = producciones.filter((p) => p.estado?.toUpperCase() !== 'TERMINADO' && p.estado?.toUpperCase() !== 'CANCELADO').length;
   const totalTerminadas = producciones.filter((p) => p.estado?.toUpperCase() === 'TERMINADO').length;
 
   const handleConfirmAction = async () => {

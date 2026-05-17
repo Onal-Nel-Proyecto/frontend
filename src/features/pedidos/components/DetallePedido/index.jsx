@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { FiPlus, FiUpload, FiEye, FiTrash2, FiImage } from 'react-icons/fi';
 import Alert from '../../../../components/ui/feedback/Alert';
+import LoadingOverlay from '../../../../components/ui/feedback/LoadingOverlay';
 import { deleteDetalle } from '../../services/pedidosService';
 import styles from '../../pages/PedidoSeleccionado/pedido_seleccionado.module.css';
 
@@ -13,16 +14,40 @@ const DetallePedido = () => {
   const { pedido, openDetallePanel, isCanceled } = useOutletContext();
   const detalles = pedido.detalles_pedido || [];
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  const [resultAlert, setResultAlert] = useState(null);
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
     const id = deleteTarget;
     setDeleteTarget(null);
+    setDeleting(true);
     try {
-      await deleteDetalle(pedido.pedido_id, id);
-      window.location.reload();
-    } catch {
-      // error silencioso
+      const resp = await deleteDetalle(pedido.pedido_id, id);
+      setDeleting(false);
+      if (resp?.status) {
+        setResultAlert({
+          type: 'success',
+          title: 'Detalle eliminado',
+          message: resp.msg || 'El detalle se eliminó correctamente',
+          onClose: () => { setResultAlert(null); window.location.reload(); },
+        });
+      } else {
+        setResultAlert({
+          type: 'error',
+          title: 'Error',
+          message: resp?.msg || 'No se pudo eliminar el detalle',
+          onClose: () => setResultAlert(null),
+        });
+      }
+    } catch (err) {
+      setDeleting(false);
+      setResultAlert({
+        type: 'error',
+        title: 'Error',
+        message: err?.response?.data?.error || 'No se pudo eliminar el detalle',
+        onClose: () => setResultAlert(null),
+      });
     }
   };
 
@@ -117,6 +142,14 @@ const DetallePedido = () => {
           onCancel={() => setDeleteTarget(null)}
           onConfirm={handleDelete}
         />
+      )}
+
+      {/* Loading durante eliminación */}
+      {deleting && <LoadingOverlay title="Eliminando detalle…" message="Procesando la solicitud" />}
+
+      {/* Resultado de la eliminación */}
+      {resultAlert && (
+        <Alert type={resultAlert.type} title={resultAlert.title} message={resultAlert.message} onClose={resultAlert.onClose} />
       )}
     </div>
   );

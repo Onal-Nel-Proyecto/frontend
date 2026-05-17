@@ -12,6 +12,7 @@ import { getPedidoById } from '../../services/pedidosService';
 import PedidoForm from '../../components/PedidoForm';
 import DetallePanel from '../../components/DetallePanel';
 import Alert from '../../../../components/ui/feedback/Alert';
+import LoadingOverlay from '../../../../components/ui/feedback/LoadingOverlay';
 import { cancelPedido } from '../../services/pedidosService';
 import styles from './pedido_seleccionado.module.css';
 
@@ -41,6 +42,7 @@ const PedidoSeleccionado = () => {
   const [showCancelAlert, setShowCancelAlert] = useState(false);
   const [cancelMotivo, setCancelMotivo] = useState('');
   const [cancelLoading, setCancelLoading] = useState(false);
+  const [cancelResult, setCancelResult] = useState(null);
 
   useEffect(() => {
     let cancel = false;
@@ -80,10 +82,10 @@ const PedidoSeleccionado = () => {
             regresar a pedidos
           </button>
           <div className={styles.headerActions}>
-            <button className={styles.iconBtn} title="Editar pedido" disabled={pedido.estado?.toUpperCase() === 'CANCELADO'} onClick={() => setShowPedidoForm(true)}>
+            <button className={styles.iconBtn} title="Editar pedido" disabled={['ENTREGADO', 'CANCELADO'].includes(pedido.estado?.toUpperCase())} onClick={() => setShowPedidoForm(true)}>
               <FiEdit2 />
             </button>
-            {!['ENTREGADO', 'CANCELADO'].includes(pedido.estado?.toUpperCase()) && (
+            {!['ENTREGADO', 'TERMINADO', 'CANCELADO'].includes(pedido.estado?.toUpperCase()) && (
               <button
                 className={`${styles.iconBtn} ${styles.iconDanger}`}
                 title="Cancelar pedido"
@@ -168,15 +170,31 @@ const PedidoSeleccionado = () => {
           onCancel={() => setShowCancelAlert(false)}
           onConfirm={async () => {
             if (!cancelMotivo.trim()) return;
-            setCancelLoading(true);
             setShowCancelAlert(false);
+            setCancelLoading(true);
             try {
-              await cancelPedido(pedido.pedido_id, { motivo: cancelMotivo });
-              window.location.reload();
-            } catch {
-              // error silencioso
-            } finally {
+              const resp = await cancelPedido(pedido.pedido_id, { motivo: cancelMotivo });
               setCancelLoading(false);
+              if (resp?.status) {
+                setCancelResult({
+                  type: 'success',
+                  title: 'Pedido cancelado',
+                  message: resp.msg || 'El pedido se canceló correctamente',
+                  onClose: () => { setCancelResult(null); window.location.reload(); },
+                });
+              } else {
+                setCancelResult({
+                  type: 'error', title: 'Error', message: resp?.msg || 'Error al cancelar el pedido',
+                  onClose: () => setCancelResult(null),
+                });
+              }
+            } catch (err) {
+              setCancelLoading(false);
+              setCancelResult({
+                type: 'error', title: 'Error',
+                message: err?.response?.data?.error || 'No se pudo cancelar el pedido',
+                onClose: () => setCancelResult(null),
+              });
             }
           }}
         >
@@ -189,6 +207,14 @@ const PedidoSeleccionado = () => {
             required
           />
         </Alert>
+      )}
+
+      {/* Loading durante cancelación */}
+      {cancelLoading && <LoadingOverlay title="Cancelando pedido…" message="Procesando la solicitud" />}
+
+      {/* Resultado de cancelación */}
+      {cancelResult && (
+        <Alert type={cancelResult.type} title={cancelResult.title} message={cancelResult.message} onClose={cancelResult.onClose} />
       )}
     </div>
   );
