@@ -82,6 +82,16 @@
   color: #dc2626;
 }
 
+.iconBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.iconBtn:disabled:hover {
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--text-soft);
+}
+
 .pedidoId {
   font-size: 14px;
   font-weight: 700;
@@ -114,6 +124,11 @@
 }
 
 .cancelled {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.prodCancelled {
   background: #fee2e2;
   color: #dc2626;
 }
@@ -323,6 +338,13 @@
   border-color: var(--text-soft);
   color: var(--text-dark);
   background: rgba(0, 0, 0, 0.02);
+}
+
+.btnUpload:disabled,
+.btnAdd:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
 }
 
 /* ── Botón Añadir detalle (mismo estilo que Nuevo Pedido) ── */
@@ -540,6 +562,12 @@
   transform: translateY(-1px);
 }
 
+.btnPlay:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
 /* ── Grid de cards ── */
 
 .produccionGrid {
@@ -709,6 +737,26 @@
 
 .resumenVerde {
   color: #16a34a;
+}
+
+/* ── Input motivo cancelación ── */
+
+.cancelInput {
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border: 0.5px solid #e8e5e0;
+  border-radius: 0.75rem;
+  background: #fcfcfc;
+  font-size: 0.82rem;
+  color: #1a1a1a;
+  font-family: inherit;
+  resize: vertical;
+  margin-top: 0.5rem;
+}
+
+.cancelInput:focus {
+  outline: none;
+  border-color: #dc2626;
 }
 
 /* ── Responsive ── */

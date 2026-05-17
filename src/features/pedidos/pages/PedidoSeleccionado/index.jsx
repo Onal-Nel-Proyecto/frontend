@@ -9,6 +9,10 @@ import { useParams, useNavigate, Outlet, NavLink } from 'react-router-dom';
 import { FiArrowLeft, FiEdit2, FiXCircle } from 'react-icons/fi';
 import { useDocumentTitle } from '../../../../hooks/useDocumentTitle';
 import { getPedidoById } from '../../services/pedidosService';
+import PedidoForm from '../../components/PedidoForm';
+import DetallePanel from '../../components/DetallePanel';
+import Alert from '../../../../components/ui/feedback/Alert';
+import { cancelPedido } from '../../services/pedidosService';
 import styles from './pedido_seleccionado.module.css';
 
 const statusConfig = {
@@ -32,6 +36,11 @@ const PedidoSeleccionado = () => {
 
   const [pedido, setPedido] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showPedidoForm, setShowPedidoForm] = useState(false);
+  const [detallePanel, setDetallePanel] = useState({ open: false, modo: 'view', detalle: null });
+  const [showCancelAlert, setShowCancelAlert] = useState(false);
+  const [cancelMotivo, setCancelMotivo] = useState('');
+  const [cancelLoading, setCancelLoading] = useState(false);
 
   useEffect(() => {
     let cancel = false;
@@ -71,11 +80,15 @@ const PedidoSeleccionado = () => {
             regresar a pedidos
           </button>
           <div className={styles.headerActions}>
-            <button className={styles.iconBtn} title="Editar pedido">
+            <button className={styles.iconBtn} title="Editar pedido" disabled={pedido.estado?.toUpperCase() === 'CANCELADO'} onClick={() => setShowPedidoForm(true)}>
               <FiEdit2 />
             </button>
-            {pedido.estado?.toUpperCase() !== 'ENTREGADO' && (
-              <button className={`${styles.iconBtn} ${styles.iconDanger}`} title="Cancelar pedido">
+            {!['ENTREGADO', 'CANCELADO'].includes(pedido.estado?.toUpperCase()) && (
+              <button
+                className={`${styles.iconBtn} ${styles.iconDanger}`}
+                title="Cancelar pedido"
+                onClick={() => { setCancelMotivo(''); setShowCancelAlert(true); }}
+              >
                 <FiXCircle />
               </button>
             )}
@@ -128,8 +141,55 @@ const PedidoSeleccionado = () => {
 
       {/* ── Contenido con datos del pedido via React Context ── */}
       <main className={styles.content}>
-        <Outlet context={{ pedido }} />
+        <Outlet context={{ pedido, openDetallePanel: setDetallePanel, isCanceled: pedido.estado?.toUpperCase() === 'CANCELADO' }} />
       </main>
+
+      {/* Drawer editar pedido */}
+      <PedidoForm
+        isOpen={showPedidoForm}
+        onClose={() => setShowPedidoForm(false)}
+        pedido={pedido}
+      />
+
+      {/* Drawer detalle (ver / crear / editar) */}
+      <DetallePanel
+        isOpen={detallePanel.open}
+        onClose={() => setDetallePanel({ open: false, modo: 'view', detalle: null })}
+        modo={detallePanel.modo}
+        detalle={detallePanel.detalle}
+      />
+
+      {/* Alerta cancelar pedido */}
+      {showCancelAlert && (
+        <Alert
+          type="confirm"
+          title="¿Cancelar pedido?"
+          message="Esta acción no se puede deshacer. Ingresa el motivo de cancelación:"
+          onCancel={() => setShowCancelAlert(false)}
+          onConfirm={async () => {
+            if (!cancelMotivo.trim()) return;
+            setCancelLoading(true);
+            setShowCancelAlert(false);
+            try {
+              await cancelPedido(pedido.pedido_id, { motivo: cancelMotivo });
+              window.location.reload();
+            } catch {
+              // error silencioso
+            } finally {
+              setCancelLoading(false);
+            }
+          }}
+        >
+          <textarea
+            className={styles.cancelInput}
+            placeholder="Motivo de cancelación…"
+            value={cancelMotivo}
+            onChange={(e) => setCancelMotivo(e.target.value)}
+            rows={3}
+            required
+          />
+        </Alert>
+      )}
     </div>
   );
 };

@@ -1,37 +1,43 @@
 // ================================================================
 // DetallePedido — Sub-página de detalle del pedido (index)
-// Muestra referencias (imágenes) y tabla con los detalles reales
-// del pedido obtenidos desde el backend.
 // ================================================================
 
+import { useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { FiPlus, FiUpload, FiEye, FiTrash2, FiImage } from 'react-icons/fi';
+import Alert from '../../../../components/ui/feedback/Alert';
+import { deleteDetalle } from '../../services/pedidosService';
 import styles from '../../pages/PedidoSeleccionado/pedido_seleccionado.module.css';
 
 const DetallePedido = () => {
-  const { pedido } = useOutletContext();
+  const { pedido, openDetallePanel, isCanceled } = useOutletContext();
   const detalles = pedido.detalles_pedido || [];
+  const [deleteTarget, setDeleteTarget] = useState(null);
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    const id = deleteTarget;
+    setDeleteTarget(null);
+    try {
+      await deleteDetalle(pedido.pedido_id, id);
+      window.location.reload();
+    } catch {
+      // error silencioso
+    }
+  };
 
   return (
     <div className={styles.detalleContent}>
-      {/* ── Referencias ── */}
-      <section className={styles.cardSection}>
-        <h3 className={styles.sectionTitle}>Referencias</h3>
-        <div className={styles.referencesEmpty}>
-          <div className={styles.referencesIcon}><FiImage /></div>
-          <p className={styles.referencesText}>No hay imágenes de referencia para este pedido</p>
-          <button className={styles.btnUpload}>
-            <FiUpload />
-            Subir imagen
-          </button>
-        </div>
-      </section>
 
-      {/* ── Tabla de detalle ── */}
+      {/* Tabla de detalle */}
       <section className={styles.cardSection}>
         <div className={styles.sectionHeader}>
           <h3 className={styles.sectionTitle}>Detalle del pedido</h3>
-          <button className={styles.btnAdd}>
+          <button
+            className={styles.btnAdd}
+            disabled={isCanceled}
+            onClick={() => openDetallePanel({ open: true, modo: 'create', detalle: null })}
+          >
             <FiPlus />
             Añadir detalle
           </button>
@@ -62,8 +68,17 @@ const DetallePedido = () => {
                     </td>
                     <td>
                       <div className={styles.rowActions}>
-                        <button className={styles.rowBtn} title="Ver más"><FiEye /></button>
-                        <button className={`${styles.rowBtn} ${styles.rowBtnDanger}`} title="Eliminar detalle"><FiTrash2 /></button>
+                        <button className={styles.rowBtn} title="Ver más" onClick={() => openDetallePanel({ open: true, modo: 'view', detalle: d })}>
+                          <FiEye />
+                        </button>
+                        <button
+                          className={`${styles.rowBtn} ${styles.rowBtnDanger}`}
+                          title="Eliminar detalle"
+                          disabled={isCanceled}
+                          onClick={() => setDeleteTarget(d.detalle_id)}
+                        >
+                          <FiTrash2 />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -79,6 +94,30 @@ const DetallePedido = () => {
           </div>
         )}
       </section>
+
+       {/* Referencias */}
+      <section className={styles.cardSection}>
+        <h3 className={styles.sectionTitle}>Referencias</h3>
+        <div className={styles.referencesEmpty}>
+          <div className={styles.referencesIcon}><FiImage /></div>
+          <p className={styles.referencesText}>No hay imágenes de referencia para este pedido</p>
+          <button className={styles.btnUpload} disabled={isCanceled}>
+            <FiUpload />
+            Subir imagen
+          </button>
+        </div>
+      </section>
+
+      {/* Confirmación eliminar detalle */}
+      {deleteTarget && (
+        <Alert
+          type="confirm"
+          title="¿Eliminar detalle?"
+          message="Esta acción no se puede deshacer."
+          onCancel={() => setDeleteTarget(null)}
+          onConfirm={handleDelete}
+        />
+      )}
     </div>
   );
 };
