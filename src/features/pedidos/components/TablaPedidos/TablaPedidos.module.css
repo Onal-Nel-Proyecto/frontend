@@ -163,6 +163,41 @@
   font-weight: 600;
 }
 
+.diasAmarillo {
+  color: #b8860b !important;
+  font-weight: 700;
+}
+
+.diasRojo {
+  color: #dc2626 !important;
+  font-weight: 700;
+}
+
+.cancelInput {
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border: 0.5px solid #e8e5e0;
+  border-radius: 0.75rem;
+  background: #fcfcfc;
+  font-size: 0.82rem;
+  color: #1a1a1a;
+  font-family: inherit;
+  resize: vertical;
+  margin-top: 0.5rem;
+}
+
+.cancelInput:focus {
+  outline: none;
+  border-color: #dc2626;
+}
+
+.loadingText {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--text-soft);
+  font-size: 0.85rem;
+}
+
 /* ── Badge de estado ── */
 
 .badge {
@@ -259,6 +294,15 @@
 
 .actionItem:hover {
   background: #f5f5f5;
+}
+
+.actionItem:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.actionItem:disabled:hover {
+  background: transparent;
 }
 
 .actionItem svg {

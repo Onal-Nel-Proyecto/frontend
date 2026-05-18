@@ -1,0 +1,800 @@
+/* ================================================================
+   PedidoSeleccionado — Estilos del detalle del pedido
+   ================================================================ */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+/* ── Encabezado ── */
+
+.header {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(10px);
+  border-radius: 1.25rem;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: none;
+  background: transparent;
+  color: var(--text-soft);
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.25rem 0;
+  transition: color 0.2s ease;
+}
+
+.backBtn:hover {
+  color: var(--text-dark);
+}
+
+.backBtn svg {
+  font-size: 1rem;
+}
+
+.headerActions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.iconBtn {
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--text-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.iconBtn:hover {
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--text-dark);
+}
+
+.iconDanger:hover {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.iconBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.iconBtn:disabled:hover {
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--text-soft);
+}
+
+.pedidoId {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-dark);
+  letter-spacing: -0.02em;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.inProcess {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.delivered {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.pending {
+  background: #fef9c3;
+  color: #a16207;
+}
+
+.cancelled {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.prodCancelled {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.descripcion {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text-dark);
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.cliente {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.fecha {
+  font-size: 16px;
+  color: var(--text-soft);
+}
+
+/* ── Sub-páginas ── */
+
+/* ── Observación ── */
+
+.observacion {
+  font-size: 14px;
+  color: var(--text-soft);
+  line-height: 1.5;
+  margin: 0;
+  padding: 0.4rem 0.75rem;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 0.5rem;
+  border-left: 3px solid rgba(0, 0, 0, 0.08);
+}
+
+.obsLabel {
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+/* ── Sub-nav ── */
+
+.subNav {
+  overflow: hidden;
+}
+
+.subNavInner {
+  display: flex;
+  gap: 0.25rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: 2px;
+}
+
+.subNavInner::-webkit-scrollbar {
+  display: none;
+}
+
+.subTab {
+  position: relative;
+  flex-shrink: 0;
+  padding: 0.65rem 1rem;
+  border: none;
+  background: transparent;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-soft);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.2s ease;
+}
+
+.subTab::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 1rem;
+  right: 1rem;
+  height: 2.5px;
+  border-radius: 999px;
+  background: transparent;
+  transform: scaleX(0);
+  transition: background 0.25s ease, transform 0.25s ease;
+}
+
+.subTab:hover {
+  color: var(--text-dark);
+}
+
+.subTab:hover::after {
+  background: rgba(0, 0, 0, 0.15);
+  transform: scaleX(1);
+}
+
+.subTabActive {
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+.subTabActive::after {
+  background: rgba(0, 0, 0, 0.5);
+  transform: scaleX(1);
+}
+
+/* ── Contenido general ── */
+
+.content {
+  flex: 1;
+}
+
+.placeholder {
+  color: var(--text-soft);
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 3rem 0;
+}
+
+/* ───────────────────────────────────────
+   DETALLE PEDIDO
+   ─────────────────────────────────────── */
+
+.detalleContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ── Cards sección ── */
+
+.cardSection {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(10px);
+  border-radius: 1.25rem;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+/* ── Referencias vacío ── */
+
+.referencesEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 2.5rem 1rem;
+}
+
+.referencesIcon {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  background: var(--main-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  color: var(--text-soft);
+  opacity: 0.5;
+}
+
+.referencesText {
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  text-align: center;
+  margin: 0;
+}
+
+/* ── Botón Subir imagen (estilo outline) ── */
+
+.btnUpload {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1.15rem;
+  border: 1.5px dashed #ccc;
+  border-radius: 0.75rem;
+  background: transparent;
+  color: var(--text-soft);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+
+.btnUpload:hover {
+  border-color: var(--text-soft);
+  color: var(--text-dark);
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.btnUpload:disabled,
+.btnAdd:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ── Botón Añadir detalle (mismo estilo que Nuevo Pedido) ── */
+
+.btnAdd {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.1rem;
+  border: none;
+  border-radius: 0.75rem;
+  background: #695B58;
+  color: #f5f0ef;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.btnAdd:hover {
+  background: #5a4d4a;
+  transform: translateY(-1px);
+}
+
+/* ── Tabla de detalle ── */
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.detalleTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.detalleTable thead th {
+  text-align: left;
+  padding: 0.75rem 0.65rem;
+  background: #f7f7f7;
+  color: #888;
+  font-weight: 600;
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.detalleTable tbody td {
+  padding: 0.8rem 0.65rem;
+  border-bottom: 1px solid #f0f0f0;
+  color: #444;
+  vertical-align: middle;
+}
+
+.detalleTable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.cellId {
+  font-weight: 700;
+  color: #222;
+  white-space: nowrap;
+}
+
+.cellQty {
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+/* ── Badge de producción ── */
+
+.prodBadge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.prodSi {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.prodNo {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+/* ── Botones de acción por fila ── */
+
+.rowActions {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.rowBtn {
+  width: 1.8rem;
+  height: 1.8rem;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: #aaa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.rowBtn:hover {
+  background: #f0f0f0;
+  color: #555;
+}
+
+.rowBtnDanger:hover {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+/* ── Estado vacío de la tabla ── */
+
+.tableEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 2.5rem 1rem;
+  text-align: center;
+}
+
+.tableEmptyIcon {
+  font-size: 2rem;
+  color: var(--text-soft);
+  opacity: 0.35;
+}
+
+.tableEmptyText {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.tableEmptySub {
+  font-size: 0.8rem;
+  color: var(--text-soft);
+  margin: 0;
+}
+
+/* ───────────────────────────────────────
+   PRODUCCIÓN
+   ─────────────────────────────────────── */
+
+.produccionContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ── Vacío ── */
+
+.produccionEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 3rem 1rem;
+  text-align: center;
+}
+
+.produccionEmptyIcon {
+  font-size: 2.5rem;
+  color: var(--text-soft);
+  opacity: 0.35;
+}
+
+.produccionEmptyTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.produccionEmptySub {
+  font-size: 0.82rem;
+  color: var(--text-soft);
+  margin: 0;
+  max-width: 28rem;
+  line-height: 1.5;
+}
+
+/* ── Botón iniciar producción ── */
+
+.btnPlay {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1.1rem;
+  border: none;
+  border-radius: 0.75rem;
+  background: #e8f5e9;
+  color: #2e7d32;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.btnPlay:hover {
+  background: #c8e6c9;
+  transform: translateY(-1px);
+}
+
+.btnPlay:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ── Grid de cards ── */
+
+.produccionGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.prodCard {
+  background: #fafafa;
+  border-radius: 1rem;
+  padding: 1rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  border: 1px solid #f0f0f0;
+  transition: border-color 0.2s ease;
+}
+
+.prodCard:hover {
+  border-color: #e0e0e0;
+}
+
+.prodCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.prodCardHeader > div {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.prodCardId {
+  font-weight: 700;
+  color: #222;
+  font-size: 0.82rem;
+}
+
+.prodCardDetalle {
+  font-size: 0.75rem;
+  color: var(--text-soft);
+}
+
+.prodEstBadge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.prodPending {
+  background: #fef9c3;
+  color: #a16207;
+}
+
+.prodInProcess {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.prodTerminado {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.prodCardProducto {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.prodCardMeta {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.prodCardMetaItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.prodMetaLabel {
+  font-size: 0.68rem;
+  color: var(--text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.prodMetaValue {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.prodCardActions {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.prodActionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border: none;
+  border-radius: 0.65rem;
+  background: #f0f0f0;
+  color: #555;
+  font-size: 0.72rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.prodActionBtn:hover {
+  background: #e0e0e0;
+}
+
+.prodActionDanger:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.prodActionBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.prodActionBtn:disabled:hover {
+  background: #f0f0f0;
+  color: #555;
+}
+
+/* ── Resumen ── */
+
+.produccionResumen {
+  display: flex;
+  gap: 2rem;
+  margin-top: 0.5rem;
+}
+
+.resumenItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.resumenLabel {
+  font-size: 0.75rem;
+  color: var(--text-soft);
+}
+
+.resumenValue {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.resumenVerde {
+  color: #16a34a;
+}
+
+/* ── Input motivo cancelación ── */
+
+.cancelInput {
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border: 0.5px solid #e8e5e0;
+  border-radius: 0.75rem;
+  background: #fcfcfc;
+  font-size: 0.82rem;
+  color: #1a1a1a;
+  font-family: inherit;
+  resize: vertical;
+  margin-top: 0.5rem;
+}
+
+.cancelInput:focus {
+  outline: none;
+  border-color: #dc2626;
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 640px) {
+  .header {
+    padding: 1rem;
+  }
+
+  .pedidoId {
+    font-size: 13px;
+  }
+
+  .descripcion {
+    font-size: 17px;
+  }
+
+  .cliente,
+  .fecha {
+    font-size: 14px;
+  }
+
+  .subTab {
+    font-size: 14px;
+    padding: 0.55rem 0.7rem;
+  }
+
+  .cardSection {
+    padding: 1rem;
+  }
+
+  .sectionHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btnAdd {
+    width: 100%;
+    justify-content: center;
+  }
+}

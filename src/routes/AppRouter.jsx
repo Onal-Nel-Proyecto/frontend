@@ -8,6 +8,10 @@ import NotFound from "../page/NotFount";
 import MainLayout from "../layout/MainLayout/mainLayout";
 import GestionPersonal from "../page/GestionPersonal";
 import Pedidos from "../page/Pedidos";
+import PedidoSeleccionado from "../features/pedidos/pages/PedidoSeleccionado";
+import DetallePedido from "../features/pedidos/components/DetallePedido";
+import Produccion from "../features/pedidos/components/Produccion";
+import Pagos from "../features/pedidos/components/Pagos";
 import Config from "../page/Config";
 import InConstruction from "../components/ui/feedback/InConstruction/InConstruction";
 
@@ -47,10 +51,11 @@ const AppRoutes = () => {
             path="/pedidos"
             element={<Pedidos />}
           />
-          <Route
-            path="/pedidos/:id"
-            element={<InConstruction title="Detalle del pedido" />}
-          />
+          <Route path="/pedidos/:id" element={<PedidoSeleccionado />}>
+            <Route index element={<DetallePedido />} />
+            <Route path="produccion" element={<Produccion />} />
+            <Route path="pagos" element={<Pagos />} />
+          </Route>
           <Route
             path="/pedidos/entregas"
             element={<InConstruction title="Entregas" />}

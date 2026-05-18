@@ -27,7 +27,7 @@ const icons = {
   confirm: <FiAlertTriangle />,
 };
 
-const Alert = ({ type = 'success', title, message, onConfirm, onCancel, onClose }) => {
+const Alert = ({ type = 'success', title, message, children, onConfirm, onCancel, onClose }) => {
   const isConfirm = type === 'confirm';
 
   return (
@@ -56,6 +56,7 @@ const Alert = ({ type = 'success', title, message, onConfirm, onCancel, onClose 
           <div className={styles.body}>
             {title && <h4 className={styles.title}>{title}</h4>}
             {message && <p className={styles.message}>{message}</p>}
+            {children}
           </div>
 
           {/* Acciones */}
