@@ -1,0 +1,48 @@
+src/ // Carpeta principal del frontend
+│
+├── api/ // Manejo de comunicación con el backend (Express)
+│   ├── axiosInstance.js // Configuración global de axios (baseURL, headers, interceptores JWT)
+│   └── endpoints/ // Funciones organizadas por módulo para consumir la API
+│
+├── assets/ // Recursos estáticos del proyecto
+│   ├── images/ // Imágenes, logos, iconos
+│   └── styles/ // Estilos globales o variables CSS
+│
+├── components/ // Componentes reutilizables globales
+│   ├── common/ // Botones, inputs, modales, loaders
+│   └── ui/ // Componentes visuales (cards, tablas, badges)
+│
+├── features/ // Organización por módulos/funcionalidades (escalable)
+│   ├── auth/ // Módulo de autenticación
+│   │   ├── components/ // Componentes propios del módulo auth
+│   │   ├── pages/ // Vistas (login, register, etc.)
+│   │   ├── services/ // Lógica para consumir API de auth
+│   │   └── hooks/ // Hooks específicos del módulo
+│   │
+│   ├── pedidos/ // Módulo de pedidos
+│   │   ├── components/ // Componentes de pedidos
+│   │   ├── pages/ // Vistas de pedidos
+│   │   └── services/ // Consumo de endpoints de pedidos
+│   │
+│   └── usuarios/ // Módulo de usuarios
+│       ├── components/ // Componentes de usuarios
+│       ├── pages/ // Vistas de usuarios
+│       └── services/ // Consumo de endpoints de usuarios
+│
+├── hooks/ // Hooks personalizados globales (useAuth, useFetch, etc.)
+│
+├── layouts/ // Estructuras base (Dashboard, Auth layout)
+│
+├── pages/ // Páginas generales (Home, NotFound, etc.)
+│
+├── routes/ // Configuración de rutas (react-router)
+│   ├── AppRouter.jsx // Definición principal de rutas
+│   ├── PrivateRoute.jsx // Rutas protegidas
+│   └── PublicRoute.jsx // Rutas públicas
+│
+├── store/ // Estado global (Context API o Redux) - opcional
+│
+├── utils/ // Funciones auxiliares (helpers, validaciones, formateos)
+│
+├── App.jsx // Componente raíz (rutas + layouts + toastify)
+└── main.jsx // Punto de entrada de React (ReactDOM)
