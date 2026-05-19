@@ -1,0 +1,235 @@
+/* ═══════════════════════════════════════════
+   ViewClientModal — Card de detalle de cliente
+   ═══════════════════════════════════════════ */
+
+/* ── Overlay ──────────────────────────── */
+
+.vcm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: vcmFadeIn 0.25s ease both;
+}
+
+@keyframes vcmFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Card ──────────────────────────────── */
+
+.vcm-card {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  background: #FFFFFF;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+  animation: vcmSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  overflow: hidden;
+}
+
+@keyframes vcmSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ── Botón cerrar ─────────────────────── */
+
+.vcm-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: #f5f3ef;
+  color: #1a1a1a;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, transform 0.15s ease;
+  z-index: 2;
+}
+
+.vcm-close:hover {
+  background: #e8e5e0;
+  transform: rotate(90deg);
+}
+
+/* ── Cabecera ──────────────────────────── */
+
+.vcm-head {
+  padding: 36px 28px 20px;
+  text-align: center;
+  background: linear-gradient(180deg, #faf9f7 0%, #ffffff 100%);
+  border-bottom: 0.5px solid #f0eeea;
+}
+
+.vcm-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1a1a1a, #444);
+  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 14px;
+  letter-spacing: 1px;
+}
+
+.vcm-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 8px;
+  line-height: 1.3;
+}
+
+.vcm-badge {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.vcm-badge--activo {
+  background: #e6f7e6;
+  color: #2e7d32;
+}
+
+.vcm-badge--inactivo {
+  background: #fce4e4;
+  color: #b71c1c;
+}
+
+/* ── Cuerpo ──────────────────────────── */
+
+.vcm-body {
+  padding: 20px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.vcm-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.vcm-field__icon {
+  width: 36px;
+  height: 36px;
+  background: #f5f3ef;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: #1a1a1a;
+  flex-shrink: 0;
+}
+
+.vcm-field__label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #b0b0b0;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin: 0 0 2px;
+}
+
+.vcm-field__value {
+  font-size: 14px;
+  color: #1a1a1a;
+  margin: 0;
+  font-weight: 500;
+}
+
+.vcm-fecha {
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+.vcm-sin-pedido {
+  color: #b0b0b0;
+  font-style: italic;
+  font-weight: 400;
+}
+
+/* ── Footer ──────────────────────────── */
+
+.vcm-footer {
+  padding: 16px 28px 24px;
+  border-top: 0.5px solid #f0eeea;
+}
+
+.vcm-btn {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: #1a1a1a;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.vcm-btn:hover {
+  background: #333;
+  transform: translateY(-1px);
+}
+
+/* ── Responsive ──────────────────────────── */
+
+@media (max-width: 480px) {
+  .vcm-overlay {
+    padding: 12px;
+  }
+
+  .vcm-card {
+    max-width: 100%;
+    border-radius: 16px;
+  }
+
+  .vcm-head {
+    padding: 28px 20px 16px;
+  }
+
+  .vcm-body {
+    padding: 16px 20px;
+  }
+
+  .vcm-footer {
+    padding: 12px 20px 20px;
+  }
+}

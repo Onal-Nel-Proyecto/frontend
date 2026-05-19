@@ -6,56 +6,72 @@ import TableFilters     from '../components/table/TableFilters'
 import ContactTable     from '../components/table/ContactTable'
 import MaintenanceCard  from '../components/cards/MaintenanceCard'
 import InsightsCard     from '../components/cards/InsightsCard'
+import { useClientes }  from '../hooks/useClientes'
+import ViewClientModal   from '../components/ui/feedback/ViewClientModal/ViewClientModal'
 import './ClientDirectory.css'
-
-// Datos de ejemplo (en producción vendrían de una API)
-const MOCK_CLIENTS = [
-  {
-    id: 1,
-    name:     'Luxe Living Interiors',
-    category: 'Interiorismo Premium',
-    phone:    '+34 912 345 678',
-    address:  'Calle de Velázquez, 45, Madrid',
-    lastOrder: 'Oct 24, 2023',
-  },
-  {
-    id: 2,
-    name:     'Maison de Lin',
-    category: 'Boutique de Textiles',
-    phone:    '+34 931 889 221',
-    address:  'Passeig de Gràcia, 12, Barcelona',
-    lastOrder: 'Oct 18, 2023',
-  },
-  {
-    id: 3,
-    name:     'Studio Bloom',
-    category: 'Diseño de Eventos',
-    phone:    '+34 954 112 334',
-    address:  'Avenida de la Palmera, 89, Sevilla',
-    lastOrder: null,
-  },
-  {
-    id: 4,
-    name:     'The Heritage Hotel',
-    category: 'Hostelería Gran Lujo',
-    phone:    '+34 910 001 002',
-    address:  'Plaza de la Independencia, 1, Madrid',
-    lastOrder: 'Nov 02, 2023',
-  },
-]
 
 const ClientDirectory = () => {
   const [showRegister, setShowRegister] = useState(false)
-  const [clients, setClients]           = useState(MOCK_CLIENTS)
+  const [clienteEditando, setClienteEditando] = useState(null)
+  const [clienteViendo, setClienteViendo] = useState(null)
+  const {
+    clientes,
+    meta,
+    loading,
+    error,
+    loadClientes,
+    addCliente,
+    editCliente,
+    deleteCliente,
+  } = useClientes()
 
   const handleFilterChange = (filters) => {
-    // Aquí conectarías con tu API para filtrar
     console.log('Filtros activos:', filters)
   }
 
   const handleExport = () => {
-    // Lógica de exportación CSV / Excel
     console.log('Exportando clientes...')
+  }
+
+  // ── VER ─────────────────────────────────
+  const handleViewCliente = (cliente) => {
+    setClienteViendo(cliente)
+  }
+
+  // ── EDITAR ──────────────────────────────
+  const handleEditCliente = (cliente) => {
+    setClienteEditando(cliente)
+    setShowRegister(true)
+  }
+
+  const handleClienteActualizado = async (clienteData) => {
+    const result = await editCliente(clienteEditando.id, clienteData)
+    if (result.ok) {
+      setShowRegister(false)
+      setClienteEditando(null)
+    }
+    return result
+  }
+
+  // ── ELIMINAR ────────────────────────────
+  const handleDeleteCliente = (cliente) => {
+    if (window.confirm(`¿Eliminar a "${cliente.name}"?`)) {
+      deleteCliente(cliente.id)
+    }
+  }
+
+  // ── CREAR ───────────────────────────────
+  const handleClienteCreado = async (clienteData) => {
+    const result = await addCliente(clienteData)
+    if (result.ok) {
+      setShowRegister(false)
+    }
+    return result
+  }
+
+  const cerrarPanel = () => {
+    setShowRegister(false)
+    setClienteEditando(null)
   }
 
   return (
@@ -84,7 +100,7 @@ const ClientDirectory = () => {
         <StatCard
           icon="ti-users"
           label="Total Clientes"
-          value={342}
+          value={meta?.total ?? 0}
         />
         <StatCard
           icon="ti-star"
@@ -104,13 +120,34 @@ const ClientDirectory = () => {
         />
       </div>
 
+      {/* Indicador de carga / error */}
+      {loading && (
+        <div className="cd-loading">
+          <i className="ti ti-loader ti-spin" aria-hidden="true" />
+          {' '}Cargando clientes…
+        </div>
+      )}
+
+      {error && (
+        <div className="cd-error">
+          <i className="ti ti-alert-circle" aria-hidden="true" />
+          {' '}{error}
+        </div>
+      )}
+
       {/* Sección tabla */}
       <div className="table-section">
         <TableFilters
           onFilterChange={handleFilterChange}
           onExport={handleExport}
         />
-        <ContactTable clients={clients} />
+        <ContactTable
+          clients={clientes}
+          onView={handleViewCliente}
+          onEdit={handleEditCliente}
+          onDelete={handleDeleteCliente}
+          totalClientes={meta?.total}
+        />
       </div>
 
       {/* Fila inferior de cards */}
@@ -123,9 +160,22 @@ const ClientDirectory = () => {
         />
       </div>
 
-      {/* Drawer de registro */}
+      {/* Modal de detalle */}
+      {clienteViendo && (
+        <ViewClientModal
+          cliente={clienteViendo}
+          onClose={() => setClienteViendo(null)}
+        />
+      )}
+
+      {/* Drawer de registro / edición */}
       {showRegister && (
-        <NewClientPanel isOpen={showRegister} onClose={() => setShowRegister(false)} />
+        <NewClientPanel
+          isOpen={showRegister}
+          onClose={cerrarPanel}
+          onGuardar={clienteEditando ? handleClienteActualizado : handleClienteCreado}
+          clienteEdit={clienteEditando}
+        />
       )}
 
     </div>

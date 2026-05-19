@@ -92,6 +92,40 @@
   gap: 1rem;
 }
 
+/* ── Loading ──────────────────────────── */
+
+.cd-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 1rem 1.25rem;
+  background: #f0f4ff;
+  border: 1px solid #d6e0f5;
+  border-radius: var(--radius-sm, 10px);
+  color: #1a4b8c;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.cd-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 1rem 1.25rem;
+  background: #fff0f0;
+  border: 1px solid #f5d6d6;
+  border-radius: var(--radius-sm, 10px);
+  color: #b91c1c;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.cd-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
 /* ── Responsive ────────────────────────── */
 
 @media (max-width: 1280px) {

@@ -8,7 +8,7 @@ import './ContactTable.css'
 //   clients → array de objetos:
 //     { id, name, category, phone, address, lastOrder }
 
-const ContactTable = ({ clients = [] }) => {
+const ContactTable = ({ clients = [], onView, onEdit, onDelete, totalClientes }) => {
   return (
     <div className="contact-table-wrap">
       <table className="contact-table">
@@ -47,13 +47,28 @@ const ContactTable = ({ clients = [] }) => {
               {/* Botones de acción */}
               <td>
                 <div className="action-btns">
-                  <button className="action-btn" aria-label="Ver cliente">
+                  <button
+                    className="action-btn"
+                    aria-label="Ver cliente"
+                    onClick={() => onView?.(client)}
+                    title="Ver detalle"
+                  >
                     <i className="ti ti-eye" />
                   </button>
-                  <button className="action-btn" aria-label="Editar cliente">
+                  <button
+                    className="action-btn"
+                    aria-label="Editar cliente"
+                    onClick={() => onEdit?.(client)}
+                    title="Editar cliente"
+                  >
                     <i className="ti ti-edit" />
                   </button>
-                  <button className="action-btn action-btn--danger" aria-label="Eliminar">
+                  <button
+                    className="action-btn action-btn--danger"
+                    aria-label="Eliminar"
+                    onClick={() => onDelete?.(client)}
+                    title="Eliminar cliente"
+                  >
                     <i className="ti ti-trash" />
                   </button>
                 </div>
@@ -65,7 +80,7 @@ const ContactTable = ({ clients = [] }) => {
       </table>
 
       <p className="table-footer">
-        Mostrando {clients.length} de 342 clientes
+        Mostrando {clients.length} de {totalClientes ?? 0} clientes
       </p>
     </div>
   )
