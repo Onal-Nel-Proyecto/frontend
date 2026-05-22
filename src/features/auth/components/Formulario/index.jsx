@@ -114,10 +114,10 @@ const Formulario = () => {
     >
 
       <Input
-        label="Correo electrónico"
+        label="email electrónico"
         type="email"
         name="email"
-        placeholder="ejemplo@onaandnel.com"
+        placeholder="ejemplo@onalnel.com"
         value={formData.email}
         onChange={handleChange}
         error={fieldErrors.email}
@@ -132,6 +132,32 @@ const Formulario = () => {
         onChange={handleChange}
         error={fieldErrors.pass}
       />
+<<<<<<< Updated upstream
+=======
+{/* 
+      <div className={styles.formOptions}>
+
+        <label className={styles.rememberMe}>
+          <input type="checkbox" />
+          Recordarme
+        </label>
+
+        <a href="#" className={styles.forgotpass}>
+          ¿Olvidaste tu contraseña?
+        </a>
+
+      </div> */}
+
+
+      {
+        error && (
+          <p className={styles.errorMessage}>
+            {error}
+          </p>
+        )
+      }
+
+>>>>>>> Stashed changes
 
       <Button
         type="submit"

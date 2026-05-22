@@ -7,6 +7,7 @@ import AdminRoute from "./adminRoute";
 import NotFound from "../page/NotFount";
 import MainLayout from "../layout/MainLayout/mainLayout";
 import GestionPersonal from "../page/GestionPersonal";
+import GestionUsuarios from "../page/GestionUsuarios";
 import Pedidos from "../page/Pedidos";
 import PedidoSeleccionado from "../features/pedidos/pages/PedidoSeleccionado";
 import DetallePedido from "../features/pedidos/components/DetallePedido";
@@ -75,7 +76,7 @@ const AppRoutes = () => {
         <Route path="/" element={<MainLayout />}>
           <Route
             path="/gestion-usuarios"
-            element={<InConstruction title="Usuarios" />}
+            element={<GestionUsuarios />}
           />
           <Route
             path="/config"
