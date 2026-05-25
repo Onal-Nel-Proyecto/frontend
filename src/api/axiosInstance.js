@@ -10,6 +10,7 @@ import { AUTH_ENDPOINTS } from "./endpoints/authEndpoints";
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,
+  timeout: 15000, // 15 segundos — tiempo razonable para el backend
   headers: {
     "Content-Type": "application/json",
   },

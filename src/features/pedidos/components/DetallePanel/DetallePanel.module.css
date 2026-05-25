@@ -13,7 +13,7 @@
   font-weight: 600;
   color: #1a1a1a;
   padding: 0.4rem 0.75rem;
-  background: #f5f3ef;
+  background: #f7f2ef;
   border-radius: 0.5rem;
   display: inline-block;
   align-self: flex-start;
@@ -289,7 +289,7 @@
 }
 
 .btnOutline:hover {
-  background: #f5f3ef;
+  background: #f7f2ef;
 }
 
 .btnSave {
