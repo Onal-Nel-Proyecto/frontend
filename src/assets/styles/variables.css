@@ -4,23 +4,23 @@
   --text-gray: #888;
 
   /* Base */
-  --color-primary: #E9D7D3;
-  --color-secondary: #EAD9D4;
+  --color-primary: #F2E8E5;
+  --color-secondary: #F0E6E2;
   --color-tertiary: #D8DCDA;
   --color-neutral: #2E2E2E;
 
   /* Pastel Colors */
-  --pastel-violet: #c4b5fd;
-  --pastel-blue: #93c5fd;
-  --pastel-cyan: #67e8f9;
-  --pastel-orange: #fdba74;
-  --pastel-pink: #f9a8d4;
-  --pastel-green: #86efac;
+  --pastel-violet: #ddd6fe;
+  --pastel-blue: #bfdbfe;
+  --pastel-cyan: #a5f3fc;
+  --pastel-orange: #fed7aa;
+  --pastel-pink: #fbcfe8;
+  --pastel-green: #bbf7d0;
 
   /* Layout */
-  --sidebar-bg: #f3e4e1;
-  --header-bg: #f5e8e5;
-  --main-bg: #f8f5f4;
+  --sidebar-bg: #F5EDEB;
+  --header-bg: #F5EDEB;
+  --main-bg: #FCF8F7;
 
   /* Text */
   --text-dark: #3b3b3b;

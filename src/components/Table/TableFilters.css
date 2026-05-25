@@ -27,7 +27,7 @@
 .table-filters__tabs {
   display: flex;
   gap: 4px;
-  background: var(--main-bg, #f8f5f4);
+  background: var(--main-bg, #fcf8f7);
   border-radius: 10px;
   padding: 3px;
 }
@@ -86,6 +86,6 @@
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 .export-btn:hover {
-  background: var(--main-bg, #f8f5f4);
+  background: var(--main-bg, #fcf8f7);
   border-color: #D5D1C8;
 }

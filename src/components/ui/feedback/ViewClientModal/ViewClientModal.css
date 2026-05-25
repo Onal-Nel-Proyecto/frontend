@@ -57,7 +57,7 @@
   height: 32px;
   border: none;
   border-radius: 50%;
-  background: #f5f3ef;
+  background: #f7f2ef;
   color: #1a1a1a;
   font-size: 18px;
   cursor: pointer;
@@ -143,7 +143,7 @@
 .vcm-field__icon {
   width: 36px;
   height: 36px;
-  background: #f5f3ef;
+  background: #f7f2ef;
   border-radius: 10px;
   display: flex;
   align-items: center;

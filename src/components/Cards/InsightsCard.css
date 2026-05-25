@@ -28,7 +28,7 @@
 .insights-card__icon {
   width: 36px;
   height: 36px;
-  background: var(--main-bg, #f8f5f4);
+  background: var(--main-bg, #fcf8f7);
   border-radius: 10px;
   display: flex;
   align-items: center;
