@@ -1,0 +1,180 @@
+.container {
+  min-height: 100vh;
+  background: var(--main-bg);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+
+  font-family: var(--font-primary);
+
+  position: relative;
+  overflow: hidden;
+}
+
+.card {
+  width: 100%;
+  max-width: 550px;
+
+  background: rgba(255, 255, 255, 0.7);
+
+  backdrop-filter: blur(10px);
+
+  border-radius: var(--radius-lg);
+
+  padding: 60px 40px;
+
+  text-align: center;
+
+  box-shadow: var(--shadow-lg);
+
+  position: relative;
+
+  overflow: hidden;
+
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.iconContainer {
+  width: 90px;
+  height: 90px;
+
+  margin: 0 auto 25px;
+
+  border-radius: 50%;
+
+  background: linear-gradient(
+    135deg,
+    var(--pastel-pink),
+    var(--pastel-violet)
+  );
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  box-shadow: var(--shadow-md);
+}
+
+.icon {
+  font-size: 2.5rem;
+  color: var(--text-light);
+}
+
+.errorCode {
+  font-size: 6rem;
+  margin: 0;
+
+  color: var(--color-neutral);
+
+  line-height: 1;
+}
+
+.title {
+  font-size: var(--text-xl);
+
+  color: var(--text-dark);
+
+  margin-top: 10px;
+  margin-bottom: 15px;
+}
+
+.description {
+  font-size: var(--text-md);
+
+  color: var(--text-soft);
+
+  line-height: 1.7;
+
+  margin-bottom: 35px;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  background: linear-gradient(
+    135deg,
+    var(--pastel-pink),
+    var(--pastel-orange)
+  );
+
+  color: var(--text-light);
+
+  padding: 14px 28px;
+
+  border-radius: var(--radius-md);
+
+  text-decoration: none;
+
+  font-weight: 600;
+
+  transition: var(--transition-normal);
+
+  box-shadow: var(--shadow-md);
+}
+
+.button:hover {
+  transform: translateY(-3px);
+
+  box-shadow: var(--shadow-lg);
+}
+
+.decorativeCircleOne {
+  width: 180px;
+  height: 180px;
+
+  background: var(--pastel-cyan);
+
+  opacity: 0.15;
+
+  border-radius: 50%;
+
+  position: absolute;
+
+  top: -60px;
+  right: -60px;
+}
+
+.decorativeCircleTwo {
+  width: 140px;
+  height: 140px;
+
+  background: var(--pastel-green);
+
+  opacity: 0.15;
+
+  border-radius: 50%;
+
+  position: absolute;
+
+  bottom: -50px;
+  left: -50px;
+}
+
+@media (max-width: 768px) {
+
+  .card {
+    padding: 50px 25px;
+  }
+
+  .errorCode {
+    font-size: 4.5rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .description {
+    font-size: 0.95rem;
+  }
+
+  .button {
+    width: 100%;
+    justify-content: center;
+  }
+}

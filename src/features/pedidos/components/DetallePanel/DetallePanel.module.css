@@ -1,0 +1,311 @@
+/* ───────────────────────────────────────
+   VISTA (read-only)
+   ─────────────────────────────────────── */
+
+.viewContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.viewId {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  padding: 0.4rem 0.75rem;
+  background: #f7f2ef;
+  border-radius: 0.5rem;
+  display: inline-block;
+  align-self: flex-start;
+}
+
+.viewSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.viewSectionTitle {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0;
+}
+
+.viewGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.viewItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.viewLabel {
+  font-size: 0.7rem;
+  color: #aaa;
+}
+
+.viewValue {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.viewObs {
+  font-size: 0.85rem;
+  color: #666;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.medidasGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.medidaItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 0.65rem;
+  background: #fafafa;
+  border-radius: 0.5rem;
+}
+
+.medidaNombre {
+  font-size: 0.82rem;
+  color: #444;
+}
+
+.medidaValor {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+/* ── Botón editar (vista) ── */
+
+.btnEdit {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 10px;
+  background: #695B58;
+  color: #f5f0ef;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.btnEdit:hover {
+  background: #5a4d4a;
+  transform: translateY(-1px);
+}
+
+/* ───────────────────────────────────────
+   FORMULARIO (crear / editar)
+   ─────────────────────────────────────── */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.formSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.formSectionTitle {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.fieldRow {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #444;
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border: 0.5px solid #e8e5e0;
+  border-radius: 10px;
+  background: #fcfcfc;
+  font-size: 0.85rem;
+  color: #1a1a1a;
+  transition: border-color 0.2s ease;
+  font-family: inherit;
+}
+
+.select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  cursor: pointer;
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 50px;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: none;
+  border-color: #bbb;
+  background: #fff;
+}
+
+.inputError {
+  border-color: #dc2626;
+  background: #fef2f2;
+}
+
+.fieldError {
+  font-size: 0.72rem;
+  color: #dc2626;
+}
+
+.inputSuffix {
+  position: absolute;
+  right: 10px;
+  font-size: 0.72rem;
+  color: #aaa;
+  pointer-events: none;
+}
+
+/* ── Medidas ── */
+
+.medidaRow {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.medidaRow .select {
+  flex: 1;
+}
+
+.medidaInputWrap {
+  position: relative;
+  flex: 0 0 100px;
+}
+
+.medidaInputWrap .input {
+  padding-right: 2.2rem;
+}
+
+.btnRemove {
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.btnRemove:hover {
+  color: #dc2626;
+  background: #fef2f2;
+}
+
+.btnAddMedida {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.85rem;
+  border: 1.5px dashed #ddd;
+  border-radius: 0.65rem;
+  background: transparent;
+  color: #888;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+  align-self: flex-start;
+}
+
+.btnAddMedida:hover {
+  border-color: #bbb;
+  color: #555;
+}
+
+/* ── Botones footer ── */
+
+.btnOutline {
+  flex: 1;
+  padding: 0.6rem 1rem;
+  border: 0.5px solid #e8e5e0;
+  border-radius: 10px;
+  background: transparent;
+  color: #1a1a1a;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btnOutline:hover {
+  background: #f7f2ef;
+}
+
+.btnSave {
+  flex: 1;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 10px;
+  background: #695B58;
+  color: #f5f0ef;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.btnSave:hover {
+  background: #5a4d4a;
+  transform: translateY(-1px);
+}

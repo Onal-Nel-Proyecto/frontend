@@ -28,7 +28,11 @@
 .insights-card__icon {
   width: 36px;
   height: 36px;
+<<<<<<< HEAD
   background: #F5F4F1;
+=======
+  background: var(--main-bg, #fcf8f7);
+>>>>>>> 7d38b65 (pilla)
   border-radius: 10px;
   display: flex;
   align-items: center;

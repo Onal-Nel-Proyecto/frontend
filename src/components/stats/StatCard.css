@@ -41,7 +41,11 @@
   width: 44px;
   height: 44px;
   border-radius: 12px;
+<<<<<<< HEAD
   background: #F5F4F1;
+=======
+  background: var(--main-bg, #fcf8f7);
+>>>>>>> 7d38b65 (pilla)
   display: flex;
   align-items: center;
   justify-content: center;

@@ -1,0 +1,26 @@
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body{
+  font-family: var(--font-primary);
+  background: var(--main-bg);
+  color: var(--text-dark);
+}
+
+a{
+  text-decoration: none;
+  color: inherit;
+}
+
+button{
+  border: none;
+  outline: none;
+  cursor: pointer;
+}
+
+ul{
+  list-style: none;
+}

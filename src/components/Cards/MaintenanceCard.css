@@ -42,7 +42,11 @@
 .maintenance-card__icon {
   width: 36px;
   height: 36px;
+<<<<<<< HEAD
   background: #F5F4F1;
+=======
+  background: var(--main-bg, #fcf8f7);
+>>>>>>> 7d38b65 (pilla)
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -82,5 +86,10 @@
 }
 .maintenance-card__cta:hover {
   gap: 8px;
+<<<<<<< HEAD
   color: #111111;
 }
+=======
+  color: var(--color-neutral, #2E2E2E);
+}
+>>>>>>> 7d38b65 (pilla)

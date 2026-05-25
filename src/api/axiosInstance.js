@@ -1,0 +1,110 @@
+// ================================================================
+// axiosInstance — Instancia central de Axios
+// Configura baseURL, credenciales (cookies) e intercepta
+// respuestas 401 para refrescar el token automáticamente.
+// ================================================================
+
+import axios from "axios";
+import { AUTH_ENDPOINTS } from "./endpoints/authEndpoints";
+
+const axiosInstance = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+  withCredentials: true,
+  timeout: 15000, // 15 segundos — tiempo razonable para el backend
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+// ===============================
+// COLA PARA PETICIONES EN ESPERA DE REFRESH
+// ===============================
+
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve();
+    }
+  });
+  failedQueue = [];
+};
+
+// ===============================
+// FUNCIÓN PARA LIMPIAR SESIÓN LOCAL
+// ===============================
+
+const clearSession = () => {
+  sessionStorage.removeItem("user");
+  window.dispatchEvent(new Event("userUpdate"));
+};
+
+// ===============================
+// RESPONSE INTERCEPTOR
+// ===============================
+
+axiosInstance.interceptors.response.use(
+  (response) => response,
+
+  async (error) => {
+    const originalRequest = error.config;
+
+    // ❌ Si la petición que falló es el propio refresh, no reintentar
+    if (originalRequest.url === AUTH_ENDPOINTS.REFRESH) {
+      clearSession();
+      return Promise.reject(error);
+    }
+
+    // ❌ Si ya se reintentó una vez, no reintentar de nuevo
+    if (originalRequest._retry) {
+      return Promise.reject(error);
+    }
+
+    // Token expirado → intentar refrescar
+    if (error.response?.status === 401) {
+
+      // Si ya se está refrescando, encolar esta petición
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then(() => axiosInstance(originalRequest))
+          .catch((err) => Promise.reject(err));
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        await axiosInstance.post(AUTH_ENDPOINTS.REFRESH);
+
+        // Éxito: liberar la cola y reintentar la petición original
+        processQueue(null);
+        isRefreshing = false;
+
+        return axiosInstance(originalRequest);
+      } catch (refreshError) {
+        // Falló el refresh → limpiar sesión
+        processQueue(refreshError);
+        isRefreshing = false;
+
+        clearSession();
+
+        return Promise.reject(refreshError);
+      }
+    }
+
+    // Acceso denegado (sin permisos)
+    if (error.response?.status === 403) {
+      console.warn("Acceso denegado — usuario sin permisos suficientes");
+    }
+
+    return Promise.reject(error);
+  }
+);
+
+export default axiosInstance;
