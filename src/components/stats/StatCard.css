@@ -1,14 +1,14 @@
 /* ═══════════════════════════════════════════
-   StatCard — ona&nel Dashboard
+   StatCard — Dashboard
    ═══════════════════════════════════════════ */
 
 .stat-card {
   display: flex;
   align-items: center;
   gap: 16px;
-  background: #FFFFFF;
+  background: #fff;
   border: 0.5px solid #E7E5E0;
-  border-radius: 18px;
+  border-radius: var(--radius-md, 18px);
   padding: 1.25rem 1.5rem;
   min-width: 0;
   height: 100%;
@@ -16,24 +16,24 @@
   transition: box-shadow 0.25s ease, transform 0.25s ease, border-color 0.25s ease;
 }
 .stat-card:hover {
-  box-shadow: 0 6px 24px rgba(0,0,0,0.06);
+  box-shadow: var(--shadow-md);
   transform: translateY(-2px);
   border-color: #d5d1c8;
 }
 
 /* ── Variante oscura (VIP, destacados) ─ */
 .stat-card--highlight {
-  background: #1D1D1F;
-  border-color: #1D1D1F;
+  background: var(--color-neutral, #2E2E2E);
+  border-color: var(--color-neutral, #2E2E2E);
 }
 .stat-card--highlight:hover {
   box-shadow: 0 8px 28px rgba(0,0,0,0.20);
 }
-.stat-card--highlight .stat-card__label { color: #999; }
-.stat-card--highlight .stat-card__value { color: #fff; }
+.stat-card--highlight .stat-card__label { color: #aaa; }
+.stat-card--highlight .stat-card__value { color: var(--text-light, #fff); }
 .stat-card--highlight .stat-card__icon  {
-  background: #333;
-  color: #fff;
+  background: #444;
+  color: var(--text-light, #fff);
 }
 
 /* ── Ícono ─────────────────────────── */
@@ -41,16 +41,12 @@
   width: 44px;
   height: 44px;
   border-radius: 12px;
-<<<<<<< HEAD
-  background: #F5F4F1;
-=======
   background: var(--main-bg, #fcf8f7);
->>>>>>> 7d38b65 (pilla)
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 20px;
-  color: #8A8A8A;
+  color: var(--text-soft);
   flex-shrink: 0;
 }
 
@@ -65,13 +61,13 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 1px;
-  color: #8A8A8A;
+  color: var(--text-soft);
   font-weight: 500;
 }
 
 .stat-card__value {
   font-size: 28px;
   font-weight: 600;
-  color: #161616;
+  color: var(--text-dark);
   line-height: 1;
 }

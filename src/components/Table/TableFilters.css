@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════
-   TableFilters — ona&nel Dashboard
+   TableFilters — Dashboard
    ═══════════════════════════════════════════ */
 
 .table-filters {
@@ -20,18 +20,14 @@
 .table-filters__title {
   font-size: 15px;
   font-weight: 600;
-  color: #161616;
+  color: var(--text-dark);
 }
 
 /* ── Píldoras de tabs ──────────────── */
 .table-filters__tabs {
   display: flex;
   gap: 4px;
-<<<<<<< HEAD
-  background: #F5F4F1;
-=======
   background: var(--main-bg, #fcf8f7);
->>>>>>> 7d38b65 (pilla)
   border-radius: 10px;
   padding: 3px;
 }
@@ -43,15 +39,15 @@
   border-radius: 8px;
   font-size: 12px;
   font-weight: 500;
-  color: #8A8A8A;
+  color: var(--text-soft);
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
-.tab-btn:hover     { color: #161616; }
+.tab-btn:hover     { color: var(--text-dark); }
 .tab-btn--active  {
-  background: #FFFFFF;
-  color: #161616;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  background: #fff;
+  color: var(--text-dark);
+  box-shadow: var(--shadow-sm);
 }
 
 .table-filters__right {
@@ -65,14 +61,14 @@
   padding: 7px 14px;
   border: 0.5px solid #E7E5E0;
   border-radius: 10px;
-  background: #FFFFFF;
-  color: #8A8A8A;
+  background: #fff;
+  color: var(--text-soft);
   cursor: pointer;
   outline: none;
   transition: border-color 0.15s ease;
 }
 .filter-select:focus {
-  border-color: #161616;
+  border-color: var(--text-dark);
 }
 
 .export-btn {
@@ -82,18 +78,14 @@
   padding: 7px 16px;
   border: 0.5px solid #E7E5E0;
   border-radius: 10px;
-  background: #FFFFFF;
+  background: #fff;
   font-size: 12px;
   font-weight: 500;
-  color: #8A8A8A;
+  color: var(--text-soft);
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 .export-btn:hover {
-<<<<<<< HEAD
-  background: #F5F4F1;
-=======
   background: var(--main-bg, #fcf8f7);
->>>>>>> 7d38b65 (pilla)
   border-color: #D5D1C8;
 }

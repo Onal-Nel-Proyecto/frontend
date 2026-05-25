@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import './RegisterClient.css'
 
-const NewClientPanel = ({ isOpen, onClose }) => {
+const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
   const [form, setForm] = useState({
-    nombres:   '',
-    apellidos: '',
-    correo:    '',
-    telefono:  '',
-    direccion: '',
+    nombres:   clienteEdit?.name?.split(' ')[0] ?? '',
+    apellidos: clienteEdit?.name?.split(' ').slice(1).join(' ') ?? '',
+    correo:    clienteEdit?.phone ?? '',
+    telefono:  clienteEdit?.telefono ?? '',
+    direccion: clienteEdit?.address ?? '',
   })
+  const [guardando, setGuardando] = useState(false)
+  const [errorForm, setErrorForm] = useState(null)
 
   // Cerrar con Escape
   const handleKeyDown = useCallback((e) => {
@@ -31,10 +33,37 @@ const NewClientPanel = ({ isOpen, onClose }) => {
     setForm((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    console.log('Cliente registrado:', form)
-    onClose()
+    if (!onGuardar) {
+      console.log('Cliente registrado (modo demo):', form)
+      onClose()
+      return
+    }
+
+    setGuardando(true)
+    setErrorForm(null)
+
+    // Mapear el formulario al formato que espera la API
+    const clienteData = {
+      cliente_nombre: form.nombres.trim(),
+      cliente_apellido: form.apellidos.trim(),
+      cliente_email: form.correo.trim(),
+      cliente_direccion: form.direccion.trim(),
+      telefono: form.telefono
+        ? [{ numero_telefono: form.telefono.trim() }]
+        : [],
+    }
+
+    const result = await onGuardar(clienteData)
+
+    if (result.ok) {
+      setForm({ nombres: '', apellidos: '', correo: '', telefono: '', direccion: '' })
+      onClose()
+    } else {
+      setErrorForm(result.error || 'Error al guardar el cliente')
+    }
+    setGuardando(false)
   }
 
   const handleOverlayClick = (e) => {
@@ -54,9 +83,12 @@ const NewClientPanel = ({ isOpen, onClose }) => {
               <i className="ti ti-user-plus" aria-hidden="true" />
             </div>
             <div>
-              <h2 className="ncp-header__title">Registrar Cliente</h2>
+              <h2 className="ncp-header__title">{clienteEdit ? 'Editar Cliente' : 'Registrar Cliente'}</h2>
               <p className="ncp-header__subtitle">
-                Completa los datos para agregar un nuevo contacto al atelier.
+                {clienteEdit
+                  ? 'Actualiza los datos del cliente seleccionado.'
+                  : 'Completa los datos para agregar un nuevo contacto al atelier.'
+                }
               </p>
             </div>
           </div>
@@ -144,13 +176,40 @@ const NewClientPanel = ({ isOpen, onClose }) => {
 
         {/* ── Footer con botones ── */}
         <div className="ncp-footer">
-          <button type="button" className="ncp-btn ncp-btn--outline" onClick={onClose}>
-            Cancelar
-          </button>
-          <button type="submit" className="ncp-btn ncp-btn--primary" onClick={handleSubmit}>
-            <i className="ti ti-user-plus" aria-hidden="true" />
-            Registrar Cliente
-          </button>
+          {errorForm && (
+            <p className="ncp-error">
+              <i className="ti ti-alert-circle" aria-hidden="true" />
+              {' '}{errorForm}
+            </p>
+          )}
+          <div className="ncp-footer__actions">
+            <button
+              type="button"
+              className="ncp-btn ncp-btn--outline"
+              onClick={onClose}
+              disabled={guardando}
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="ncp-btn ncp-btn--primary"
+              onClick={handleSubmit}
+              disabled={guardando}
+            >
+              {guardando ? (
+                <>
+                  <i className="ti ti-loader ti-spin" aria-hidden="true" />
+                  {' '}{clienteEdit ? 'Actualizando…' : 'Guardando…'}
+                </>
+              ) : (
+                <>
+                  <i className="ti ti-user-plus" aria-hidden="true" />
+                  {clienteEdit ? 'Actualizar Cliente' : 'Registrar Cliente'}
+                </>
+              )}
+            </button>
+          </div>
         </div>
 
       </div>
