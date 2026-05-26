@@ -61,7 +61,7 @@
   align-items: center;
   gap: 8px;
   padding: 14px 28px;
-  background: #1a1a1a;
+  background: #C9A23D;
   color: #fff;
   border: none;
   border-radius: 12px;
@@ -74,7 +74,7 @@
 }
 
 .pagos-btn-pagar:hover {
-  background: #333;
+  background: #B08A2E;
   transform: translateY(-1px);
   box-shadow: 0 6px 20px rgba(26, 26, 26, 0.18);
 }
@@ -120,7 +120,7 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  background: #e8f5e9;
+  background: #F0EAF7;
   border: 1px solid #c8e6c9;
   border-radius: 1.25rem;
   padding: 1.25rem 1.5rem;
@@ -135,14 +135,14 @@
   align-items: center;
   justify-content: center;
   font-size: 24px;
-  color: #2e7d32;
+  color: #C9A23D;
   flex-shrink: 0;
 }
 
 .pagos-resumen-title {
   font-size: 16px;
   font-weight: 700;
-  color: #2e7d32;
+  color: #C9A23D;
   margin: 0 0 2px;
 }
 
@@ -425,7 +425,7 @@
 }
 
 .pagos-metodo-check {
-  color: var(--metodo-color, #2e7d32);
+  color: var(--metodo-color, #C9A23D);
   font-size: 22px;
   flex-shrink: 0;
 }
@@ -500,14 +500,14 @@
 }
 
 .pagos-btn--primary {
-  background: #1a1a1a;
+  background: #C9A23D;
   color: #fff;
   border: none;
   box-shadow: 0 4px 14px rgba(26, 26, 26, 0.12);
 }
 
 .pagos-btn--primary:hover {
-  background: #333;
+  background: #B08A2E;
   transform: translateY(-1px);
   box-shadow: 0 6px 20px rgba(26, 26, 26, 0.18);
 }
@@ -553,3 +553,5 @@
     width: 100%;
   }
 }
+
+

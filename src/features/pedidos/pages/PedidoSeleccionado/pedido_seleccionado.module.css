@@ -109,8 +109,8 @@
 }
 
 .inProcess {
-  background: #dbeafe;
-  color: #2563eb;
+  background: #F0EAF7;
+  color: #C9A23D;
 }
 
 .delivered {
@@ -426,8 +426,8 @@
 }
 
 .prodSi {
-  background: #dbeafe;
-  color: #2563eb;
+  background: #F0EAF7;
+  color: #C9A23D;
 }
 
 .prodNo {
@@ -548,8 +548,8 @@
   padding: 0.5rem 1.1rem;
   border: none;
   border-radius: 0.75rem;
-  background: #e8f5e9;
-  color: #2e7d32;
+  background: #F0EAF7;
+  color: #C9A23D;
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
@@ -629,8 +629,8 @@
 }
 
 .prodInProcess {
-  background: #dbeafe;
-  color: #2563eb;
+  background: #F0EAF7;
+  color: #C9A23D;
 }
 
 .prodTerminado {
@@ -798,3 +798,5 @@
     justify-content: center;
   }
 }
+
+

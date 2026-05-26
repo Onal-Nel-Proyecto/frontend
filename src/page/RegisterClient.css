@@ -242,14 +242,14 @@
 
 /* Primario */
 .ncp-btn--primary {
-  background: #1a1a1a;
+  background: #C9A23D;
   color: #fff;
   border: none;
   box-shadow: 0 4px 14px rgba(26, 26, 26, 0.12);
 }
 
 .ncp-btn--primary:hover {
-  background: #333;
+  background: #B08A2E;
   transform: translateY(-1px);
   box-shadow: 0 6px 20px rgba(26, 26, 26, 0.18);
 }
@@ -318,3 +318,5 @@
     width: 100%;
   }
 }
+
+

@@ -62,10 +62,10 @@
   font-size: 20px; flex-shrink: 0;
 }
 
-.vtas-stat-icon--blue   { background: #eef2ff; color: #4f6ef7; }
-.vtas-stat-icon--green  { background: #e8f5e9; color: #2e7d32; }
+.vtas-stat-icon--blue   { background: #F3EEF8; color: #C9A23D; }
+.vtas-stat-icon--green  { background: #F0EAF7; color: #C9A23D; }
 .vtas-stat-icon--orange { background: #fff3e0; color: #e65100; }
-.vtas-stat-icon--purple { background: #f3e8ff; color: #7c3aed; }
+.vtas-stat-icon--purple { background: #F3EEF8; color: #C9A23D; }
 
 .vtas-stat-value {
   font-size: 24px; font-weight: 700; color: #1a1a1a; margin: 0; line-height: 1.15;
@@ -200,7 +200,7 @@
 
 .vtas-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #4f6ef7, #2e7d32);
+  background: linear-gradient(90deg, #D4C4E8, #C9A23D);
   border-radius: 999px;
   transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
@@ -239,8 +239,8 @@
 
 .vtas-badge i { font-size: 13px; }
 
-.vtas-badge--ok    { background: #e8f5e9; color: #2e7d32; }
-.vtas-badge--abono { background: #eef2ff; color: #4f6ef7; }
+.vtas-badge--ok    { background: #F0EAF7; color: #C9A23D; }
+.vtas-badge--abono { background: #F3EEF8; color: #C9A23D; }
 .vtas-badge--pend  { background: #fff3e0; color: #e65100; }
 
 /* ── Acciones ────────────────────────────── */
@@ -255,21 +255,21 @@
 .vtas-btn-pago {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 7px 14px; border: none; border-radius: 8px;
-  background: #1a1a1a; color: #fff;
+  background: #C9A23D; color: #fff;
   font-size: 12px; font-weight: 600; cursor: pointer;
   font-family: inherit; white-space: nowrap;
   transition: all 0.2s ease;
 }
 
 .vtas-btn-pago:hover {
-  background: #333; transform: translateY(-1px);
+  background: #B08A2E; transform: translateY(-1px);
 }
 
 .vtas-btn-pago i { font-size: 15px; }
 
 .vtas-paid-badge {
   display: inline-flex; align-items: center; gap: 4px;
-  font-size: 11px; color: #2e7d32; font-weight: 600;
+  font-size: 11px; color: #C9A23D; font-weight: 600;
   white-space: nowrap;
 }
 
@@ -304,3 +304,8 @@
   .vtas-select,
   .vtas-search { width: 100%; }
 }
+
+
+
+
+

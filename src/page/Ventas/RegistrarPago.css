@@ -1,92 +1,20 @@
 /* ═══════════════════════════════════════════
-   RegistrarPago — Drawer lateral
+   RegistrarPago — Estilos del formulario
+   (Overlay + drawer los maneja Drawer común)
    ═══════════════════════════════════════════ */
-
-/* ── Overlay ──────────────────────────── */
-
-.rpv-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  background: rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(3px);
-  -webkit-backdrop-filter: blur(3px);
-  animation: rpvFadeIn 0.25s ease both;
-}
-
-@keyframes rpvFadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-.rpv-drawer {
-  position: fixed;
-  top: 0;
-  right: 0;
-  width: 440px;
-  height: 100vh;
-  height: 100dvh;
-  background: #FFFFFF;
-  display: flex;
-  flex-direction: column;
-  box-shadow: -8px 0 40px rgba(0, 0, 0, 0.08);
-  animation: rpvSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
-  overflow-y: auto;
-}
-
-@keyframes rpvSlideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
-
-.rpv-drawer::-webkit-scrollbar { width: 4px; }
-.rpv-drawer::-webkit-scrollbar-thumb { background: #e8e5e0; border-radius: 999px; }
-.rpv-drawer::-webkit-scrollbar-track { background: transparent; }
-
-/* ── Header ──────────────────────────────── */
-
-.rpv-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 1.5rem 1.5rem 1rem;
-  border-bottom: 0.5px solid #f0eeea;
-  flex-shrink: 0;
-}
-
-.rpv-header__left { display: flex; align-items: flex-start; gap: 12px; }
-
-.rpv-header__icon {
-  width: 40px; height: 40px;
-  background: #f7f2ef;
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 20px; color: #1a1a1a;
-  flex-shrink: 0;
-}
-
-.rpv-header__title {
-  font-size: 16px; font-weight: 700; color: #1a1a1a; margin: 0; line-height: 1.3;
-}
-
-.rpv-header__subtitle {
-  font-size: 12px; color: #b0b0b0; margin: 4px 0 0; line-height: 1.4;
-}
-
-.rpv-close {
-  width: 32px; height: 32px; border: none; border-radius: 50%;
-  background: #f7f2ef; color: #1a1a1a; font-size: 18px;
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0; transition: background 0.2s ease, transform 0.15s ease;
-}
-
-.rpv-close:hover { background: #e8e5e0; transform: rotate(90deg); }
 
 /* ── Resumen del pedido ──────────────────── */
 
 .rpv-resumen {
-  padding: 1rem 1.5rem;
+  padding: 1rem;
   background: #faf9f7;
-  margin: 0 1.25rem 0.5rem;
   border-radius: 12px;
   display: flex;
   flex-direction: column;
   gap: 6px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .rpv-resumen-row {
@@ -94,6 +22,8 @@
   justify-content: space-between;
   align-items: center;
   gap: 8px;
+  width: 100%;
+  min-width: 0;
 }
 
 .rpv-resumen-row--dest {
@@ -102,22 +32,26 @@
 
 .rpv-resumen-label {
   font-size: 12px;
-  color: var(--text-soft);
+  color: #888;
   flex-shrink: 0;
 }
 
 .rpv-resumen-value {
   font-size: 13px;
   font-weight: 500;
-  color: var(--text-dark);
+  color: #1a1a1a;
   text-align: right;
+  min-width: 0;
+  max-width: 60%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .rpv-resumen-desc {
   font-size: 12px;
-  color: var(--text-soft);
+  color: #888;
   font-weight: 400;
-  max-width: 200px;
 }
 
 .rpv-resumen-total {
@@ -125,7 +59,7 @@
 }
 
 .rpv-resumen-abonado {
-  color: #2e7d32;
+  color: #C9A23D;
   font-weight: 600;
 }
 
@@ -144,17 +78,19 @@
 /* ── Formulario ──────────────────────────── */
 
 .rpv-form {
-  padding: 0.5rem 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  flex: 1;
+  width: 100%;
+  max-width: 100%;
 }
 
 .rpv-field {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  width: 100%;
+  min-width: 0;
 }
 
 .rpv-label {
@@ -169,6 +105,8 @@
 .rpv-toggle {
   display: flex;
   gap: 8px;
+  width: 100%;
+  min-width: 0;
 }
 
 .rpv-toggle-btn {
@@ -176,20 +114,21 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 10px 16px;
+  gap: 6px;
+  padding: 10px 12px;
   border: 1.5px solid #e8e5e0;
   border-radius: 10px;
   background: #ffffff;
-  color: var(--text-soft);
+  color: #888;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
   transition: all 0.2s ease;
+  min-width: 0;
 }
 
-.rpv-toggle-btn i { font-size: 18px; }
+.rpv-toggle-btn i { font-size: 16px; flex-shrink: 0; }
 
 .rpv-toggle-btn:hover {
   border-color: #d5d1ca;
@@ -198,7 +137,7 @@
 
 .rpv-toggle-btn--active {
   border-color: #1a1a1a;
-  background: #1a1a1a;
+  background: #C9A23D;
   color: #ffffff;
 }
 
@@ -212,6 +151,9 @@
   border: 0.5px solid #e8e5e0;
   border-radius: 10px;
   padding: 0 12px;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -270,12 +212,14 @@
 .rpv-input-sign {
   font-size: 18px;
   font-weight: 600;
-  color: var(--text-dark);
+  color: #1a1a1a;
   flex-shrink: 0;
 }
 
 .rpv-input {
   flex: 1;
+  min-width: 0;
+  width: 100%;
   padding: 10px 0;
   font-size: 14px;
   font-family: inherit;
@@ -297,7 +241,7 @@
 
 .rpv-hint {
   font-size: 12px;
-  color: var(--text-soft);
+  color: #888;
   margin: 2px 0 0;
   line-height: 1.4;
 }
@@ -307,6 +251,8 @@
 .rpv-metodos {
   display: flex;
   gap: 8px;
+  width: 100%;
+  min-width: 0;
 }
 
 .rpv-metodo-btn {
@@ -323,6 +269,7 @@
   transition: all 0.2s ease;
   position: relative;
   font-family: inherit;
+  min-width: 0;
 }
 
 .rpv-metodo-btn:hover {
@@ -341,12 +288,13 @@
   border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
   font-size: 18px;
+  flex-shrink: 0;
 }
 
 .rpv-metodo-label {
   font-size: 11px;
   font-weight: 600;
-  color: var(--text-dark);
+  color: #1a1a1a;
 }
 
 .rpv-metodo-check {
@@ -354,18 +302,10 @@
   top: -4px;
   right: -4px;
   font-size: 18px;
-  color: var(--met-color, #2e7d32);
+  color: var(--met-color, #C9A23D);
 }
 
-/* ── Footer ──────────────────────────────── */
-
-.rpv-footer {
-  padding: 1rem 1.5rem 1.5rem;
-  border-top: 0.5px solid #f0eeea;
-  flex-shrink: 0;
-}
-
-.rpv-footer__actions { display: flex; gap: 10px; }
+/* ── Botones ──────────────────────────────── */
 
 .rpv-btn {
   display: inline-flex; align-items: center; justify-content: center;
@@ -377,12 +317,12 @@
 .rpv-btn:active { transform: scale(0.97); }
 
 .rpv-btn--primary {
-  background: #1a1a1a; color: #fff; border: none;
+  background: #C9A23D; color: #fff; border: none;
   box-shadow: 0 4px 14px rgba(26, 26, 26, 0.12);
 }
 
 .rpv-btn--primary:hover {
-  background: #333; transform: translateY(-1px);
+  background: #B08A2E; transform: translateY(-1px);
   box-shadow: 0 6px 20px rgba(26, 26, 26, 0.18);
 }
 
@@ -395,12 +335,3 @@
 }
 
 .rpv-btn--outline:hover { background: #f7f2ef; border-color: #d5d1ca; }
-
-/* ── Responsive ──────────────────────────── */
-
-@media (max-width: 480px) {
-  .rpv-drawer { width: 100%; }
-  .rpv-metodos { flex-direction: column; }
-  .rpv-footer__actions { flex-direction: column-reverse; }
-  .rpv-btn { width: 100%; }
-}

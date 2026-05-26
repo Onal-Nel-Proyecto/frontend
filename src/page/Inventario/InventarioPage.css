@@ -47,7 +47,7 @@
 
 .inv-btn-primary {
   display: inline-flex; align-items: center; gap: 8px;
-  background: #1a1a1a; color: #fff; border: none;
+  background: #C9A23D; color: #fff; border: none;
   border-radius: 12px; padding: 11px 22px; font-size: 13px; font-weight: 600;
   cursor: pointer; white-space: nowrap; font-family: inherit;
   box-shadow: 0 4px 14px rgba(0,0,0,0.08);
@@ -55,7 +55,7 @@
 }
 
 .inv-btn-primary:hover {
-  background: #333; transform: translateY(-2px);
+  background: #B08A2E; transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(0,0,0,0.12);
 }
 
@@ -124,9 +124,9 @@
   font-size: 20px; flex-shrink: 0;
 }
 
-.inv-stat-icon--blue  { background: #eef2ff; color: #4f6ef7; }
+.inv-stat-icon--blue  { background: #F3EEF8; color: #C9A23D; }
 .inv-stat-icon--red   { background: #fef0ee; color: #e74c3c; }
-.inv-stat-icon--green { background: #e8f5e9; color: #2e7d32; }
+.inv-stat-icon--green { background: #F0EAF7; color: #C9A23D; }
 
 .inv-stat-value {
   font-size: 24px; font-weight: 700; color: #1a1a1a; margin: 0; line-height: 1.15;
@@ -295,7 +295,7 @@
 
 .inv-badge i { font-size: 13px; }
 
-.inv-badge--ok    { background: #e8f5e9; color: #2e7d32; }
+.inv-badge--ok    { background: #F0EAF7; color: #C9A23D; }
 .inv-badge--low   { background: #fef0ee; color: #e74c3c; }
 .inv-badge--empty { background: #f5f5f5; color: #999; }
 
@@ -353,3 +353,6 @@
   .inv-table th:nth-child(3),
   .inv-table td:nth-child(3) { display: none; }
 }
+
+
+

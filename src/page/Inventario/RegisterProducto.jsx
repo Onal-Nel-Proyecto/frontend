@@ -1,4 +1,6 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
+import { FiTag } from 'react-icons/fi'
+import Drawer from '../../components/common/Drawer'
 import './RegisterProducto.css'
 
 const validate = (form) => {
@@ -38,21 +40,6 @@ const RegisterProducto = ({ isOpen, onClose }) => {
   const [touched, setTouched] = useState({})
   const [saving, setSaving] = useState(false)
 
-  const handleKeyDown = useCallback((e) => {
-    if (e.key === 'Escape') onClose()
-  }, [onClose])
-
-  useEffect(() => {
-    if (isOpen) {
-      document.addEventListener('keydown', handleKeyDown)
-      document.body.style.overflow = 'hidden'
-    }
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown)
-      document.body.style.overflow = ''
-    }
-  }, [isOpen, handleKeyDown])
-
   const handleChange = (e) => {
     const { name, value } = e.target
     setForm((prev) => ({ ...prev, [name]: value }))
@@ -84,140 +71,126 @@ const RegisterProducto = ({ isOpen, onClose }) => {
     }, 800)
   }
 
-  const handleOverlayClick = (e) => {
-    if (e.target === e.currentTarget) onClose()
-  }
-
   const hasError = (field) => touched[field] && errors[field]
 
-  if (!isOpen) return null
-
   return (
-    <div className="rp-overlay" onClick={handleOverlayClick}>
-      <div className="rp-drawer">
-        <div className="rp-header">
-          <div className="rp-header__left">
-            <div className="rp-header__icon"><i className="ti ti-hanger" /></div>
-            <div>
-              <h2 className="rp-header__title">Nuevo Producto</h2>
-              <p className="rp-header__subtitle">Añade un nuevo producto confeccionado al catálogo.</p>
+    <Drawer
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Nuevo Producto"
+      subtitle="Añade un nuevo producto confeccionado al catálogo."
+      icon={<FiTag />}
+      footer={
+        <>
+          <button type="button" className="rp-btn rp-btn--outline" onClick={onClose} disabled={saving}>Cancelar</button>
+          <button type="submit" form="rp-form" className="rp-btn rp-btn--primary" onClick={handleSubmit} disabled={saving}>
+            {saving ? <><i className="ti ti-loader ti-spin" /> Guardando…</> : <><i className="ti ti-device-floppy" /> Guardar Producto</>}
+          </button>
+        </>
+      }
+    >
+      <form id="rp-form" className="rp-form" onSubmit={handleSubmit} noValidate>
+        <div className="rp-row">
+          <div className="rp-group rp-group--full">
+            <label className="rp-label" htmlFor="rp-nombre">Nombre del Producto</label>
+            <div className={`rp-input-wrap ${hasError('nombre') ? 'rp-input-wrap--err' : ''}`}>
+              <i className="ti ti-tag" />
+              <input id="rp-nombre" name="nombre" type="text" className="rp-input"
+                placeholder="Ej: Vestido de Noche Seda" value={form.nombre}
+                onChange={handleChange} onBlur={handleBlur} />
             </div>
-          </div>
-          <button className="rp-close" onClick={onClose} aria-label="Cerrar"><i className="ti ti-x" /></button>
-        </div>
-
-        <form className="rp-form" onSubmit={handleSubmit} noValidate>
-          <div className="rp-row">
-            <div className="rp-group rp-group--full">
-              <label className="rp-label" htmlFor="nombre">Nombre del Producto</label>
-              <div className={`rp-input-wrap ${hasError('nombre') ? 'rp-input-wrap--err' : ''}`}>
-                <i className="ti ti-tag" />
-                <input id="nombre" name="nombre" type="text" className="rp-input"
-                  placeholder="Ej: Vestido de Noche Seda" value={form.nombre}
-                  onChange={handleChange} onBlur={handleBlur} />
-              </div>
-              {hasError('nombre') && <p className="rp-err">{errors.nombre}</p>}
-            </div>
-          </div>
-
-          <div className="rp-row">
-            <div className="rp-group">
-              <label className="rp-label" htmlFor="referencia">Referencia</label>
-              <div className={`rp-input-wrap ${hasError('referencia') ? 'rp-input-wrap--err' : ''}`}>
-                <i className="ti ti-barcode" />
-                <input id="referencia" name="referencia" type="text" className="rp-input"
-                  placeholder="Ej: VNS-001" value={form.referencia}
-                  onChange={handleChange} onBlur={handleBlur} />
-              </div>
-              {hasError('referencia') && <p className="rp-err">{errors.referencia}</p>}
-            </div>
-            <div className="rp-group">
-              <label className="rp-label" htmlFor="categoria">Categoría</label>
-              <div className={`rp-input-wrap ${hasError('categoria') ? 'rp-input-wrap--err' : ''}`}>
-                <i className="ti ti-category" />
-                <select id="categoria" name="categoria" className="rp-input rp-select"
-                  value={form.categoria} onChange={handleChange} onBlur={handleBlur}>
-                  <option value="">Seleccione...</option>
-                  <option value="Vestidos">Vestidos</option>
-                  <option value="Chaquetas">Chaquetas</option>
-                  <option value="Accesorios">Accesorios</option>
-                </select>
-              </div>
-              {hasError('categoria') && <p className="rp-err">{errors.categoria}</p>}
-            </div>
-          </div>
-
-          <div className="rp-row">
-            <div className="rp-group rp-group--full">
-              <label className="rp-label" htmlFor="material">Material principal</label>
-              <div className={`rp-input-wrap ${hasError('material') ? 'rp-input-wrap--err' : ''}`}>
-                <i className="ti ti-rollers" />
-                <input id="material" name="material" type="text" className="rp-input"
-                  placeholder="Ej: Seda Natural China" value={form.material}
-                  onChange={handleChange} onBlur={handleBlur} />
-              </div>
-              {hasError('material') && <p className="rp-err">{errors.material}</p>}
-            </div>
-          </div>
-
-          <div className="rp-row">
-            <div className="rp-group rp-group--full">
-              <label className="rp-label" htmlFor="precio">Precio de venta ($)</label>
-              <div className={`rp-input-wrap ${hasError('precio') ? 'rp-input-wrap--err' : ''}`}>
-                <i className="ti ti-currency-dollar" />
-                <input id="precio" name="precio" type="number" step="1" min="0" className="rp-input"
-                  placeholder="0" value={form.precio} onChange={handleChange} onBlur={handleBlur} />
-              </div>
-              {hasError('precio') && <p className="rp-err">{errors.precio}</p>}
-            </div>
-          </div>
-
-          <div className="rp-row">
-            <div className="rp-group">
-              <label className="rp-label" htmlFor="stock">Stock actual</label>
-              <div className={`rp-input-wrap ${hasError('stock') ? 'rp-input-wrap--err' : ''}`}>
-                <i className="ti ti-stack" />
-                <input id="stock" name="stock" type="number" min="0" className="rp-input"
-                  placeholder="0" value={form.stock} onChange={handleChange} onBlur={handleBlur} />
-              </div>
-              {hasError('stock') && <p className="rp-err">{errors.stock}</p>}
-            </div>
-            <div className="rp-group">
-              <label className="rp-label" htmlFor="stockMinimo">Stock mínimo</label>
-              <div className={`rp-input-wrap ${hasError('stockMinimo') ? 'rp-input-wrap--err' : ''}`}>
-                <i className="ti ti-alert-triangle" />
-                <input id="stockMinimo" name="stockMinimo" type="number" min="0" className="rp-input"
-                  placeholder="0" value={form.stockMinimo} onChange={handleChange} onBlur={handleBlur} />
-              </div>
-              {hasError('stockMinimo') && <p className="rp-err">{errors.stockMinimo}</p>}
-            </div>
-          </div>
-
-          <div className="rp-row">
-            <div className="rp-group rp-group--full">
-              <label className="rp-label" htmlFor="estado">Estado</label>
-              <div className="rp-input-wrap">
-                <i className="ti ti-circle-check" />
-                <select id="estado" name="estado" className="rp-input rp-select" value={form.estado} onChange={handleChange}>
-                  <option value="In Stock">In Stock</option>
-                  <option value="Low Stock">Low Stock</option>
-                  <option value="Sin Stock">Sin Stock</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </form>
-
-        <div className="rp-footer">
-          <div className="rp-footer__actions">
-            <button type="button" className="rp-btn rp-btn--outline" onClick={onClose} disabled={saving}>Cancelar</button>
-            <button type="submit" className="rp-btn rp-btn--primary" onClick={handleSubmit} disabled={saving}>
-              {saving ? <><i className="ti ti-loader ti-spin" /> Guardando…</> : <><i className="ti ti-device-floppy" /> Guardar Producto</>}
-            </button>
+            {hasError('nombre') && <p className="rp-err">{errors.nombre}</p>}
           </div>
         </div>
-      </div>
-    </div>
+
+        <div className="rp-row">
+          <div className="rp-group">
+            <label className="rp-label" htmlFor="rp-referencia">Referencia</label>
+            <div className={`rp-input-wrap ${hasError('referencia') ? 'rp-input-wrap--err' : ''}`}>
+              <i className="ti ti-barcode" />
+              <input id="rp-referencia" name="referencia" type="text" className="rp-input"
+                placeholder="Ej: VNS-001" value={form.referencia}
+                onChange={handleChange} onBlur={handleBlur} />
+            </div>
+            {hasError('referencia') && <p className="rp-err">{errors.referencia}</p>}
+          </div>
+          <div className="rp-group">
+            <label className="rp-label" htmlFor="rp-categoria">Categoría</label>
+            <div className={`rp-input-wrap ${hasError('categoria') ? 'rp-input-wrap--err' : ''}`}>
+              <i className="ti ti-category" />
+              <select id="rp-categoria" name="categoria" className="rp-input rp-select"
+                value={form.categoria} onChange={handleChange} onBlur={handleBlur}>
+                <option value="">Seleccione...</option>
+                <option value="Vestidos">Vestidos</option>
+                <option value="Chaquetas">Chaquetas</option>
+                <option value="Accesorios">Accesorios</option>
+              </select>
+            </div>
+            {hasError('categoria') && <p className="rp-err">{errors.categoria}</p>}
+          </div>
+        </div>
+
+        <div className="rp-row">
+          <div className="rp-group rp-group--full">
+            <label className="rp-label" htmlFor="rp-material">Material principal</label>
+            <div className={`rp-input-wrap ${hasError('material') ? 'rp-input-wrap--err' : ''}`}>
+              <i className="ti ti-rollers" />
+              <input id="rp-material" name="material" type="text" className="rp-input"
+                placeholder="Ej: Seda Natural China" value={form.material}
+                onChange={handleChange} onBlur={handleBlur} />
+            </div>
+            {hasError('material') && <p className="rp-err">{errors.material}</p>}
+          </div>
+        </div>
+
+        <div className="rp-row">
+          <div className="rp-group rp-group--full">
+            <label className="rp-label" htmlFor="rp-precio">Precio de venta ($)</label>
+            <div className={`rp-input-wrap ${hasError('precio') ? 'rp-input-wrap--err' : ''}`}>
+              <i className="ti ti-currency-dollar" />
+              <input id="rp-precio" name="precio" type="number" step="1" min="0" className="rp-input"
+                placeholder="0" value={form.precio} onChange={handleChange} onBlur={handleBlur} />
+            </div>
+            {hasError('precio') && <p className="rp-err">{errors.precio}</p>}
+          </div>
+        </div>
+
+        <div className="rp-row">
+          <div className="rp-group">
+            <label className="rp-label" htmlFor="rp-stock">Stock actual</label>
+            <div className={`rp-input-wrap ${hasError('stock') ? 'rp-input-wrap--err' : ''}`}>
+              <i className="ti ti-stack" />
+              <input id="rp-stock" name="stock" type="number" min="0" className="rp-input"
+                placeholder="0" value={form.stock} onChange={handleChange} onBlur={handleBlur} />
+            </div>
+            {hasError('stock') && <p className="rp-err">{errors.stock}</p>}
+          </div>
+          <div className="rp-group">
+            <label className="rp-label" htmlFor="rp-stockMinimo">Stock mínimo</label>
+            <div className={`rp-input-wrap ${hasError('stockMinimo') ? 'rp-input-wrap--err' : ''}`}>
+              <i className="ti ti-alert-triangle" />
+              <input id="rp-stockMinimo" name="stockMinimo" type="number" min="0" className="rp-input"
+                placeholder="0" value={form.stockMinimo} onChange={handleChange} onBlur={handleBlur} />
+            </div>
+            {hasError('stockMinimo') && <p className="rp-err">{errors.stockMinimo}</p>}
+          </div>
+        </div>
+
+        <div className="rp-row">
+          <div className="rp-group rp-group--full">
+            <label className="rp-label" htmlFor="rp-estado">Estado</label>
+            <div className="rp-input-wrap">
+              <i className="ti ti-circle-check" />
+              <select id="rp-estado" name="estado" className="rp-input rp-select" value={form.estado} onChange={handleChange}>
+                <option value="In Stock">In Stock</option>
+                <option value="Low Stock">Low Stock</option>
+                <option value="Sin Stock">Sin Stock</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </form>
+    </Drawer>
   )
 }
 

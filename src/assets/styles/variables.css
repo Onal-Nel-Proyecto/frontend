@@ -1,31 +1,39 @@
 :root {
   --shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
-  --text-dark: #1a1a1a;
-  --text-gray: #888;
 
-  /* Base */
-  --color-primary: #F2E8E5;
-  --color-secondary: #F0E6E2;
+  /* === DARK ELEGANTE PALETTE === */
+  --color-primary: #F0EAF7;
+  --color-secondary: #EBE3F3;
   --color-tertiary: #D8DCDA;
   --color-neutral: #2E2E2E;
+  --color-accent: #D4A853;
+  --color-accent-hover: #C49A45;
+
+  /* Surface / Background */
+  --bg-dark: #0f0f13;
+  --bg-dark-alt: #14141c;
+  --bg-glass: rgba(255, 255, 255, 0.04);
+  --bg-glass-border: rgba(255, 255, 255, 0.08);
 
   /* Pastel Colors */
-  --pastel-violet: #ddd6fe;
-  --pastel-blue: #bfdbfe;
-  --pastel-cyan: #a5f3fc;
-  --pastel-orange: #fed7aa;
-  --pastel-pink: #fbcfe8;
-  --pastel-green: #bbf7d0;
+  --pastel-violet: #EDE4F7;
+  --pastel-blue: #D4C4E8;
+  --pastel-cyan: #C9B6D9;
+  --pastel-orange: #F0E2C9;
+  --pastel-pink: #F3EEF8;
+  --pastel-green: #D4C4E8;
 
   /* Layout */
-  --sidebar-bg: #F5EDEB;
-  --header-bg: #F5EDEB;
-  --main-bg: #FCF8F7;
+  --sidebar-bg: #F3EEF8;
+  --header-bg: #F3EEF8;
+  --main-bg: #FCFAFF;
 
   /* Text */
   --text-dark: #3b3b3b;
+  --text-gray: #888;
   --text-soft: #6b7280;
   --text-light: #ffffff;
+  --text-muted: #6b7280;
 
   /* Shadows */
   --shadow-sm: 0 2px 8px rgba(0,0,0,0.05);

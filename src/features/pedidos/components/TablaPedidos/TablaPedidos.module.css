@@ -211,8 +211,8 @@
 }
 
 .inProcess {
-  background: #dbeafe;
-  color: #2563eb;
+  background: #F0EAF7;
+  color: #C9A23D;
 }
 
 .delayed {
@@ -355,7 +355,7 @@
 }
 
 .pageActive {
-  background: #333 !important;
+  background: #B08A2E !important;
   color: #fff;
   font-weight: 600;
 }
@@ -448,3 +448,6 @@
 
 
 }
+
+
+

@@ -1,15 +1,17 @@
 .loginFooter {
     margin-top: 30px;
     font-size: 0.85rem;
-    color: var(--text-gray);
+    color: #b0a8b8;
 }
 
 .loginFooter a {
-    color: var(--text-dark);
+    color: #C9A23D;
     font-weight: 600;
     text-decoration: none;
+    transition: color 0.2s ease;
 }
 
 .loginFooter a:hover {
+    color: #B8922E;
     text-decoration: underline;
 }

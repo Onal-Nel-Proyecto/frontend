@@ -2,23 +2,22 @@
 // PedidoForm — Drawer para crear / editar un pedido
 // ================================================================
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiShoppingBag, FiUser } from 'react-icons/fi';
+import { FiShoppingBag, FiUser, FiLoader } from 'react-icons/fi';
+import { getClientes } from '../../../../api/clientesService';
 import Drawer from '../../../../components/common/Drawer';
 import Alert from '../../../../components/ui/feedback/Alert';
 import LoadingOverlay from '../../../../components/ui/feedback/LoadingOverlay';
 import { createPedido, updatePedido } from '../../services/pedidosService';
 import styles from './PedidoForm.module.css';
 
-const clientesMock = [
-  { id: '8765432109', nombre: 'Jorge Luis Parra Herrera' },
-  { id: '9876543210', nombre: 'Maria Elena Ruiz Castillo' },
-];
-
 const PedidoForm = ({ isOpen, onClose, pedido }) => {
   const isEdit = !!pedido;
   const navigate = useNavigate();
+
+  const [clientes, setClientes] = useState([]);
+  const [cargandoClientes, setCargandoClientes] = useState(false);
 
   const [form, setForm] = useState({
     cliente_id: pedido?.cliente?.cliente_id || '',
@@ -33,6 +32,31 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
+
+  // ── Cargar clientes reales desde la API ──
+  useEffect(() => {
+    if (!isOpen) return;
+    let cancel = false;
+    setCargandoClientes(true);
+    getClientes(1, 999)
+      .then((res) => {
+        if (cancel) return;
+        const items = Array.isArray(res?.data) ? res.data : [];
+        setClientes(
+          items.map((c) => ({
+            id: c.cliente_id,
+            nombre: `${c.cliente_nombre || ''} ${c.cliente_apellido || ''}`.trim(),
+          }))
+        );
+      })
+      .catch(() => {
+        if (!cancel) setClientes([]);
+      })
+      .finally(() => {
+        if (!cancel) setCargandoClientes(false);
+      });
+    return () => { cancel = true; };
+  }, [isOpen]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -135,12 +159,16 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
                 className={`${styles.select} ${errors.cliente_id ? styles.inputError : ''}`}
                 value={form.cliente_id}
                 onChange={handleChange}
+                disabled={cargandoClientes}
               >
-                <option value="">Seleccionar cliente…</option>
-                {clientesMock.map((c) => (
+                <option value="">
+                  {cargandoClientes ? 'Cargando clientes…' : 'Seleccionar cliente…'}
+                </option>
+                {clientes.map((c) => (
                   <option key={c.id} value={c.id}>{c.nombre}</option>
                 ))}
               </select>
+              {cargandoClientes && <FiLoader className={styles.spinner} />}
             </div>
             {errors.cliente_id && <span className={styles.fieldError}>{errors.cliente_id}</span>}
           </div>

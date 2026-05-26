@@ -53,7 +53,7 @@
   font-family: inherit;
 }
 
-.pedBtnPrimary:hover { background: #2e2e2e; transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.pedBtnPrimary:hover { background: #B08A2E; transform: translateY(-1px); box-shadow: var(--shadow-md); }
 
 .pedStats {
   display: grid;
@@ -79,10 +79,10 @@
   font-size: 20px; flex-shrink: 0;
 }
 
-.pedStatIcon--blue  { background: #eef2ff; color: #4f6ef7; }
-.pedStatIcon--green { background: #e8f5e9; color: #2e7d32; }
+.pedStatIcon--blue  { background: #F3EEF8; color: #C9A23D; }
+.pedStatIcon--green { background: #F0EAF7; color: #C9A23D; }
 .pedStatIcon--orange { background: #fff3e0; color: #e65100; }
-.pedStatIcon--purple { background: #f3e8ff; color: #7c3aed; }
+.pedStatIcon--purple { background: #F3EEF8; color: #C9A23D; }
 
 .pedStatValue {
   font-size: 22px; font-weight: 700; color: var(--text-dark); margin: 0; line-height: 1.2;
@@ -220,9 +220,9 @@
 }
 
 .pedEstadoBadge--pending   { background: #fef9c3; color: #a16207; }
-.pedEstadoBadge--process   { background: #dbeafe; color: #2563eb; }
+.pedEstadoBadge--process   { background: #F0EAF7; color: #C9A23D; }
 .pedEstadoBadge--done      { background: #dcfce7; color: #16a34a; }
-.pedEstadoBadge--delivered { background: #e8f5e9; color: #2e7d32; }
+.pedEstadoBadge--delivered { background: #F0EAF7; color: #C9A23D; }
 .pedEstadoBadge--cancelled { background: #fee2e2; color: #dc2626; }
 
 .pedActions {
@@ -256,3 +256,7 @@
   .pedFilters__left { flex-direction: column; }
   .pedSelect, .pedSearch { width: 100%; }
 }
+
+
+
+
