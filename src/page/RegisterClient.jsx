@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import './RegisterClient.css'
 
 const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
@@ -72,7 +73,7 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
 
   if (!isOpen) return null
 
-  return (
+  return createPortal(
     <div className="ncp-overlay" onClick={handleOverlayClick}>
       <div className="ncp-drawer">
 
@@ -213,7 +214,8 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
         </div>
 
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 
