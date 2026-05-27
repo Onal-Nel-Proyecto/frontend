@@ -1,17 +1,23 @@
+/* ───────────────────────────────────────
+   Login Footer
+   ─────────────────────────────────────── */
+
 .loginFooter {
-    margin-top: 30px;
-    font-size: 0.85rem;
-    color: #b0a8b8;
+  margin-top: 2rem;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  position: relative;
+  z-index: 1;
 }
 
 .loginFooter a {
-    color: #C9A23D;
-    font-weight: 600;
-    text-decoration: none;
-    transition: color 0.2s ease;
+  color: var(--accent-gold);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color var(--transition-fast);
 }
 
 .loginFooter a:hover {
-    color: #B8922E;
-    text-decoration: underline;
+  color: var(--accent-gold-light);
+  text-decoration: underline;
 }

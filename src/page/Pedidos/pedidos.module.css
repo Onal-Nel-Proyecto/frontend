@@ -1,11 +1,13 @@
+/* ───────────────────────────────────────
+   Pedidos page — Dark
+   ─────────────────────────────────────── */
+
 .page {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
   width: 100%;
 }
-
-/* ── Encabezado ── */
 
 .header {
   display: flex;
@@ -16,13 +18,11 @@
 }
 
 .title {
-  font-size: 1.85rem;
+  font-size: var(--text-2xl);
   font-weight: 800;
   letter-spacing: -0.03em;
-  color: var(--text-dark);
+  color: var(--text-primary);
 }
-
-/* ── Botón Nuevo Pedido ── */
 
 .btnNuevo {
   display: inline-flex;
@@ -30,40 +30,32 @@
   gap: 0.45rem;
   padding: 0.65rem 1.25rem;
   border: none;
-  border-radius: 0.75rem;
-  background: #695B58;
-  color: #f5f0ef;
-  font-size: 0.88rem;
+  border-radius: var(--radius-sm);
+  background: var(--accent-gold);
+  color: #1a1a1a;
+  font-size: var(--text-sm);
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition:
-    background 0.2s ease,
-    transform 0.2s ease;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-gold);
 }
 
 .btnNuevo:hover {
-  background: #5a4d4a;
+  background: var(--accent-gold-light);
   transform: translateY(-1px);
+  box-shadow: var(--shadow-gold-lg);
 }
 
 .btnIcon {
   font-size: 1.1rem;
 }
 
-/* ── Contenido (pendiente) ── */
-
 .content {
   flex: 1;
 }
 
 @media (max-width: 640px) {
-  .title {
-    font-size: 1.4rem;
-  }
-
-  .btnNuevo {
-    padding: 0.55rem 1rem;
-    font-size: 0.82rem;
-  }
+  .title { font-size: var(--text-xl); }
+  .btnNuevo { padding: 0.55rem 1rem; font-size: var(--text-xs); }
 }
