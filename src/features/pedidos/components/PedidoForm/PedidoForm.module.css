@@ -59,6 +59,7 @@
   padding-left: 0.85rem;
   resize: vertical;
   min-height: 60px;
+  max-height: 60px;
 }
 
 .input:focus,
@@ -177,4 +178,34 @@
 .btnPrimary:hover {
   background: #5a4d4a;
   transform: translateY(-1px);
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 480px) {
+  .form {
+    gap: 0.85rem;
+  }
+
+  .input,
+  .select,
+  .textarea {
+    padding: 0.65rem 0.75rem 0.65rem 2rem;
+    font-size: 16px; /* Evita zoom en iOS */
+  }
+
+  .textarea {
+    padding-left: 0.75rem;
+    min-height: 56px;
+    max-height: 56px;
+  }
+
+  .label {
+    font-size: 0.75rem;
+  }
+
+  .footer button {
+    font-size: 0.82rem;
+    padding: 0.65rem 0.85rem;
+  }
 }

@@ -9,10 +9,13 @@ import {
   FiEdit2,
   FiPlus,
   FiTrash2,
+  FiCopy,
+  FiCheckCircle,
 } from 'react-icons/fi';
 import Drawer from '../../../../components/common/Drawer';
 import Alert from '../../../../components/ui/feedback/Alert';
 import LoadingOverlay from '../../../../components/ui/feedback/LoadingOverlay';
+import ProductoSearch from '../ProductoSearch';
 import { createDetalle, updateDetalle } from '../../services/pedidosService';
 import styles from './DetallePanel.module.css';
 
@@ -40,10 +43,16 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle }) => {
     }
   }, [isOpen, isCreate]);
 
+  const [showProductoSearch, setShowProductoSearch] = useState(false);
+  const [templateAlert, setTemplateAlert] = useState(null);
+
   const [form, setForm] = useState({
     producto_nombre: detalle?.producto?.nombre || '',
     producto_precio: detalle?.producto?.precio || '',
     producto_categoria_id: detalle?.producto?.categoria_id || '',
+    tipo_prenda: detalle?.producto?.tipo_prenda || '',
+    genero: detalle?.producto?.genero || '',
+    producto_talla: detalle?.producto?.talla || '',
     cantidad: detalle?.cantidad || 1,
     observacion: detalle?.observacion || '',
     medidas: detalle?.medidas?.map((m) => ({
@@ -59,6 +68,9 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle }) => {
       producto_nombre: detalle?.producto?.nombre || '',
       producto_precio: detalle?.producto?.precio || '',
       producto_categoria_id: detalle?.producto?.categoria_id || '',
+      tipo_prenda: detalle?.producto?.tipo_prenda || '',
+      genero: detalle?.producto?.genero || '',
+      producto_talla: detalle?.producto?.talla || '',
       cantidad: detalle?.cantidad || 1,
       observacion: detalle?.observacion || '',
       medidas: detalle?.medidas?.map((m) => ({
@@ -69,12 +81,60 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle }) => {
     });
   }, [detalle]);
 
+  // ─── Cargar producto como plantilla ───
+  const handleTemplateSelect = (producto) => {
+    setForm((prev) => ({
+      ...prev,
+      producto_nombre: producto.nombre || '',
+      producto_precio: producto.precio || '',
+      producto_categoria_id: producto.categoria_id || '',
+      tipo_prenda: producto.tipo_prenda || '',
+      genero: producto.genero || '',
+      producto_talla: producto.talla || '',
+      // Las medidas NO se copian, son parte del pedido no del producto
+    }));
+
+    setTemplateAlert({
+      type: 'success',
+      title: 'Plantilla cargada',
+      message: 'Datos copiados desde producto existente',
+      onClose: () => setTemplateAlert(null),
+    });
+  };
+
   const [errors, setErrors] = useState({});
 
+  const limits = {
+    producto_precio: 99999999.99,
+    cantidad: 300,
+  };
+
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
+
+    const { name, value, type } = e.target;
+
+    if (type === 'number' && value !== '') {
+
+      const numericValue = Number(value);
+
+      if (numericValue < 0) return;
+
+      const max = limits[name];
+
+      if (max && numericValue > max) return;
+    }
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: value
+    }));
+
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
   };
 
   const handleMedidaChange = (index, field, value) => {
@@ -228,6 +288,7 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle }) => {
 
         {loading && <LoadingOverlay title="Guardando detalle…" message="Procesando la solicitud" />}
         {alert && <Alert type={alert.type} title={alert.title} message={alert.message} onClose={alert.onClose} />}
+        {templateAlert && <Alert type={templateAlert.type} title={templateAlert.title} message={templateAlert.message} onClose={templateAlert.onClose} />}
       </>
     );
   }
@@ -255,15 +316,37 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle }) => {
             <h4 className={styles.formSectionTitle}>Datos del producto</h4>
             <div className={styles.field}>
               <label className={styles.label}>Nombre del producto *</label>
-              <input
-                name="producto_nombre"
-                className={`${styles.input} ${errors.producto_nombre ? styles.inputError : ''}`}
-                value={form.producto_nombre}
-                onChange={handleChange}
-                placeholder="Ej: Camisa Oxford"
-              />
+              <div className={styles.productoNombreRow}>
+                <input
+                  name="producto_nombre"
+                  className={`${styles.input} ${errors.producto_nombre ? styles.inputError : ''}`}
+                  value={form.producto_nombre}
+                  onChange={handleChange}
+                  placeholder="Ej: Camisa Oxford"
+                  maxLength={70}
+                />
+                <button
+                  type="button"
+                  className={styles.templateBtn}
+                  onClick={() => setShowProductoSearch(true)}
+                  title="Usar producto como plantilla"
+                >
+                  <FiCopy />
+                  Plantilla
+                </button>
+              </div>
               {errors.producto_nombre && <span className={styles.fieldError}>{errors.producto_nombre}</span>}
             </div>
+
+            {/* Buscador de productos (plantilla) */}
+            {showProductoSearch && (
+              <div className={styles.templateSearchWrap}>
+                <ProductoSearch
+                  onSelect={handleTemplateSelect}
+                  onClose={() => setShowProductoSearch(false)}
+                />
+              </div>
+            )}
             <div className={styles.fieldRow}>
               <div className={styles.field}>
                 <label className={styles.label}>Cantidad</label>
@@ -274,6 +357,7 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle }) => {
                   value={form.cantidad}
                   onChange={handleChange}
                   min={1}
+                  max={300}
                 />
                 {errors.cantidad && <span className={styles.fieldError}>{errors.cantidad}</span>}
               </div>
@@ -282,11 +366,97 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle }) => {
                 <input
                   name="producto_precio"
                   type="number"
-                  step="0.01"
+                  step="100"
                   className={styles.input}
                   value={form.producto_precio}
                   onChange={handleChange}
                   placeholder="0.00"
+                  min={0}
+                  max={99999999.99}
+                />
+              </div>
+            </div>
+            <div className={styles.fieldRow}>
+              <div className={styles.field}>
+                <label className={styles.label}>Categoría</label>
+                <select
+                  name="producto_categoria_id"
+                  className={styles.select}
+                  value={form.producto_categoria_id}
+                  onChange={handleChange}
+                >
+                  <option value="">Seleccionar…</option>
+                  <option value="1">Camisas</option>
+                  <option value="2">Pantalones</option>
+                  <option value="3">Vestidos</option>
+                  <option value="4">Chaquetas / Busos</option>
+                  <option value="5">Faldas</option>
+                  <option value="6">Uniformes</option>
+                  <option value="7">Otros</option>
+                </select>
+              </div>
+              <div className={styles.field}>
+                <label className={styles.label}>Tipo de prenda</label>
+                <select
+                  name="tipo_prenda"
+                  className={styles.select}
+                  value={form.tipo_prenda}
+                  onChange={handleChange}
+                >
+                  <option value="">Seleccionar tipo de prenda…</option>
+                  <option value="CAMISA">Camisa</option>
+                  <option value="CAMISETA">Camiseta</option>
+                  <option value="POLO">Polo</option>
+
+                  <option value="PANTALON">Pantalón</option>
+                  <option value="JEAN">Jean</option>
+                  <option value="BERMUDA">Bermuda</option>
+                  <option value="SHORT">Short</option>
+
+                  <option value="FALDA">Falda</option>
+                  <option value="VESTIDO">Vestido</option>
+
+                  <option value="CHAQUETA">Chaqueta</option>
+                  <option value="BUSO">Buso</option>
+                  <option value="SUDADERA">Sudadera</option>
+                  <option value="HOODIE">Hoodie</option>
+
+                  <option value="OVEROL">Overol</option>
+                  <option value="DELANTAL">Delantal</option>
+
+                  <option value="UNIFORME">Uniforme</option>
+                  <option value="DOTACION">Dotación</option>
+
+                  <option value="GORRA">Gorra</option>
+                  <option value="OTRO">Otro</option>
+                </select>
+              </div>
+            </div>
+            <div className={styles.fieldRow}>
+              <div className={styles.field}>
+                <label className={styles.label}>Género</label>
+                <select
+                  name="genero"
+                  className={styles.select}
+                  value={form.genero}
+                  onChange={handleChange}
+                >
+                  <option value="">Seleccionar…</option>
+                  <option value="M">Hombre</option>
+                  <option value="F">Mujer</option>
+                  <option value="U">Unisex</option>
+                </select>
+              </div>
+              <div className={styles.field}>
+                <label className={styles.label}>Referencia de talla</label>
+                <input
+                  name="producto_talla"
+                  type="text"
+                  className={styles.input}
+                  value={form.producto_talla}
+                  onChange={handleChange}
+                  placeholder="Ej: M, 38, S"
+                  maxLength={10}
                 />
               </div>
             </div>
@@ -343,6 +513,7 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle }) => {
 
       {loading && <LoadingOverlay title="Guardando detalle…" message="Procesando la solicitud" />}
       {alert && <Alert type={alert.type} title={alert.title} message={alert.message} onClose={alert.onClose} />}
+      {templateAlert && <Alert type={templateAlert.type} title={templateAlert.title} message={templateAlert.message} onClose={templateAlert.onClose} />}
     </>
   );
 };

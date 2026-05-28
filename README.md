@@ -15,6 +15,7 @@ SPA moderna para la gestión textil. Construida con **React 19 + Vite 8**.
 | `react-icons` | Iconos (Feather Icons) |
 | `react-hook-form` | Manejo de formularios |
 | `react-toastify` | Notificaciones toast |
+| `socket.io-client` | WebSockets (notificaciones en tiempo real) |
 | `Vite` | Bundler y dev server |
 
 ---
@@ -23,8 +24,13 @@ SPA moderna para la gestión textil. Construida con **React 19 + Vite 8**.
 
 ```bash
 cd frontend
-npm install
+pnpm install
 ```
+
+> El proyecto usa **pnpm** como gestor de paquetes. Si no lo tenés instalado:
+> ```bash
+> npm install -g pnpm
+> ```
 
 ### Variables de entorno
 
@@ -37,9 +43,10 @@ VITE_API_URL=http://localhost:3000/
 ### Ejecutar
 
 ```bash
-npm run dev      # Desarrollo (hot reload)
-npm run build    # Build producción → /dist
-npm run preview  # Preview del build
+pnpm dev        # Desarrollo (hot reload)
+pnpm build      # Build producción → /dist
+pnpm preview    # Preview del build
+pnpm lint       # ESLint
 ```
 
 ---
@@ -50,21 +57,40 @@ npm run preview  # Preview del build
 src/
 ├── api/
 │   ├── axiosInstance.js       # Axios + interceptor de refresh automático
-│   └── endpoints/             # Funciones por módulo (auth, dashboard, pedidos)
+│   ├── clientesService.js     # CRUD y búsqueda de clientes
+│   └── endpoints/             # Funciones por módulo (auth, clientes, pedidos…)
 ├── App.jsx                    # BrowserRouter + Routes
 ├── assets/
 │   ├── font/                  # Tipografía Inter
 │   └── styles/                # variables.css, global.css, fonts.css
 ├── components/
-│   ├── common/                # Card, Button, Input (reutilizables)
+│   ├── common/                # Card, Button, Drawer, Input (reutilizables)
 │   └── ui/
-│       ├── feedback/          # Alert, InConstruction, LoadingPages
+│       ├── feedback/          # Alert, InConstruction, LoadingOverlay, LoadingPages
 │       ├── Header/            # Header, NavTabs, UserDropdown, NotificationsDropdown
 │       └── Sidebar/           # Sidebar (oculta opciones según rol)
+├── data/
+│   └── productosMock.js       # Datos mock para buscar productos como plantilla
 ├── features/
 │   ├── auth/                  # Login, formulario, hook useAuth, servicios
-│   └── pedidos/               # (en desarrollo)
-├── hooks/                     # useDocumentTitle
+│   └── pedidos/
+│       ├── components/
+│       │   ├── ClienteSearch/     # Buscador tipo YouTube para clientes
+│       │   ├── DetallePanel/      # Drawer ver/crear/editar detalle + plantilla productos
+│       │   ├── DetallePedido/     # Tabla de detalle del pedido
+│       │   ├── Pagos/             # Gestión de pagos
+│       │   ├── PedidoForm/        # Drawer crear/editar pedido
+│       │   ├── Produccion/        # Cards de producción
+│       │   ├── ProduccionForm/    # Iniciar producción
+│       │   ├── ProductoSearch/    # Buscador tipo YouTube para productos (plantilla)
+│       │   └── TablaPedidos/      # Listado principal de pedidos
+│       ├── pages/
+│       │   ├── Dashboard/         # (en desarrollo)
+│       │   ├── Pedidos/           # Layout con tabs (Detalle, Producción, Pagos)
+│       │   └── PedidoSeleccionado/# Detalle completo de un pedido
+│       └── services/
+│           └── pedidosService.js  # API de pedidos
+├── hooks/                     # useDocumentTitle, useAlertas
 ├── layout/
 │   └── MainLayout/            # Layout principal (Header + Sidebar + NavTabs)
 ├── main.jsx                   # Entry point
@@ -104,6 +130,44 @@ src/
 
 ---
 
+## 📋 Funcionalidades destacadas
+
+### Buscador tipo YouTube (reutilizable)
+
+El patrón de **buscador con autocomplete + debounce** se implementó primero para clientes (`ClienteSearch`) y luego se reutilizó para productos (`ProductoSearch`).
+
+Ambos comparten:
+- Debounce de 300ms antes de disparar la búsqueda
+- Dropdown de resultados con navegación por teclado (↑↓ Enter Escape)
+- Cierre al hacer clic fuera
+- Spinner de carga
+
+### "Usar producto como plantilla" (`DetallePanel`)
+
+En el formulario de detalle del pedido hay un botón **"Plantilla"** al lado del input de nombre del producto. Al hacer clic:
+
+1. Se abre el buscador `ProductoSearch` inline
+2. El usuario busca y selecciona un producto existente
+3. Se copian los datos **sin modificar el producto original**:
+   - Nombre, precio, categoría, tipo de prenda, género y talla
+   - ❌ Las **medidas** no se copian (pertenecen al pedido, no al producto)
+   - ❌ IDs, fechas y estados tampoco
+4. El formulario queda listo para editar los valores libremente
+5. Aparece una alerta de confirmación sin cerrar el formulario
+
+### Datos mock (`data/productosMock.js`)
+
+Mientras se terminan los endpoints del backend, los datos de productos se cargan desde un archivo mock:
+
+```js
+import { buscarProductosMock } from '../../data/productosMock';
+
+const resultados = buscarProductosMock('camisa');
+// → filtra por nombre, tipo_prenda, categoría o género
+```
+
+---
+
 ## 🔐 Autenticación
 
 El login almacena los datos del usuario en `sessionStorage` con clave `user`:
@@ -134,6 +198,22 @@ Componente reutilizable con fondo blanco, blur, sombra y hover elevado.
 </Card>
 ```
 
+### Drawer (`components/common/Drawer`)
+Panel deslizable desde la derecha. Header y footer fijos, solo el body scrolea.
+
+```jsx
+<Drawer
+  isOpen={visible}
+  onClose={() => setVisible(false)}
+  title="Título"
+  subtitle="Subtítulo opcional"
+  icon={<FiShoppingBag />}
+  footer={<button onClick={handleSubmit}>Guardar</button>}
+>
+  contenido del formulario
+</Drawer>
+```
+
 ### Alert (`components/ui/feedback/Alert`)
 Modal de feedback con tres variantes:
 
@@ -141,6 +221,39 @@ Modal de feedback con tres variantes:
 <Alert type="success" title="Éxito" message="Operación completada" onClose={fn} />
 <Alert type="error" title="Error" message="Algo salió mal" onClose={fn} />
 <Alert type="confirm" title="¿Confirmar?" message="¿Estás seguro?" onConfirm={fn} onCancel={fn} />
+```
+
+### ClienteSearch (`features/pedidos/components/ClienteSearch`)
+Buscador tipo YouTube para clientes con debounce de 300ms.
+
+- Escribís nombre/apellido y muestra resultados en un dropdown
+- Navegación por teclado (↑↓ Enter Escape)
+- Último item siempre es **"Cliente por defecto"** (id 9999999999)
+- Botón `+` para agregar nuevo cliente
+
+```jsx
+<ClienteSearch
+  initialNombre=""
+  onChange={({ cliente_id, cliente_nombre, cliente_apellido }) => {}}
+  error=""
+  onAddCliente={() => navigate('/nuevo-cliente')}
+/>
+```
+
+### ProductoSearch (`features/pedidos/components/ProductoSearch`)
+Buscador tipo YouTube para productos, reutiliza el patrón de `ClienteSearch`.
+
+- Mismo comportamiento: debounce, dropdown, teclado
+- Cada resultado muestra nombre, tipo de prenda, talla, precio y género
+- Se usa en `DetallePanel` para la funcionalidad **"Usar como plantilla"**
+
+```jsx
+<ProductoSearch
+  onSelect={(producto) => {
+    // producto tiene: nombre, precio, tipo_prenda, talla, genero, categoria_id, medidas
+  }}
+  onClose={() => setShow(false)}
+/>
 ```
 
 ### NavTabs

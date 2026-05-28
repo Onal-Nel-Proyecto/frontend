@@ -1,0 +1,162 @@
+/* ── Buscador de clientes tipo YouTube ── */
+
+.wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.inputWrap {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 12px;
+  color: #aaa;
+  font-size: 0.95rem;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.input {
+  width: 100%;
+  padding: 0.6rem 0.85rem 0.6rem 2.2rem;
+  border: 0.5px solid #e8e5e0;
+  border-radius: 10px;
+  background: #fcfcfc;
+  font-size: 0.85rem;
+  color: #1a1a1a;
+  transition: border-color 0.2s ease, border-radius 0.2s ease;
+  font-family: inherit;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #bbb;
+  background: #fff;
+}
+
+.inputOpen {
+  border-radius: 10px 10px 0 0;
+  border-color: #bbb;
+  background: #fff;
+}
+
+.inputError {
+  border-color: #dc2626;
+  background: #fef2f2;
+}
+
+.inputError:focus {
+  border-color: #dc2626;
+}
+
+/* ── Spinner de carga ── */
+.spinner {
+  position: absolute;
+  right: 12px;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #e8e5e0;
+  border-top-color: #695B58;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Desplegable ── */
+.dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  background: #fff;
+  border: 0.5px solid #bbb;
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  z-index: 100;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.option {
+  padding: 0.55rem 0.85rem 0.55rem 2.2rem;
+  font-size: 0.82rem;
+  color: #333;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.option:hover,
+.optionHighlighted {
+  background: #f5f3ef;
+}
+
+.optionId {
+  font-size: 0.72rem;
+  color: #aaa;
+  font-family: monospace;
+  margin-left: 0.5rem;
+  flex-shrink: 0;
+}
+
+.defaultOption {
+  border-top: 1px solid #eee;
+  color: #999;
+  font-style: italic;
+}
+
+.defaultOption .optionId {
+  color: #ccc;
+}
+
+.noResults {
+  padding: 0.75rem 0.85rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #aaa;
+}
+
+/* ── Botón agregar cliente ── */
+.addBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 0.5px solid #e8e5e0;
+  border-radius: 10px;
+  background: #fcfcfc;
+  color: #695B58;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.addBtn:hover {
+  background: #695B58;
+  color: #fff;
+}
+
+/* ── Error ── */
+.fieldError {
+  font-size: 0.72rem;
+  color: #dc2626;
+  margin-top: 0.2rem;
+}

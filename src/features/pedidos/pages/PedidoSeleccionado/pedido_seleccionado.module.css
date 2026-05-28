@@ -759,6 +759,58 @@
   border-color: #dc2626;
 }
 
+/* ── Vista móvil del detalle (cards) ── */
+
+.detalleMobileList {
+  display: none;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.detalleMobileCard {
+  background: #fafafa;
+  border-radius: 14px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border: 1px solid #f0f0f0;
+}
+
+.detalleMobileHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.detalleMobileBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.detalleMobileRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+}
+
+.detalleMobileLabel {
+  font-size: 0.72rem;
+  color: #999;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.detalleMobileValue {
+  font-weight: 600;
+  color: #333;
+}
+
 /* ── Responsive ── */
 
 @media (max-width: 640px) {
@@ -796,5 +848,18 @@
   .btnAdd {
     width: 100%;
     justify-content: center;
+  }
+
+  /* Ocultar tabla desktop, mostrar cards mobile */
+  .detalleTable {
+    display: none;
+  }
+
+  .detalleMobileList {
+    display: flex;
+  }
+
+  .tableWrapper {
+    overflow: visible;
   }
 }

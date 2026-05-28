@@ -14,7 +14,10 @@ export const getPedidos = async (pag = 1, filtros = {}) => {
   if (filtros.fecha_desde) params.append("fecha_desde", filtros.fecha_desde);
   if (filtros.fecha_hasta) params.append("fecha_hasta", filtros.fecha_hasta);
   if (filtros.tipo_pedido) params.append("tipo_pedido", filtros.tipo_pedido);
-
+  if (filtros.estado_pago) params.append("estado_pago", filtros.estado_pago);
+  if (filtros.fecha_entrega_desde) params.append("fecha_entrega_desde", filtros.fecha_entrega_desde);
+  if (filtros.fecha_entrega_hasta) params.append("fecha_entrega_hasta", filtros.fecha_entrega_hasta);
+  console.log(`${BASE}?${params}`)
   const res = await axiosInstance.get(`${BASE}?${params}`);
   return res.data;
 };
