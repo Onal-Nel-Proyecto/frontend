@@ -1,0 +1,316 @@
+// ================================================================
+// VentaSeleccionada — Página de detalle de una venta
+// Incluye: DetalleVenta + PagosVenta + botón "Generar Factura"
+// ================================================================
+
+import { useState, useMemo } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { FiArrowLeft, FiFileText, FiShoppingCart, FiDollarSign } from 'react-icons/fi';
+import { useDocumentTitle } from '../../../../hooks/useDocumentTitle';
+import { getStoredUser } from '../../../../utils/session';
+import DetalleVenta from '../../components/DetalleVenta';
+import PagosVenta from '../../components/PagosVenta';
+import styles from './venta_seleccionada.module.css';
+
+// ── Hardcoded data (misma fuente que VentasPage) ─────
+const VENTAS_DATA = [
+  { id: 1, pedido_id: 'PED-001', cliente: 'María García López', descripcion: 'Vestido de Noche Seda — Talla M', total: 520000, abonado: 520000, metodo: 'transferencia', estado: 'Pagado', fecha: '2025-01-15', productos: [{ nombre: 'Vestido de Noche Seda', cantidad: 1, precio_unitario: 520000 }] },
+  { id: 2, pedido_id: 'PED-003', cliente: 'Alejandro Martínez Ruiz', descripcion: 'Blazer Lino Clásico — Talla L', total: 245000, abonado: 245000, metodo: 'tarjeta', estado: 'Pagado', fecha: '2025-01-18', productos: [{ nombre: 'Blazer Lino Clásico', cantidad: 1, precio_unitario: 245000 }] },
+  { id: 3, pedido_id: 'PED-007', cliente: 'Carmen Herrera Díaz', descripcion: 'Vestido de Día Lino + Pañuelo Seda', total: 315000, abonado: 150000, metodo: 'efectivo', estado: 'Abono parcial', fecha: '2025-02-01', productos: [{ nombre: 'Vestido de Día Lino', cantidad: 1, precio_unitario: 250000 }, { nombre: 'Pañuelo Seda', cantidad: 1, precio_unitario: 65000 }] },
+  { id: 4, pedido_id: 'PED-012', cliente: 'Roberto Sánchez Vega', descripcion: 'Corbata Terciopelo Italia x2', total: 170000, abonado: 0, metodo: null, estado: 'Pendiente', fecha: '2025-02-05', productos: [{ nombre: 'Corbata Terciopelo Italia', cantidad: 2, precio_unitario: 85000 }] },
+  { id: 5, pedido_id: 'PED-015', cliente: 'Laura Jiménez Torres', descripcion: 'Pañuelo Seda Tussar + Vestido Noche', total: 440000, abonado: 200000, metodo: 'transferencia', estado: 'Abono parcial', fecha: '2025-02-10', productos: [{ nombre: 'Pañuelo Seda Tussar', cantidad: 1, precio_unitario: 120000 }, { nombre: 'Vestido Noche', cantidad: 1, precio_unitario: 320000 }] },
+];
+
+const fmtCOP = (val) =>
+  Number(val || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+
+const estadoClases = {
+  'Pagado': styles.badgePagado,
+  'Abono parcial': styles.badgeAbono,
+  'Pendiente': styles.badgePendiente,
+};
+
+// ── Factura HTML ──────────────────────────────────────
+const generarFactura = (venta, pagos = []) => {
+  const totalPagado = pagos.reduce((s, p) => s + Number(p.monto || 0), 0);
+  const saldo = Math.max(0, venta.total - totalPagado);
+  const productos = venta.productos || venta.items || [];
+  const user = getStoredUser();
+  const hoy = new Date().toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' });
+
+  const facturaHTML = `
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Factura — ${venta.pedido_id || venta.id}</title>
+  <style>
+    @page { margin: 15mm; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #fff; color: #1a1a1a; line-height: 1.5;
+      padding: 2rem;
+    }
+    .factura { max-width: 800px; margin: 0 auto; }
+    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 2px solid #C9A23D; }
+    .logo-area h1 { font-size: 1.8rem; font-weight: 800; color: #1a1a1a; letter-spacing: -0.03em; }
+    .logo-area p { font-size: 0.8rem; color: #666; margin-top: 4px; }
+    .factura-info { text-align: right; }
+    .factura-info h2 { font-size: 1.4rem; color: #C9A23D; margin-bottom: 4px; }
+    .factura-info p { font-size: 0.8rem; color: #666; }
+    .cliente-section { margin-bottom: 1.5rem; padding: 1rem 1.25rem; background: #f8f6fc; border-radius: 12px; }
+    .cliente-section h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: #999; margin-bottom: 6px; }
+    .cliente-section p { font-size: 0.95rem; color: #1a1a1a; font-weight: 500; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+    thead th { text-align: left; padding: 0.7rem 0.5rem; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: #999; border-bottom: 1px solid #eee; }
+    tbody td { padding: 0.7rem 0.5rem; font-size: 0.85rem; border-bottom: 1px solid #f0f0f0; }
+    .total-row td { border-top: 2px solid #C9A23D; border-bottom: none; font-weight: 700; padding-top: 1rem; }
+    .total-row .label { text-align: right; }
+    .total-row .value { font-size: 1.1rem; color: #C9A23D; }
+    .pagos-section { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #eee; }
+    .pagos-section h3 { font-size: 0.85rem; font-weight: 700; margin-bottom: 0.75rem; }
+    .pago-item { display: flex; justify-content: space-between; padding: 0.3rem 0; font-size: 0.8rem; }
+    .pago-fecha { color: #999; }
+    .pago-monto { font-weight: 600; }
+    .saldo-final { margin-top: 1rem; padding: 0.75rem 1rem; border-radius: 8px; font-weight: 700; font-size: 0.95rem; }
+    .saldo-ok { background: #e8f5e9; color: #2e7d32; }
+    .saldo-pend { background: #fff3e0; color: #e65100; }
+    .footer { margin-top: 2.5rem; text-align: center; font-size: 0.75rem; color: #999; border-top: 1px solid #eee; padding-top: 1.5rem; }
+    .text-right { text-align: right; }
+    .text-center { text-align: center; }
+    .qty-cell { text-align: center; }
+    .price-cell { text-align: right; }
+  </style>
+</head>
+<body>
+  <div class="factura">
+    <!-- Header -->
+    <div class="header">
+      <div class="logo-area">
+        <h1>ona&nel</h1>
+        <p>Atelier de Moda</p>
+      </div>
+      <div class="factura-info">
+        <h2>FACTURA</h2>
+        <p>N° ${venta.pedido_id || venta.id}</p>
+        <p>Fecha: ${hoy}</p>
+      </div>
+    </div>
+
+    <!-- Cliente -->
+    <div class="cliente-section">
+      <h3>Cliente</h3>
+      <p>${venta.cliente || 'No especificado'}</p>
+    </div>
+
+    <!-- Productos -->
+    <table>
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th class="text-center">Cant.</th>
+          <th class="text-right">Precio Unit.</th>
+          <th class="text-right">Subtotal</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${productos.map(p => {
+          const cant = Number(p.cantidad || p.cant || 1);
+          const precio = Number(p.precio_unitario || p.precio || 0);
+          return `
+            <tr>
+              <td>${p.producto?.nombre || p.nombre || 'Producto'}</td>
+              <td class="text-center">${cant}</td>
+              <td class="text-right">${fmtCOP(precio)}</td>
+              <td class="text-right">${fmtCOP(cant * precio)}</td>
+            </tr>
+          `;
+        }).join('')}
+      </tbody>
+    </table>
+
+    <!-- Totales -->
+    <div style="display: flex; justify-content: flex-end; gap: 2rem; margin-bottom: 0.5rem;">
+      <div><strong>Total:</strong> ${fmtCOP(venta.total)}</div>
+      <div><strong>Pagado:</strong> ${fmtCOP(totalPagado)}</div>
+      <div><strong>${saldo > 0 ? 'Saldo pendiente:' : 'Estado:'}</strong> ${saldo > 0 ? fmtCOP(saldo) : '✓ Pagado completo'}</div>
+    </div>
+
+    <!-- Historial de pagos -->
+    ${pagos.length > 0 ? `
+    <div class="pagos-section">
+      <h3>Historial de pagos</h3>
+      ${pagos.map(p => `
+        <div class="pago-item">
+          <span class="pago-fecha">${p.fecha}</span>
+          <span>${p.metodo}</span>
+          <span class="pago-monto">${fmtCOP(p.monto)}</span>
+        </div>
+      `).join('')}
+      <div class="${saldo > 0 ? 'saldo-pend saldo-final' : 'saldo-ok saldo-final'}">
+        ${saldo > 0 ? `Pendiente por pagar: ${fmtCOP(saldo)}` : '✓ Factura pagada en su totalidad'}
+      </div>
+    </div>
+    ` : ''}
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>ona&nel Atelier — Gracias por su preferencia</p>
+      <p style="margin-top: 4px;">Factura generada el ${hoy}</p>
+    </div>
+  </div>
+
+  <script>
+    window.onload = function() { window.print(); };
+  <\/script>
+</body>
+</html>`;
+
+  const win = window.open('', '_blank');
+  if (win) {
+    win.document.write(facturaHTML);
+    win.document.close();
+  }
+};
+
+// ── Componente principal ────────────────────────────────
+
+const VentaSeleccionada = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+  useDocumentTitle(`Venta #${id}`);
+
+  // Buscar venta por ID numérico o pedido_id
+  const venta = useMemo(() => {
+    // Primero intentar desde location.state (pasado desde VentasPage)
+    if (location.state?.venta) return location.state.venta;
+
+    // Buscar en datos hardcodeados
+    return VENTAS_DATA.find(
+      (v) => String(v.id) === String(id) || String(v.pedido_id) === String(id)
+    );
+  }, [id, location.state]);
+
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handlePagoRegistrado = () => {
+    setRefreshKey((k) => k + 1);
+  };
+
+  if (!venta) {
+    return (
+      <div className={styles.page}>
+        <header className={styles.header}>
+          <button className={styles.backBtn} onClick={() => navigate('/ventas')}>
+            <FiArrowLeft />
+            regresar a ventas
+          </button>
+          <div className={styles.placeholder}>Venta no encontrada</div>
+        </header>
+      </div>
+    );
+  }
+
+  const estKey = venta.estado?.toUpperCase()?.replace(/\s+/g, '_') || 'PENDIENTE';
+  const badgeClass = estadoClases[venta.estado] || styles.badgePendiente;
+
+  return (
+    <div className={styles.page}>
+      {/* ── Header ── */}
+      <header className={styles.header}>
+        <div className={styles.headerRow}>
+          <button className={styles.backBtn} onClick={() => navigate('/ventas')}>
+            <FiArrowLeft />
+            regresar a ventas
+          </button>
+          <div className={styles.headerActions}>
+            <button
+              className={styles.btnInvoice}
+              onClick={() => generarFactura(venta)}
+              title="Generar factura imprimible"
+            >
+              <FiFileText />
+              Generar Factura
+            </button>
+          </div>
+        </div>
+
+        <div className={styles.headerRow}>
+          <span className={styles.ventaId}>Venta {venta.pedido_id || `#${venta.id}`}</span>
+          <span className={`${styles.badge} ${badgeClass}`}>
+            <i className={`ti ti-${
+              venta.estado === 'Pagado' ? 'circle-check' :
+              venta.estado === 'Abono parcial' ? 'receipt-2' : 'clock'
+            }`} style={{ marginRight: 4 }} />
+            {venta.estado || 'Pendiente'}
+          </span>
+        </div>
+
+        <p className={styles.descripcion}>{venta.descripcion || 'Sin descripción'}</p>
+
+        <div className={styles.headerRow}>
+          <span className={styles.cliente}>
+            <i className="ti ti-user" style={{ marginRight: 6 }} />
+            {venta.cliente || 'Cliente no especificado'}
+          </span>
+          <span className={styles.fecha}>
+            <i className="ti ti-calendar" style={{ marginRight: 6 }} />
+            {venta.fecha || '—'}
+          </span>
+        </div>
+      </header>
+
+      {/* ── Subnavegación ── */}
+      <nav className={styles.subNav}>
+        <div className={styles.subNavInner}>
+          <button className={`${styles.subTab} ${styles.subTabActive}`}>
+            <FiShoppingCart style={{ marginRight: 6 }} />
+            Detalle de Venta
+          </button>
+        </div>
+      </nav>
+
+      {/* ── Contenido ── */}
+      <main className={styles.content}>
+        <DetalleVenta venta={venta} />
+      </main>
+
+      {/* ── Línea separadora visual ── */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.75rem',
+        marginTop: '0.5rem',
+      }}>
+        <div style={{ flex: 1, height: 1, background: 'var(--border-glass)' }} />
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          padding: '0.35rem 1rem',
+          background: 'var(--bg-glass)',
+          border: '1px solid var(--border-glass)',
+          borderRadius: 'var(--radius-full)',
+          fontSize: 'var(--text-xs)',
+          color: 'var(--text-muted)',
+          fontWeight: 600,
+          letterSpacing: '0.03em',
+          textTransform: 'uppercase',
+        }}>
+          <FiDollarSign />
+          Pagos
+        </div>
+        <div style={{ flex: 1, height: 1, background: 'var(--border-glass)' }} />
+      </div>
+
+      {/* ── Pagos ── */}
+      <main className={styles.content} key={refreshKey}>
+        <PagosVenta venta={venta} onPagoRegistrado={handlePagoRegistrado} />
+      </main>
+    </div>
+  );
+};
+
+export default VentaSeleccionada;

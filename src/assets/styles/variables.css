@@ -1,49 +1,49 @@
 :root {
   /* ═══════════════════════════════════════════
      LIGHT PASTEL — ona&nel Atelier
-     Estructura dark-elegante con colores originales
+     Rosa pastel original
      ═══════════════════════════════════════════ */
 
   /* ── Fondos ── */
-  --bg-root: #F5F0FA;
-  --bg-surface: #FCFAFF;
+  --bg-root: #FDF0F7;
+  --bg-surface: #FFF5FA;
   --bg-elevated: #FFFFFF;
-  --bg-glass: rgba(255, 255, 255, 0.65);
+  --bg-glass: rgba(255, 255, 255, 0.7);
   --bg-glass-hover: rgba(255, 255, 255, 0.85);
   --bg-glass-active: rgba(255, 255, 255, 0.95);
 
-  /* ── Bordes glass ── */
-  --border-glass: rgba(0, 0, 0, 0.06);
-  --border-glass-hover: rgba(0, 0, 0, 0.12);
-  --border-glass-active: rgba(0, 0, 0, 0.18);
+  /* ── Bordes glass (tinte rosa) ── */
+  --border-glass: rgba(200, 80, 140, 0.08);
+  --border-glass-hover: rgba(200, 80, 140, 0.15);
+  --border-glass-active: rgba(200, 80, 140, 0.22);
 
-  /* ── Acentos ── */
-  --accent-gold: #C9A23D;
-  --accent-gold-light: #E0C068;
-  --accent-gold-glow: rgba(201, 162, 61, 0.25);
-  --accent-gold-subtle: rgba(201, 162, 61, 0.08);
+  /* ── Acentos pastel ── */
+  --accent-gold: #D4A84B;
+  --accent-gold-light: #E8C97A;
+  --accent-gold-glow: rgba(212, 168, 75, 0.2);
+  --accent-gold-subtle: rgba(212, 168, 75, 0.08);
 
-  --accent-violet: #A78BFA;
-  --accent-violet-light: #C4B5FD;
-  --accent-violet-glow: rgba(167, 139, 250, 0.25);
-  --accent-violet-subtle: rgba(167, 139, 250, 0.08);
+  --accent-violet: #C4A8E8;
+  --accent-violet-light: #D8C2F0;
+  --accent-violet-glow: rgba(196, 168, 232, 0.2);
+  --accent-violet-subtle: rgba(196, 168, 232, 0.08);
 
   --accent-rose: #F472B6;
   --accent-rose-subtle: rgba(244, 114, 182, 0.08);
 
-  --accent-blue: #60A5FA;
-  --accent-blue-subtle: rgba(96, 165, 250, 0.08);
+  --accent-blue: #93C5FD;
+  --accent-blue-subtle: rgba(147, 197, 253, 0.08);
 
-  --accent-emerald: #10b981;
-  --accent-emerald-subtle: rgba(16, 185, 129, 0.08);
+  --accent-emerald: #86EFAC;
+  --accent-emerald-subtle: rgba(134, 239, 172, 0.08);
 
-  --accent-amber: #f59e0b;
-  --accent-amber-subtle: rgba(245, 158, 11, 0.08);
+  --accent-amber: #FCD34D;
+  --accent-amber-subtle: rgba(252, 211, 77, 0.08);
 
   /* ── Texto ── */
-  --text-primary: #3b3b3b;
-  --text-secondary: #6b6975;
-  --text-muted: #9ca3af;
+  --text-primary: #4a4a5a;
+  --text-secondary: #7c7a8a;
+  --text-muted: #a8a6b2;
   --text-inverse: #ffffff;
 
   /* ── Sombras ── */
@@ -53,10 +53,10 @@
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08);
   --shadow-xl: 0 16px 40px rgba(0, 0, 0, 0.1);
 
-  --shadow-gold: 0 4px 14px rgba(201, 162, 61, 0.15);
-  --shadow-gold-lg: 0 8px 24px rgba(201, 162, 61, 0.25);
+  --shadow-gold: 0 4px 14px rgba(212, 168, 75, 0.15);
+  --shadow-gold-lg: 0 8px 24px rgba(212, 168, 75, 0.25);
 
-  --shadow-violet: 0 4px 14px rgba(167, 139, 250, 0.12);
+  --shadow-violet: 0 4px 14px rgba(196, 168, 232, 0.12);
 
   /* ── Radios ── */
   --radius-xs: 8px;
@@ -97,8 +97,8 @@
   --blur-heavy: blur(20px) saturate(150%);
 
   /* ── Compatibilidad con variables legacy ── */
-  --color-primary: #F0EAF7;
-  --color-secondary: #EBE3F3;
+  --color-primary: #FDF0F7;
+  --color-secondary: #EDE4F7;
   --color-neutral: var(--text-primary);
   --color-accent: var(--accent-gold);
   --color-accent-hover: var(--accent-gold-light);
@@ -107,15 +107,15 @@
   --bg-dark-alt: var(--bg-root);
 
   --pastel-violet: #EDE4F7;
-  --pastel-blue: #D4C4E8;
-  --pastel-orange: #F0E2C9;
-  --pastel-green: #D4C4E8;
-  --pastel-pink: #F3EEF8;
-  --pastel-cyan: #C9B6D9;
+  --pastel-blue: #E0D4F0;
+  --pastel-orange: #F5E6D0;
+  --pastel-green: #D4F0E8;
+  --pastel-pink: #FDE8F0;
+  --pastel-cyan: #D4E8F0;
 
-  --sidebar-bg: #F3EEF8;
-  --header-bg: #F3EEF8;
-  --main-bg: #FCFAFF;
+  --sidebar-bg: #FDF0F7;
+  --header-bg: #FDF0F7;
+  --main-bg: #FFF5FA;
 
   --text-dark: var(--text-primary);
   --text-gray: var(--text-secondary);

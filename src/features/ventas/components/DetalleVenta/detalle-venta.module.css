@@ -1,0 +1,232 @@
+/* ═══════════════════════════════════════════
+   DetalleVenta — Dark theme
+   ═══════════════════════════════════════════ */
+
+.detalleContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  animation: dvFadeIn 0.4s ease both;
+}
+
+@keyframes dvFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.cardSection {
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+}
+
+.sectionTitle {
+  font-size: var(--text-md);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sectionTitle i {
+  font-size: 1.15rem;
+  color: var(--accent-gold);
+}
+
+/* Info grid */
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.infoItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.infoLabel {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.infoValue {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.infoValueLarge {
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.statusPagado {
+  background: var(--accent-emerald-subtle);
+  color: var(--accent-emerald);
+}
+
+.statusAbonoParcial {
+  background: var(--accent-amber-subtle);
+  color: var(--accent-amber);
+}
+
+.statusPendiente {
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+}
+
+/* Divider */
+.divider {
+  height: 1px;
+  background: var(--border-glass);
+  margin: 0.75rem 0;
+}
+
+/* Product table */
+.tableWrap {
+  overflow-x: auto;
+  margin-top: 0.5rem;
+}
+
+.prodTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.prodTable thead th {
+  text-align: left;
+  padding: 0.7rem 0.65rem;
+  background: var(--bg-glass);
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: var(--text-xs);
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.prodTable tbody td {
+  padding: 0.7rem 0.65rem;
+  border-bottom: 1px solid var(--border-glass);
+  color: var(--text-secondary);
+  vertical-align: middle;
+}
+
+.prodTable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.cellName {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.cellQty {
+  text-align: center;
+  font-weight: 600;
+}
+
+.cellPrice,
+.cellSubtotal {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.cellSubtotal {
+  color: var(--text-primary);
+}
+
+/* Total row */
+.totalRow td {
+  border-top: 2px solid var(--border-glass);
+  border-bottom: none !important;
+  padding: 1rem 0.65rem 0.5rem;
+}
+
+.totalLabel {
+  text-align: right;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.totalValue {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--accent-gold);
+}
+
+/* Summary foot */
+.summaryFoot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 2rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-glass);
+}
+
+.summaryItem {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
+}
+
+.summaryLabel {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.summaryValue {
+  font-size: var(--text-base);
+  font-weight: 700;
+}
+
+.summaryGold {
+  color: var(--accent-gold);
+}
+
+.summaryOrange {
+  color: #fb923c;
+}
+
+.summaryGreen {
+  color: var(--accent-emerald);
+}
+
+@media (max-width: 640px) {
+  .cardSection {
+    padding: 1rem;
+  }
+
+  .infoGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .summaryFoot {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: flex-end;
+  }
+}

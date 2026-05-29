@@ -11,6 +11,7 @@ import GestionPersonal from "../page/GestionPersonal";
 import ClientDirectory from "../page/ClientDirectory";
 import InventarioPage from "../page/Inventario/InventarioPage";
 import VentasPage from "../page/Ventas/VentasPage";
+import VentaSeleccionada from "../features/ventas/pages/VentaSeleccionada";
 
 import Pedidos from "../page/Pedidos";
 import PedidoSeleccionado from "../features/pedidos/pages/PedidoSeleccionado";
@@ -18,6 +19,7 @@ import DetallePedido from "../features/pedidos/components/DetallePedido";
 import Produccion from "../features/pedidos/components/Produccion";
 import Pagos from "../features/pedidos/components/Pagos";
 import Config from "../page/Config";
+import GestionUsuarios from "../page/GestionUsuarios";
 import InConstruction from "../components/ui/feedback/InConstruction/InConstruction";
 
 const AppRoutes = () => {
@@ -55,6 +57,7 @@ const AppRoutes = () => {
 
           {/* Ventas */}
           <Route path="/ventas" element={<VentasPage />} />
+          <Route path="/ventas/:id" element={<VentaSeleccionada />} />
 
           {/* Personal */}
           <Route path="/gestion-personal" element={<GestionPersonal />} />
@@ -64,7 +67,7 @@ const AppRoutes = () => {
       {/* ── SÓLO ADMIN ── */}
       <Route element={<AdminRoute />}>
         <Route path="/" element={<MainLayout />}>
-          <Route path="/gestion-usuarios" element={<InConstruction title="Usuarios" />} />
+          <Route path="/gestion-usuarios" element={<GestionUsuarios />} />
           <Route path="/config" element={<Config />} />
           <Route path="/config/categorias" element={<InConstruction title="Categorías" />} />
           <Route path="/config/copia-seguridad" element={<InConstruction title="Copia de seguridad" />} />

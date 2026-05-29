@@ -1,16 +1,15 @@
 // ================================================================
-// Pagos — Subpágina de pagos dentro de un pedido seleccionado
-// Incluye: formulario de registro + historial de pagos +
-// barra de progreso + bloqueo automático al pagar completo
+// PagosVenta — Sección de pagos dentro de Venta Seleccionada
+// Mismo comportamiento que Pagos de pedidos: formulario +
+// historial + barra de progreso + bloqueo automático
 // ================================================================
 
 import { useState, useEffect, useCallback } from 'react';
-import { useOutletContext } from 'react-router-dom';
-import { FiDollarSign, FiPlus, FiCalendar, FiUser, FiCheckCircle } from 'react-icons/fi';
-import { getPagosByPedido, createPagoPedido } from '../../services/pagosService';
+import { FiDollarSign, FiCalendar, FiUser, FiCheckCircle } from 'react-icons/fi';
+import { getPagosByVenta, createPagoVenta } from '../../../pedidos/services/pagosService';
 import { getStoredUser } from '../../../../utils/session';
 import LoadingOverlay from '../../../../components/ui/feedback/LoadingOverlay';
-import styles from './pagos.module.css';
+import styles from './pagos-venta.module.css';
 
 // ── Constantes ──────────────────────────────────────────
 
@@ -37,18 +36,10 @@ const methodClassMap = {
 
 // ── Componente principal ────────────────────────────────
 
-const Pagos = () => {
-  const { pedido } = useOutletContext();
+const PagosVenta = ({ venta, onPagoRegistrado }) => {
   const user = getStoredUser();
 
-  // Datos del pedido
-  const totalGeneral = Number(pedido.total_general) || 0;
-  const detalles = pedido.detalles_pedido || [];
-
-  // Calcular total desde detalles si total_general no está disponible
-  const totalCalculado = totalGeneral > 0
-    ? totalGeneral
-    : detalles.reduce((sum, d) => sum + Number(d.cantidad) * Number(d.precio_unitario || 0), 0);
+  const totalVenta = Number(venta.total) || 0;
 
   // ── State ──
   const [pagos, setPagos] = useState([]);
@@ -58,7 +49,6 @@ const Pagos = () => {
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
 
-  // Formulario
   const [form, setForm] = useState({
     monto: '',
     metodo: '',
@@ -69,22 +59,23 @@ const Pagos = () => {
 
   // Cálculos
   const totalPagado = pagos.reduce((sum, p) => sum + Number(p.monto || 0), 0);
-  const saldoRestante = Math.max(0, totalCalculado - totalPagado);
-  const pctPagado = totalCalculado > 0 ? Math.min((totalPagado / totalCalculado) * 100, 100) : 0;
-  const estaPagadoCompleto = totalPagado >= totalCalculado && totalCalculado > 0;
+  const saldoRestante = Math.max(0, totalVenta - totalPagado);
+  const pctPagado = totalVenta > 0 ? Math.min((totalPagado / totalVenta) * 100, 100) : 0;
+  const estaPagadoCompleto = totalPagado >= totalVenta && totalVenta > 0;
 
   // ── Cargar pagos ──
   const loadPagos = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await getPagosByPedido(pedido.pedido_id);
+      const ventaId = venta.pedido_id || venta.id;
+      const data = await getPagosByVenta(ventaId);
       setPagos(data);
     } catch {
       // silencio
     } finally {
       setLoading(false);
     }
-  }, [pedido.pedido_id]);
+  }, [venta.pedido_id, venta.id]);
 
   useEffect(() => {
     loadPagos();
@@ -148,7 +139,9 @@ const Pagos = () => {
         ? `${user.nombres || ''} ${user.apellidos || ''}`.trim() || 'Admin'
         : 'Admin';
 
-      await createPagoPedido(pedido.pedido_id, {
+      const ventaId = venta.pedido_id || venta.id;
+
+      await createPagoVenta(ventaId, {
         ...form,
         usuario: nombreUsuario,
       });
@@ -164,10 +157,13 @@ const Pagos = () => {
       setErrors({});
       setTouched({});
 
-      // Recargar pagos
       await loadPagos();
 
-      // Limpiar mensaje después de 3s
+      // Notificar al padre (para actualizar totalPagado en la venta)
+      if (onPagoRegistrado) {
+        onPagoRegistrado();
+      }
+
       setTimeout(() => setSuccessMsg(''), 3000);
     } catch {
       setErrors({ general: 'Error al registrar el pago. Intenta de nuevo.' });
@@ -181,7 +177,7 @@ const Pagos = () => {
   const isBlocked = estaPagadoCompleto;
 
   return (
-    <div className={styles.pagosContent}>
+    <div className={styles.pvContent}>
       {/* ── Resumen / Progreso ── */}
       <section className={styles.cardSection}>
         <h3 className={styles.cardSectionTitle}>
@@ -191,8 +187,8 @@ const Pagos = () => {
 
         <div className={styles.resumenGrid}>
           <div className={styles.resumenItem}>
-            <span className={styles.resumenLabel}>Total del pedido</span>
-            <span className={styles.resumenValue}>{fmtCOP(totalCalculado)}</span>
+            <span className={styles.resumenLabel}>Total venta</span>
+            <span className={styles.resumenValue}>{fmtCOP(totalVenta)}</span>
           </div>
           <div className={styles.resumenItem}>
             <span className={styles.resumenLabel}>Total abonado</span>
@@ -217,7 +213,7 @@ const Pagos = () => {
         </div>
       </section>
 
-      {/* ── Formulario de registro ── */}
+      {/* ── Formulario ── */}
       <section className={styles.cardSection} style={{ position: 'relative' }}>
         <h3 className={styles.cardSectionTitle}>
           <i className="ti ti-coin" />
@@ -228,7 +224,7 @@ const Pagos = () => {
           <div className={styles.blockedOverlay}>
             <div className={styles.blockedBadge}>
               <FiCheckCircle />
-              Pedido pagado completamente
+              {venta.estado === 'Pagado' ? 'Venta liquidada' : 'Pago completado'}
             </div>
           </div>
         )}
@@ -248,7 +244,6 @@ const Pagos = () => {
           )}
 
           <div className={styles.formGrid}>
-            {/* Monto */}
             <div className={styles.formField}>
               <label className={styles.formLabel}>Monto del pago</label>
               <div className={`${styles.inputWrap} ${hasError('monto') ? styles.inputWrapErr : ''}`}>
@@ -277,27 +272,23 @@ const Pagos = () => {
               )}
             </div>
 
-            {/* Método de pago */}
             <div className={styles.formField}>
               <label className={styles.formLabel}>Método de pago</label>
-              <div className={styles.selectGroup}>
-                <select
-                  className={`${styles.formSelect} ${hasError('metodo') ? styles.formSelectErr : ''}`}
-                  value={form.metodo}
-                  onChange={(e) => setField('metodo', e.target.value)}
-                  onBlur={() => handleBlur('metodo')}
-                  disabled={isBlocked}
-                >
-                  <option value="">Seleccionar método…</option>
-                  {METODOS_PAGO.map((m) => (
-                    <option key={m.id} value={m.id}>{m.label}</option>
-                  ))}
-                </select>
-              </div>
+              <select
+                className={`${styles.formSelect} ${hasError('metodo') ? styles.formSelectErr : ''}`}
+                value={form.metodo}
+                onChange={(e) => setField('metodo', e.target.value)}
+                onBlur={() => handleBlur('metodo')}
+                disabled={isBlocked}
+              >
+                <option value="">Seleccionar método…</option>
+                {METODOS_PAGO.map((m) => (
+                  <option key={m.id} value={m.id}>{m.label}</option>
+                ))}
+              </select>
               {hasError('metodo') && <span className={styles.fieldError}>{errors.metodo}</span>}
             </div>
 
-            {/* Otro método (solo si seleccionó "otro") */}
             {form.metodo === 'otro' && (
               <div className={styles.formField}>
                 <label className={styles.formLabel}>Especifica el método</label>
@@ -317,7 +308,6 @@ const Pagos = () => {
               </div>
             )}
 
-            {/* Fecha */}
             <div className={styles.formField}>
               <label className={styles.formLabel}>Fecha del pago</label>
               <div className={`${styles.inputWrap} ${hasError('fecha') ? styles.inputWrapErr : ''}`}>
@@ -334,7 +324,6 @@ const Pagos = () => {
               {hasError('fecha') && <span className={styles.fieldError}>{errors.fecha}</span>}
             </div>
 
-            {/* Notas */}
             <div className={`${styles.formField} ${styles.formFieldFull}`}>
               <label className={styles.formLabel}>Notas (opcional)</label>
               <div className={styles.inputWrap}>
@@ -350,7 +339,6 @@ const Pagos = () => {
               </div>
             </div>
 
-            {/* Acciones */}
             {!isBlocked && (
               <div className={styles.formActions}>
                 <button
@@ -387,7 +375,7 @@ const Pagos = () => {
         </div>
       </section>
 
-      {/* ── Historial de pagos ── */}
+      {/* ── Historial ── */}
       <section className={styles.cardSection}>
         <h3 className={styles.cardSectionTitle}>
           <i className="ti ti-history" />
@@ -463,4 +451,4 @@ const Pagos = () => {
   );
 };
 
-export default Pagos;
+export default PagosVenta;
