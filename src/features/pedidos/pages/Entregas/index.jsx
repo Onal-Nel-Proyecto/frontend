@@ -412,7 +412,7 @@ const Entregas = () => {
                       return (
                         <tr key={idDisplay} className={styles.tableRow}>
                           <td className={styles.cellId}>#{idDisplay}</td>
-                          <td className={styles.cellClient}>{clienteDisplay}</td>
+                          <td className={styles.cellClient} title={clienteDisplay !== '—' ? clienteDisplay : ''}>{clienteDisplay}</td>
                           <td>{fechaEntrega}</td>
                           <td>{fechaVenc}</td>
                           <td className={styles.cellCurrency}>{formatCurrency(total)}</td>
