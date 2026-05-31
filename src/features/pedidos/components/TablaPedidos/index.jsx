@@ -3,6 +3,7 @@
 // ================================================================
 
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
   FiSearch,
@@ -27,48 +28,103 @@ const statusMap = {
   CANCELADO:  { label: 'Cancelado',  className: 'delayed' },
 };
 
-// ─── Menú de acciones por fila ───
+// ─── Menú de acciones por fila (portal a body para evitar recorte por overflow) ───
 const AccionesMenu = ({ pedidoId, estado, onVer, onCancelar }) => {
   const [open, setOpen] = useState(false);
-  const [upward, setUpward] = useState(false);
-  const ref = useRef(null);
+  const [coords, setCoords] = useState(null);
+  const btnRef = useRef(null);
   const menuRef = useRef(null);
 
+  // Cerrar al hacer clic fuera
   useEffect(() => {
     if (!open) return;
-    const timer = setTimeout(() => {
-      if (menuRef.current) {
-        const rect = menuRef.current.getBoundingClientRect();
-        if (rect.bottom > window.innerHeight) setUpward(true);
-        else setUpward(false);
-      }
-    }, 0);
     const handleClick = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+      if (
+        menuRef.current && !menuRef.current.contains(e.target) &&
+        btnRef.current && !btnRef.current.contains(e.target)
+      ) {
+        setOpen(false);
+      }
     };
     document.addEventListener('mousedown', handleClick);
-    return () => {
-      document.removeEventListener('mousedown', handleClick);
-      clearTimeout(timer);
-    };
+    return () => document.removeEventListener('mousedown', handleClick);
   }, [open]);
+
+  // Ajustar posición después de renderizar el menú (por si la estimación falló)
+  useEffect(() => {
+    if (!open || !menuRef.current || !coords) return;
+    const rect = menuRef.current.getBoundingClientRect();
+    const menuH = rect.height;
+    let { top, left } = coords;
+
+    // Si se sale por abajo, invertir
+    if (rect.bottom > window.innerHeight - 8) {
+      const btnRect = btnRef.current?.getBoundingClientRect();
+      top = btnRect ? btnRect.top - menuH - 4 : top - menuH - 4;
+    }
+    // Si se sale por arriba, poner abajo
+    if (top < 8) {
+      const btnRect = btnRef.current?.getBoundingClientRect();
+      top = btnRect ? btnRect.bottom + 4 : 8;
+    }
+    // No salirse por la derecha
+    if (rect.right > window.innerWidth - 8) {
+      const btnRect = btnRef.current?.getBoundingClientRect();
+      left = btnRect ? btnRect.right - 150 : left;
+    }
+    // No salirse por la izquierda
+    if (left < 8) left = 8;
+
+    if (top !== coords.top || left !== coords.left) {
+      setCoords({ top, left });
+    }
+  }, [open, coords]);
+
+  const handleToggle = () => {
+    if (!open && btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      const menuWidth = 150;
+      let left = Math.min(rect.right - menuWidth, window.innerWidth - menuWidth - 8);
+      if (left < 8) left = 8;
+
+      // Estimar espacio: abajo si hay ~130px, sino arriba
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const estimatedMenuH = 120;
+      const top = spaceBelow >= estimatedMenuH
+        ? rect.bottom + 4
+        : rect.top - estimatedMenuH - 4;
+
+      setCoords({ top, left });
+    }
+    setOpen((o) => !o);
+  };
 
   const puedeCancelar = !['ENTREGADO', 'TERMINADO', 'CANCELADO'].includes(estado?.toUpperCase());
 
   return (
-    <div className={styles.actionsWrapper} ref={ref}>
-      <button className={styles.actionBtn} onClick={() => setOpen((o) => !o)}>
+    <div className={styles.actionsWrapper} ref={btnRef}>
+      <button className={styles.actionBtn} onClick={handleToggle}>
         <FiMoreVertical />
       </button>
-      {open && (
-        <div ref={menuRef} className={`${styles.actionsMenu} ${upward ? styles.actionsUpward : ''}`}>
+      {open && coords && createPortal(
+        <div
+          ref={menuRef}
+          className={styles.actionsMenuPortal}
+          style={{
+            position: 'fixed',
+            top: coords.top,
+            left: coords.left,
+            zIndex: 1050,
+          }}
+        >
           <button className={styles.actionItem} onClick={() => { setOpen(false); onVer(); }}>
             <FiEye /> Ver
           </button>
           <button className={styles.actionItem} disabled={!puedeCancelar} onClick={() => { setOpen(false); onCancelar(); }}>
             <FiXCircle /> Cancelar
           </button>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
@@ -165,7 +221,7 @@ const TablaPedidos = () => {
         <div className={styles.headerRight}>
           <div className={styles.searchBox}>
             <FiSearch className={styles.searchIcon} />
-            <input type="text" placeholder="Buscar cliente o ID…" className={styles.searchInput} value={search} onChange={(e) => setSearch(e.target.value)} />
+            <input type="text" placeholder="Buscar por cliente o pedido..." className={styles.searchInput} value={search} onChange={(e) => setSearch(e.target.value)} maxLength={200}/>
           </div>
           <button className={`${styles.filterBtn} ${filtrosActivos ? styles.filterActive : ''}`} onClick={() => setShowFiltros(true)}>
             <FiFilter /> Filtrar{filtrosActivos ? ` (${Object.values(filtrosActivos).filter(Boolean).length})` : ''}

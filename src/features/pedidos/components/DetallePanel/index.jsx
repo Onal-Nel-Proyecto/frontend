@@ -323,7 +323,7 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle }) => {
                   value={form.producto_nombre}
                   onChange={handleChange}
                   placeholder="Ej: Camisa Oxford"
-                  maxLength={70}
+                  maxLength={60}
                 />
                 <button
                   type="button"

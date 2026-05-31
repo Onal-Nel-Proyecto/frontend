@@ -121,6 +121,7 @@ const ProductoSearch = ({ onSelect, onClose }) => {
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           autoComplete="off"
+          maxLength={60}
         />
       </div>
 

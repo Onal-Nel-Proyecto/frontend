@@ -34,6 +34,24 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
   const limits = {
     recordatorio: 10
   };
+
+  /** Calcula el máximo de días de recordatorio permitido según la fecha de entrega */
+  const getMaxRecordatorio = useCallback(() => {
+    const absoluteMax = limits.recordatorio || 10;
+    if (!form.fecha_estimada_entrega) return absoluteMax;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const deliveryDate = new Date(form.fecha_estimada_entrega + 'T00:00:00');
+    const diffTime = deliveryDate - today;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    // Si la entrega es hoy o ya pasó, no se puede poner recordatorio
+    if (diffDays <= 0) return 0;
+
+    return Math.min(absoluteMax, diffDays);
+  }, [form.fecha_estimada_entrega]);
+
   const handleChange = (e) => {
     const { name, value, type } = e.target;
     if (type === 'number' && value !== '') {
@@ -42,9 +60,15 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
 
       if (numericValue < 0) return;
 
-      const max = limits[name];
-
-      if (max && numericValue > max) return;
+      // Validación dinámica contra fecha de entrega
+      if (name === 'recordatorio') {
+        const maxRecordatorio = getMaxRecordatorio();
+        if (maxRecordatorio > 0 && numericValue > maxRecordatorio) return;
+        if (numericValue < 1) return;
+      } else {
+        const max = limits[name];
+        if (max && numericValue > max) return;
+      }
     }
     setForm((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
@@ -72,6 +96,19 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
     if (!form.cliente_id) {
       setErrors({ cliente_id: 'Selecciona un cliente' });
       return;
+    }
+
+    // Validar recordatorio contra fecha de entrega
+    if (form.recordatorio_activo && form.fecha_estimada_entrega) {
+      const maxRecordatorio = getMaxRecordatorio();
+      if (maxRecordatorio <= 0) {
+        setErrors({ recordatorio: 'La fecha de entrega debe ser posterior a hoy para activar el recordatorio' });
+        return;
+      }
+      if (form.recordatorio > maxRecordatorio) {
+        setErrors({ recordatorio: `El recordatorio no puede superar los ${maxRecordatorio} días antes de la entrega` });
+        return;
+      }
     }
 
     setSubmitting(true);
@@ -235,14 +272,22 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
                 <input
                   type="number"
                   name="recordatorio"
-                  className={styles.input}
+                  className={`${styles.input} ${errors.recordatorio ? styles.inputError : ''}`}
                   value={form.recordatorio}
                   onChange={handleChange}
                   min={1}
-                  max={10}
+                  max={getMaxRecordatorio() || 1}
                 />
                 <span className={styles.inputSuffix}>días antes</span>
               </div>
+            )}
+            {form.recordatorio_activo && form.fecha_estimada_entrega && (
+              <span style={{ fontSize: '0.7rem', color: '#999', marginTop: '0.2rem', display: 'block' }}>
+                Máximo {getMaxRecordatorio()} día{getMaxRecordatorio() !== 1 ? 's' : ''} antes de la entrega
+              </span>
+            )}
+            {errors.recordatorio && (
+              <span className={styles.fieldError}>{errors.recordatorio}</span>
             )}
           </div>
         </form>

@@ -10,7 +10,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { getAlertas } from "../api/endpoints/alertasEndpoints";
 import { getSocket } from "../services/socketService";
 
-const POLLING_INTERVAL = 15 * 60 * 1000; // 15 minutos
+const POLLING_INTERVAL = 60 * 1000; // 1 minuto (fallback si socket no funciona)
 
 const useAlertas = ({ limite = 15, estado, tipo, categoria } = {}) => {
   const [alertas, setAlertas] = useState([]);
@@ -118,12 +118,22 @@ const useAlertas = ({ limite = 15, estado, tipo, categoria } = {}) => {
       fetchAlertas(1, true);
     };
 
+    // Refrescar al reconectar (para no perder alertas durante la desconexión)
+    const handleConnect = () => {
+      console.log("[useAlertas] Socket reconectado — refrescando alertas");
+      fetchAlertas(1, true);
+    };
+
+    socket.on("connect", handleConnect);
     socket.on("nueva-alerta", handleNuevaAlerta);
     socket.on("alerta-resuelta", handleAlertaResuelta);
 
     return () => {
-      socket.off("nueva-alerta", handleNuevaAlerta);
-      socket.off("alerta-resuelta", handleAlertaResuelta);
+      socket.off("connect", handleConnect);
+      // Limpiar TODOS los listeners del evento (sin pasar el handler,
+      // porque la referencia del cleanup es distinta a la del mount)
+      socket.off("nueva-alerta");
+      socket.off("alerta-resuelta");
     };
   }, [fetchAlertas]);
 

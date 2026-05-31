@@ -278,6 +278,18 @@
   bottom: calc(100% + 4px);
 }
 
+/* ── Menú portaleado a body (evita recorte por overflow del contenedor) ── */
+.actionsMenuPortal {
+  min-width: 140px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+  padding: 0.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
 .actionItem {
   display: flex;
   align-items: center;
