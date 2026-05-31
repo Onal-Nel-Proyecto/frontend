@@ -73,6 +73,7 @@ const AppRoutes = () => {
           <Route path="/config/medidas" element={<InConstruction title="Medidas" />} />
         </Route>
       </Route>
+      </Route>
     </Routes>
   );
 };
