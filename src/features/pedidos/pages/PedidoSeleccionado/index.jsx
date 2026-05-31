@@ -27,7 +27,7 @@ const statusConfig = {
 const subPages = [
   { label: 'Detalle Pedido', to: '' },
   { label: 'Producción',     to: 'produccion' },
-  { label: 'Pagos',          to: 'pagos' },
+  { label: 'Cobro',          to: 'pagos' },
 ];
 
 const PedidoSeleccionado = () => {

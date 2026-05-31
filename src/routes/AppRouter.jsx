@@ -1,4 +1,5 @@
-import { Navigate, Route, Routes } from "react-router";
+import "@tabler/icons-webfont/dist/tabler-icons.min.css";
+import { Route, Routes } from "react-router";
 import Login from "../features/auth/pages/login";
 import Home from "../page/Home";
 import PrivateRoute from "./privateRoute";
@@ -7,6 +8,10 @@ import AdminRoute from "./adminRoute";
 import NotFound from "../page/NotFount";
 import MainLayout from "../layout/MainLayout/mainLayout";
 import GestionPersonal from "../page/GestionPersonal";
+import ClientDirectory from "../page/ClientDirectory";
+import InventarioPage from "../page/Inventario/InventarioPage";
+import VentasPage from "../page/Ventas/VentasPage";
+
 import Pedidos from "../page/Pedidos";
 import PedidoSeleccionado from "../features/pedidos/pages/PedidoSeleccionado";
 import DetallePedido from "../features/pedidos/components/DetallePedido";
@@ -20,38 +25,25 @@ const AppRoutes = () => {
   return (
     <Routes>
       <Route path="*" element={<NotFound />} />
-      {/* PUBLIC ROUTES */}
+
+      {/* ── PÚBLICAS ── */}
       <Route element={<PublicRoute />}>
-
-        <Route
-          path="/login"
-          element={<Login />}
-        />
-
+        <Route path="/login" element={<Login />} />
       </Route>
 
-
-      {/* PRIVATE ROUTES */}
+      {/* ── PRIVADAS ── */}
       <Route element={<PrivateRoute />}>
         <Route path="/" element={<MainLayout />}>
-          <Route
-            index
-            element={<Navigate to="/dashboard" replace />}
-          />
+          <Route index element={<Home />} />
 
-          <Route
-            index
-            path="/dashboard"
-            element={<Home />}
-          />
-          <Route
-            path="/pedidos/dash"
-            element={<InConstruction title="Pedidos - Inicio" />}
-          />
-          <Route
-            path="/pedidos"
-            element={<Pedidos />}
-          />
+          {/* Dashboard */}
+          <Route path="/dashboard" element={<Home />} />
+
+          {/* Clientes */}
+          <Route path="/gestion-clientes" element={<ClientDirectory />} />
+
+          {/* Pedidos */}
+          <Route path="/pedidos" element={<Pedidos />} />
           <Route path="/pedidos/:id" element={<PedidoSeleccionado />}>
             <Route index element={<DetallePedido />} />
             <Route path="produccion" element={<Produccion />} />
@@ -74,31 +66,14 @@ const AppRoutes = () => {
         {/* RUTAS SOLO ADMIN */}
         <Route element={<AdminRoute />}>
         <Route path="/" element={<MainLayout />}>
-          <Route
-            path="/gestion-usuarios"
-            element={<InConstruction title="Usuarios" />}
-          />
-          <Route
-            path="/config"
-            element={<Config />}
-          />
-          <Route
-            path="/config/categorias"
-            element={<InConstruction title="Categorías" />}
-          />
-          <Route
-            path="/config/copia-seguridad"
-            element={<InConstruction title="Copia de seguridad" />}
-          />
-          <Route
-            path="/config/medidas"
-            element={<InConstruction title="Medidas" />}
-          />
-        </Route>
+          <Route path="/gestion-usuarios" element={<InConstruction title="Usuarios" />} />
+          <Route path="/config" element={<Config />} />
+          <Route path="/config/categorias" element={<InConstruction title="Categorías" />} />
+          <Route path="/config/copia-seguridad" element={<InConstruction title="Copia de seguridad" />} />
+          <Route path="/config/medidas" element={<InConstruction title="Medidas" />} />
         </Route>
       </Route>
     </Routes>
-
   );
 };
 

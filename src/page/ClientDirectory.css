@@ -1,0 +1,155 @@
+/* ═══════════════════════════════════════════
+   ClientDirectory — Contenido del dashboard
+   Se integra dentro de MainLayout
+   ═══════════════════════════════════════════ */
+
+/* ── Contenido base ─────────────────────── */
+
+.cd-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ── Encabezado ─────────────────────────── */
+
+.cd-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.cd-title {
+  font-size: var(--text-xl, 28px);
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0 0 6px;
+  letter-spacing: -0.4px;
+  line-height: 1.2;
+}
+
+.cd-subtitle {
+  font-size: 13px;
+  color: var(--text-soft);
+  margin: 0;
+  max-width: 520px;
+  line-height: 1.65;
+}
+
+/* ── Botón primario ─────────────────────── */
+
+.cd-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--text-dark);
+  color: var(--text-light);
+  border: none;
+  border-radius: var(--radius-sm, 10px);
+  padding: 12px 22px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  letter-spacing: 0.2px;
+  transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.cd-btn-primary:hover {
+  background: #2e2e2e;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.cd-btn-primary:active {
+  transform: translateY(0);
+}
+
+/* ── Grid de estadísticas ──────────────── */
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+/* ── Sección tabla ─────────────────────── */
+
+.table-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ── Fila inferior de tarjetas ─────────── */
+
+.bottom-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/* ── Loading ──────────────────────────── */
+
+.cd-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 1rem 1.25rem;
+  background: #f0f4ff;
+  border: 1px solid #d6e0f5;
+  border-radius: var(--radius-sm, 10px);
+  color: #1a4b8c;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.cd-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 1rem 1.25rem;
+  background: #fff0f0;
+  border: 1px solid #f5d6d6;
+  border-radius: var(--radius-sm, 10px);
+  color: #b91c1c;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.cd-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ── Responsive ────────────────────────── */
+
+@media (max-width: 1280px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .bottom-row {
+    grid-template-columns: 1fr;
+  }
+
+  .cd-header {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 560px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}

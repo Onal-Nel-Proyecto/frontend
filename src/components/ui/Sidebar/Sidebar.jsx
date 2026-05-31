@@ -11,7 +11,8 @@ import {
   FiShoppingBag,
   FiUsers,
   FiSettings,
-  FiX
+  FiX,
+  FiArchive
 } from 'react-icons/fi';
 
 import styles from './sidebar.module.css';
@@ -32,7 +33,9 @@ const Sidebar = ({ isOpen, onClose }) => {
   // Ítems del menú principal (visibles para todos los roles)
   const menuItems = [
     { name: 'Dashboard', icon: <FiHome />, path: '/dashboard' },
-    { name: 'Pedidos', icon: <FiShoppingBag />, path: '/pedidos/dash' },
+    { name: 'Pedidos', icon: <FiShoppingBag />, path: '/pedidos' },
+    { name: 'Inventario', icon: <FiArchive />, path: '/inventario' },
+    { name: 'Ventas', icon: <FiShoppingBag />, path: '/ventas' },
     { name: 'Gestión Personal', icon: <FiUsers />, path: '/gestion-personal' },
   ];
 
