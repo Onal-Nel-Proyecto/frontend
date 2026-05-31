@@ -162,6 +162,10 @@ const VentasPage = () => {
             <p className="vtas-subtitle">Gestiona los cobros y pagos de pedidos terminados.</p>
           </div>
         </div>
+        <button className="vtas-btn-primary" onClick={() => alert('Redirigir a formulario de venta')}>
+          <i className="ti ti-plus" />
+          Nueva Venta
+        </button>
       </div>
 
       {/* ══ STATS ══ */}

@@ -6,6 +6,18 @@ import {
   changeStatus as apiChangeStatus,
 } from "../api/clientesService";
 
+// ── Clientes de ejemplo para modo local ─────
+const CLIENTES_EJEMPLO = [
+  { id: 1, name: 'María García López', category: 'Activo', phone: 'maria.garcia@email.com', address: 'Calle 10 #20-30, Bogotá', lastOrder: 'Jan 15, 2025' },
+  { id: 2, name: 'Alejandro Martínez Ruiz', category: 'Activo', phone: 'alejandro.martinez@email.com', address: 'Carrera 7 #45-67, Medellín', lastOrder: 'Jan 18, 2025' },
+  { id: 3, name: 'Carmen Herrera Díaz', category: 'Activo', phone: 'carmen.herrera@email.com', address: 'Av siempre viva #123, Cali', lastOrder: 'Feb 1, 2025' },
+  { id: 4, name: 'Roberto Sánchez Vega', category: 'Inactivo', phone: 'roberto.sanchez@email.com', address: 'Calle 5 #10-20, Barranquilla', lastOrder: 'Feb 5, 2025' },
+  { id: 5, name: 'Laura Jiménez Torres', category: 'Activo', phone: 'laura.jimenez@email.com', address: 'Carrera 15 #30-45, Cartagena', lastOrder: 'Feb 10, 2025' },
+  { id: 6, name: 'Fernando Ortiz Mendoza', category: 'Activo', phone: 'fernando.ortiz@email.com', address: 'Diagonal 60 #15-30, Bucaramanga', lastOrder: 'Mar 3, 2025' },
+  { id: 7, name: 'Isabel Ramírez Castro', category: 'Activo', phone: 'isabel.ramirez@email.com', address: 'Calle 80 #12-34, Manizales', lastOrder: 'Mar 15, 2025' },
+  { id: 8, name: 'Daniela Rojas Pineda', category: 'Inactivo', phone: 'daniela.rojas@email.com', address: 'Av 68 #23-45, Pereira', lastOrder: 'Apr 2, 2025' },
+]
+
 // ──────────────────────────────────────────────
 //  Normaliza un item de la API → formato tabla
 // ──────────────────────────────────────────────
@@ -48,9 +60,10 @@ export const useClientes = ({ paginaInicial = 1, limiteInicial = 15 } = {}) => {
       setClientes(items.map(mapearCliente));
       setMeta(respuesta?.meta ?? null);
     } catch (err) {
-      // Si falla la API, manejamos todo en local
-      console.warn("API no disponible, usando modo local:", err?.message);
-      setMeta({ total: clientes.length, pagina_actual: 1, paginas_totales: 1, limite });
+      // Si falla la API, cargamos datos de ejemplo
+      console.warn("API no disponible, cargando datos de ejemplo:", err?.message);
+      setClientes(CLIENTES_EJEMPLO);
+      setMeta({ total: CLIENTES_EJEMPLO.length, pagina_actual: 1, paginas_totales: 1, limite });
     } finally {
       if (mounted.current) setLoading(false);
     }

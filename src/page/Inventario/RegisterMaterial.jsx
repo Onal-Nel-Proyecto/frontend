@@ -13,11 +13,7 @@ const validate = (form) => {
 
   if (!form.categoria) errs.categoria = 'Selecciona una categoría'
 
-  if (!form.especificaciones.trim()) errs.especificaciones = 'Indica las especificaciones del material'
-
-  const precio = parseFloat(form.precio)
-  if (!form.precio || isNaN(precio)) errs.precio = 'Ingresa un precio válido'
-  else if (precio <= 0) errs.precio = 'El precio debe ser mayor a $0'
+  if (!form.descripcion.trim()) errs.descripcion = 'Indica la descripción del material'
 
   const stock = parseInt(form.stock)
   if (form.stock === '' || isNaN(stock)) errs.stock = 'Ingresa el stock actual'
@@ -33,8 +29,8 @@ const validate = (form) => {
 
 const RegisterMaterial = ({ isOpen, onClose }) => {
   const [form, setForm] = useState({
-    nombre: '', referencia: '', categoria: '', especificaciones: '',
-    precio: '', stock: '', stockMinimo: '', estado: 'In Stock',
+    nombre: '', referencia: '', categoria: '', descripcion: '',
+    stock: '', stockMinimo: '',
   })
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
@@ -43,25 +39,19 @@ const RegisterMaterial = ({ isOpen, onClose }) => {
   const handleChange = (e) => {
     const { name, value } = e.target
     setForm((prev) => ({ ...prev, [name]: value }))
-    if (touched[name]) {
-      const newForm = { ...form, [name]: value }
-      const newErrors = validate(newForm)
-      setErrors((prev) => ({ ...prev, [name]: newErrors[name] || undefined }))
-    }
   }
 
   const handleBlur = (e) => {
     const { name } = e.target
     setTouched((prev) => ({ ...prev, [name]: true }))
-    const newErrors = validate(form)
-    setErrors((prev) => ({ ...prev, [name]: newErrors[name] || undefined }))
+    // La validación solo se activa en submit
   }
 
   const handleSubmit = (e) => {
     e.preventDefault()
     const newErrors = validate(form)
     setErrors(newErrors)
-    setTouched({ nombre: true, referencia: true, categoria: true, especificaciones: true, precio: true, stock: true, stockMinimo: true })
+    setTouched({ nombre: true, referencia: true, categoria: true, descripcion: true, stock: true, stockMinimo: true })
     if (Object.keys(newErrors).length > 0) return
     setSaving(true)
     setTimeout(() => {
@@ -95,7 +85,7 @@ const RegisterMaterial = ({ isOpen, onClose }) => {
             <label className="rm-label" htmlFor="rm-nombre">Nombre del Material</label>
             <div className="rm-input-wrap">
               <i className="ti ti-tag rm-input-icon" />
-              <input id="rm-nombre" name="nombre" type="text"
+              <input id="rm-nombre" name="nombre" type="text" maxLength="100"
                 className={`rm-input ${hasError('nombre') ? 'rm-input--error' : ''}`}
                 placeholder="Ej: Seda Natural China" value={form.nombre}
                 onChange={handleChange} onBlur={handleBlur} />
@@ -109,7 +99,7 @@ const RegisterMaterial = ({ isOpen, onClose }) => {
             <label className="rm-label" htmlFor="rm-referencia">Referencia</label>
             <div className="rm-input-wrap">
               <i className="ti ti-barcode rm-input-icon" />
-              <input id="rm-referencia" name="referencia" type="text"
+              <input id="rm-referencia" name="referencia" type="text" maxLength="30"
                 className={`rm-input ${hasError('referencia') ? 'rm-input--error' : ''}`}
                 placeholder="Ej: SNC-001" value={form.referencia}
                 onChange={handleChange} onBlur={handleBlur} />
@@ -136,28 +126,15 @@ const RegisterMaterial = ({ isOpen, onClose }) => {
 
         <div className="rm-row">
           <div className="rm-group rm-group--full">
-            <label className="rm-label" htmlFor="rm-especificaciones">Especificaciones</label>
+            <label className="rm-label" htmlFor="rm-descripcion">Descripción</label>
             <div className="rm-input-wrap">
               <i className="ti ti-list-details rm-input-icon" />
-              <input id="rm-especificaciones" name="especificaciones" type="text"
-                className={`rm-input ${hasError('especificaciones') ? 'rm-input--error' : ''}`}
-                placeholder="Ej: 5.5 mm, 12 mm, 120 g/m²" value={form.especificaciones}
+              <input id="rm-descripcion" name="descripcion" type="text" maxLength="255"
+                className={`rm-input ${hasError('descripcion') ? 'rm-input--error' : ''}`}
+                placeholder="Ej: 5.5 mm, 12 mm, 120 g/m²" value={form.descripcion}
                 onChange={handleChange} onBlur={handleBlur} />
             </div>
-            {hasError('especificaciones') && <p className="rm-err">{errors.especificaciones}</p>}
-          </div>
-        </div>
-
-        <div className="rm-row">
-          <div className="rm-group rm-group--full">
-            <label className="rm-label" htmlFor="rm-precio">Precio por metro ($)</label>
-            <div className="rm-input-wrap">
-              <i className="ti ti-currency-dollar rm-input-icon" />
-              <input id="rm-precio" name="precio" type="number" step="1" min="0"
-                className={`rm-input ${hasError('precio') ? 'rm-input--error' : ''}`}
-                placeholder="0" value={form.precio} onChange={handleChange} onBlur={handleBlur} />
-            </div>
-            {hasError('precio') && <p className="rm-err">{errors.precio}</p>}
+            {hasError('descripcion') && <p className="rm-err">{errors.descripcion}</p>}
           </div>
         </div>
 
@@ -184,20 +161,7 @@ const RegisterMaterial = ({ isOpen, onClose }) => {
           </div>
         </div>
 
-        <div className="rm-row">
-          <div className="rm-group rm-group--full">
-            <label className="rm-label" htmlFor="rm-estado">Estado</label>
-            <div className="rm-input-wrap">
-              <i className="ti ti-circle-check rm-input-icon" />
-              <select id="rm-estado" name="estado" className="rm-input rm-select"
-                value={form.estado} onChange={handleChange}>
-                <option value="In Stock">In Stock</option>
-                <option value="Low Stock">Low Stock</option>
-                <option value="Sin Stock">Sin Stock</option>
-              </select>
-            </div>
-          </div>
-        </div>
+
       </form>
     </Drawer>
   )

@@ -1,29 +1,26 @@
-import { useState } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import RegisterMaterial from './RegisterMaterial'
 import RegisterProducto from './RegisterProducto'
 import './InventarioPage.css'
 
 // ── Datos hardcodeados ─────────────────────────
 const MATERIALS = [
-  { id: 1, name: 'Seda Natural China', ref: 'SNC-001', category: 'Telas de Seda', specs: '5.5 mm, 12 mm, 120 g/m²', price: 24500, stock: 340, minStock: 50, status: 'In Stock' },
-  { id: 2, name: 'Lino Belga Crudo', ref: 'LBC-004', category: 'Linos', specs: '220 g/m², 150 cm ancho', price: 18000, stock: 12, minStock: 30, status: 'Low Stock' },
-  { id: 3, name: 'Terciopelo de Seda Italiano', ref: 'TSI-009', category: 'Terciopelos', specs: '320 g/m², 140 cm ancho', price: 38000, stock: 0, minStock: 20, status: 'Sin Stock' },
-  { id: 4, name: 'Tinte Natural Índigo', ref: 'TNI-012', category: 'Tintes y Acabados', specs: 'Polvo concentrado, 500 g', price: 12750, stock: 89, minStock: 15, status: 'In Stock' },
-  { id: 5, name: 'Seda Orgánica Tussar', ref: 'SOT-007', category: 'Telas de Seda', specs: '6 mm, 15 mm, 110 g/m²', price: 29000, stock: 28, minStock: 25, status: 'Low Stock' },
+  { id: 1, name: 'Seda Natural China', ref: 'SNC-001', category: 'Telas de Seda', desc: '5.5 mm, 12 mm, 120 g/m²', stock: 340, minStock: 50, status: 'disponible' },
+  { id: 2, name: 'Lino Belga Crudo', ref: 'LBC-004', category: 'Linos', desc: '220 g/m², 150 cm ancho', stock: 12, minStock: 30, status: 'disponible' },
+  { id: 3, name: 'Terciopelo de Seda Italiano', ref: 'TSI-009', category: 'Terciopelos', desc: '320 g/m², 140 cm ancho', stock: 0, minStock: 20, status: 'agotado' },
+  { id: 4, name: 'Tinte Natural Índigo', ref: 'TNI-012', category: 'Tintes y Acabados', desc: 'Polvo concentrado, 500 g', stock: 89, minStock: 15, status: 'disponible' },
+  { id: 5, name: 'Seda Orgánica Tussar', ref: 'SOT-007', category: 'Telas de Seda', desc: '6 mm, 15 mm, 110 g/m²', stock: 28, minStock: 25, status: 'disponible' },
 ]
 
 const PRODUCTOS = [
-  { id: 1, name: 'Vestido de Noche Seda', ref: 'VNS-001', category: 'Vestidos', material: 'Seda Natural China', price: 320000, stock: 8, minStock: 3, status: 'In Stock' },
-  { id: 2, name: 'Blazer Lino Clásico', ref: 'BLC-004', category: 'Chaquetas', material: 'Lino Belga Crudo', price: 245000, stock: 2, minStock: 4, status: 'Low Stock' },
-  { id: 3, name: 'Corbata Terciopelo Italia', ref: 'CTI-009', category: 'Accesorios', material: 'Terciopelo de Seda Italiano', price: 85000, stock: 0, minStock: 6, status: 'Sin Stock' },
-  { id: 4, name: 'Pañuelo Seda Tussar', ref: 'PST-007', category: 'Accesorios', material: 'Seda Orgánica Tussar', price: 120000, stock: 15, minStock: 5, status: 'In Stock' },
-  { id: 5, name: 'Vestido de Día Lino', ref: 'VDL-012', category: 'Vestidos', material: 'Lino Belga Crudo', price: 195000, stock: 4, minStock: 3, status: 'Low Stock' },
+  { id: 1, name: 'Vestido de Noche Seda', ref: 'VNS-001', category: 'Vestidos', tipo: 'Vestido', genero: 'Femenino', talla: 'M', price: 320000, stock: 8, minStock: 3, status: 'disponible' },
+  { id: 2, name: 'Blazer Lino Clásico', ref: 'BLC-004', category: 'Chaquetas', tipo: 'Blazer', genero: 'Masculino', talla: 'L', price: 245000, stock: 2, minStock: 4, status: 'disponible' },
+  { id: 3, name: 'Corbata Terciopelo Italia', ref: 'CTI-009', category: 'Accesorios', tipo: 'Corbata', genero: 'Masculino', talla: 'Única', price: 85000, stock: 0, minStock: 6, status: 'agotado' },
+  { id: 4, name: 'Pañuelo Seda Tussar', ref: 'PST-007', category: 'Accesorios', tipo: 'Pañuelo', genero: 'Femenino', talla: 'Única', price: 120000, stock: 15, minStock: 5, status: 'disponible' },
+  { id: 5, name: 'Vestido de Día Lino', ref: 'VDL-012', category: 'Vestidos', tipo: 'Vestido', genero: 'Femenino', talla: 'S', price: 195000, stock: 4, minStock: 3, status: 'disponible' },
 ]
 
-const TABS = [
-  { id: 'materiales', label: 'Materiales', icon: 'ti-rollers' },
-  { id: 'productos', label: 'Productos', icon: 'ti-hanger' },
-]
+// TABS ahora están en NavTabs del header
 
 const fmt = (val) =>
   Number(val || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
@@ -45,13 +42,31 @@ const StockBar = ({ current, min }) => {
   )
 }
 
+// ── Hook para debounce ────────────────────
+const useDebounce = (value, delay = 300) => {
+  const [debounced, setDebounced] = useState(value)
+  const timerRef = useRef(null)
+
+  useCallback(() => {
+    if (timerRef.current) clearTimeout(timerRef.current)
+    timerRef.current = setTimeout(() => setDebounced(value), delay)
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current)
+    }
+  }, [value, delay])()
+
+  return debounced
+}
+
 // ── TablaSection ─────────────────────────────
 const TablaSection = ({ items, tipo, columns, renderRow, statConfig, filters, onFiltersChange }) => {
+  const searchDebounced = useDebounce(filters.search, 300)
+
   const filtered = items.filter((item) => {
     if (filters.category && item.category !== filters.category) return false
     if (filters.status && item.status !== filters.status) return false
-    if (filters.search) {
-      const q = filters.search.toLowerCase()
+    if (searchDebounced) {
+      const q = searchDebounced.toLowerCase()
       if (!item.name.toLowerCase().includes(q) && !item.ref.toLowerCase().includes(q)) return false
     }
     return true
@@ -101,9 +116,9 @@ const TablaSection = ({ items, tipo, columns, renderRow, statConfig, filters, on
             <select className="inv-select" value={filters.status}
               onChange={(e) => onFiltersChange({ ...filters, status: e.target.value })}>
               <option value="">Estado: Todos</option>
-              <option value="In Stock">In Stock</option>
-              <option value="Low Stock">Low Stock</option>
-              <option value="Sin Stock">Sin Stock</option>
+              <option value="disponible">Disponible</option>
+              <option value="agotado">Agotado</option>
+              <option value="eliminado">Eliminado</option>
             </select>
           </div>
           <div className="inv-search">
@@ -129,7 +144,7 @@ const TablaSection = ({ items, tipo, columns, renderRow, statConfig, filters, on
             {filtered.map((item) => (
               <tr
                 key={item.id}
-                className={`${item.status === 'Low Stock' ? 'inv-row--warning' : ''} ${hoveredRow === item.id ? 'inv-row--hover' : ''}`}
+                className={`${item.status === 'agotado' ? 'inv-row--warning' : ''} ${hoveredRow === item.id ? 'inv-row--hover' : ''}`}
                 onMouseEnter={() => setHoveredRow(item.id)}
                 onMouseLeave={() => setHoveredRow(null)}
               >
@@ -153,8 +168,7 @@ const TablaSection = ({ items, tipo, columns, renderRow, statConfig, filters, on
 }
 
 // ── Página principal ─────────────────────────
-const InventarioPage = () => {
-  const [activeTab, setActiveTab] = useState('materiales')
+const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
   const [showDrawerMat, setShowDrawerMat] = useState(false)
   const [showDrawerProd, setShowDrawerProd] = useState(false)
   const [matFilters, setMatFilters] = useState({ category: '', status: '', search: '', categoryOptions: ['Telas de Seda', 'Linos', 'Terciopelos', 'Tintes y Acabados'] })
@@ -162,13 +176,12 @@ const InventarioPage = () => {
 
   // ── Config Materiales ──
   const matStats = (items) => {
-    const totalVal = items.reduce((s, m) => s + m.price * m.stock, 0)
     const totalStock = items.reduce((s, m) => s + m.stock, 0)
-    const lowCount = items.filter((m) => m.status === 'Low Stock' || m.status === 'Sin Stock').length
+    const lowCount = items.filter((m) => m.status === 'agotado').length
     return [
-      { color: 'blue', icon: 'ti ti-rollers', value: totalStock.toLocaleString('es-CO'), unit: ' mts', label: 'Stock Total', sub: `${items.length} materiales registrados` },
+      { color: 'blue', icon: 'ti ti-stack', value: totalStock.toLocaleString('es-CO'), unit: ' mts', label: 'Stock Total', sub: `${items.length} materiales registrados` },
       { color: 'red', icon: 'ti ti-alert-triangle', value: lowCount, unit: '', label: 'Alertas de Stock', valueRed: true, sub: 'requieren reposición' },
-      { color: 'green', icon: 'ti ti-coin', value: fmt(totalVal), unit: '', label: 'Valor del Inventario', tag: 'EST', sub: 'costo estimado total' },
+      { color: 'green', icon: 'ti ti-package', value: items.length, unit: '', label: 'Materiales Registrados', sub: 'total en catálogo' },
     ]
   }
 
@@ -181,13 +194,12 @@ const InventarioPage = () => {
         </div>
       </td>
       <td><span className="inv-cat-tag">{m.category}</span></td>
-      <td className="inv-cell-specs">{m.specs}</td>
-      <td className="inv-cell-price">{fmt(m.price)}<small className="inv-cell-unit">/m</small></td>
+      <td className="inv-cell-specs">{m.desc}</td>
       <td><StockBar current={m.stock} min={m.minStock} /></td>
       <td>
-        <span className={`inv-badge ${m.status === 'Low Stock' ? 'inv-badge--low' : m.status === 'Sin Stock' ? 'inv-badge--empty' : 'inv-badge--ok'}`}>
-          <i className={`ti ti-${m.status === 'In Stock' ? 'circle-check' : m.status === 'Low Stock' ? 'alert-triangle' : 'x-circle'}`} />
-          {m.status}
+        <span className={`inv-badge ${m.status === 'agotado' ? 'inv-badge--empty' : m.status === 'eliminado' ? 'inv-badge--empty' : 'inv-badge--ok'}`}>
+          <i className={`ti ti-${m.status === 'disponible' ? 'circle-check' : 'x-circle'}`} />
+          {m.status === 'disponible' ? 'Disponible' : m.status === 'agotado' ? 'Agotado' : 'Eliminado'}
         </span>
       </td>
       <td>
@@ -199,16 +211,16 @@ const InventarioPage = () => {
     </>
   )
 
-  const matColumns = ['MATERIAL', 'CATEGORÍA', 'ESPECIFICACIONES', 'PRECIO', 'STOCK', 'ESTADO', '']
+  const matColumns = ['MATERIAL', 'CATEGORÍA', 'DESCRIPCIÓN', 'STOCK', 'ESTADO', '']
 
   // ── Config Productos ──
   const prodStats = (items) => {
     const totalVal = items.reduce((s, p) => s + p.price * p.stock, 0)
-    const lowCount = items.filter((p) => p.status === 'Low Stock' || p.status === 'Sin Stock').length
+    const lowCount = items.filter((p) => p.status === 'agotado').length
     return [
       { color: 'blue', icon: 'ti ti-hanger', value: items.length, unit: '', label: 'Total Productos', sub: 'en catálogo' },
       { color: 'red', icon: 'ti ti-alert-triangle', value: lowCount, unit: '', label: 'Alertas de Stock', valueRed: true, sub: 'requieren reposición' },
-      { color: 'green', icon: 'ti ti-coin', value: fmt(totalVal), unit: '', label: 'Valor del Catálogo', tag: 'EST', sub: 'precio de venta total' },
+      { color: 'green', icon: 'ti ti-coin', value: fmt(totalVal), unit: '', label: 'Valor del Catálogo', sub: 'precio de venta total' },
     ]
   }
 
@@ -221,13 +233,13 @@ const InventarioPage = () => {
         </div>
       </td>
       <td><span className="inv-cat-tag">{p.category}</span></td>
-      <td className="inv-cell-specs">{p.material}</td>
+      <td className="inv-cell-specs">{p.tipo} · {p.genero} · {p.talla}</td>
       <td className="inv-cell-price">{fmt(p.price)}</td>
       <td><StockBar current={p.stock} min={p.minStock} /></td>
       <td>
-        <span className={`inv-badge ${p.status === 'Low Stock' ? 'inv-badge--low' : p.status === 'Sin Stock' ? 'inv-badge--empty' : 'inv-badge--ok'}`}>
-          <i className={`ti ti-${p.status === 'In Stock' ? 'circle-check' : p.status === 'Low Stock' ? 'alert-triangle' : 'x-circle'}`} />
-          {p.status}
+        <span className={`inv-badge ${p.status === 'agotado' ? 'inv-badge--empty' : p.status === 'eliminado' ? 'inv-badge--empty' : 'inv-badge--ok'}`}>
+          <i className={`ti ti-${p.status === 'disponible' ? 'circle-check' : 'x-circle'}`} />
+          {p.status === 'disponible' ? 'Disponible' : p.status === 'agotado' ? 'Agotado' : 'Eliminado'}
         </span>
       </td>
       <td>
@@ -239,7 +251,7 @@ const InventarioPage = () => {
     </>
   )
 
-  const prodColumns = ['PRODUCTO', 'CATEGORÍA', 'MATERIAL', 'PRECIO', 'STOCK', 'ESTADO', '']
+  const prodColumns = ['PRODUCTO', 'CATEGORÍA', 'TIPO · GÉNERO · TALLA', 'PRECIO', 'STOCK', 'ESTADO', '']
 
   return (
     <div className="inv-content">
@@ -263,16 +275,7 @@ const InventarioPage = () => {
         </button>
       </div>
 
-      {/* ══ TABS ══ */}
-      <div className="inv-tabs">
-        {TABS.map((tab) => (
-          <button key={tab.id} className={`inv-tab ${activeTab === tab.id ? 'inv-tab--active' : ''}`} onClick={() => setActiveTab(tab.id)}>
-            <i className={tab.icon} />
-            {tab.label}
-            <span className="inv-tab-count">{activeTab === tab.id ? (tab.id === 'materiales' ? MATERIALS.length : PRODUCTOS.length) : ''}</span>
-          </button>
-        ))}
-      </div>
+      {/* ══ TABS en NavHeader (arriba) — los links están en la barra del header */}
 
       {/* ══ CONTENIDO ══ */}
       {activeTab === 'materiales' && (

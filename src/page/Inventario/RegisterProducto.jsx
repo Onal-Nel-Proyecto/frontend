@@ -13,7 +13,11 @@ const validate = (form) => {
 
   if (!form.categoria) errs.categoria = 'Selecciona una categoría'
 
-  if (!form.material.trim()) errs.material = 'Indica el material principal'
+  if (!form.tipo) errs.tipo = 'Selecciona el tipo de producto'
+
+  if (!form.genero) errs.genero = 'Selecciona el género'
+
+  if (!form.talla) errs.talla = 'Selecciona la talla'
 
   const precio = parseFloat(form.precio)
   if (!form.precio || isNaN(precio)) errs.precio = 'Ingresa un precio válido'
@@ -33,8 +37,8 @@ const validate = (form) => {
 
 const RegisterProducto = ({ isOpen, onClose }) => {
   const [form, setForm] = useState({
-    nombre: '', referencia: '', categoria: '', material: '',
-    precio: '', stock: '', stockMinimo: '', estado: 'In Stock',
+    nombre: '', referencia: '', categoria: '', tipo: '', genero: '', talla: '',
+    precio: '', stock: '', stockMinimo: '',
   })
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
@@ -43,25 +47,19 @@ const RegisterProducto = ({ isOpen, onClose }) => {
   const handleChange = (e) => {
     const { name, value } = e.target
     setForm((prev) => ({ ...prev, [name]: value }))
-    if (touched[name]) {
-      const newForm = { ...form, [name]: value }
-      const newErrors = validate(newForm)
-      setErrors((prev) => ({ ...prev, [name]: newErrors[name] || undefined }))
-    }
   }
 
   const handleBlur = (e) => {
     const { name } = e.target
     setTouched((prev) => ({ ...prev, [name]: true }))
-    const newErrors = validate(form)
-    setErrors((prev) => ({ ...prev, [name]: newErrors[name] || undefined }))
+    // La validación solo se activa en submit
   }
 
   const handleSubmit = (e) => {
     e.preventDefault()
     const newErrors = validate(form)
     setErrors(newErrors)
-    setTouched({ nombre: true, referencia: true, categoria: true, material: true, precio: true, stock: true, stockMinimo: true })
+    setTouched({ nombre: true, referencia: true, categoria: true, tipo: true, genero: true, talla: true, precio: true, stock: true, stockMinimo: true })
     if (Object.keys(newErrors).length > 0) return
     setSaving(true)
     setTimeout(() => {
@@ -95,7 +93,7 @@ const RegisterProducto = ({ isOpen, onClose }) => {
             <label className="rp-label" htmlFor="rp-nombre">Nombre del Producto</label>
             <div className={`rp-input-wrap ${hasError('nombre') ? 'rp-input-wrap--err' : ''}`}>
               <i className="ti ti-tag" />
-              <input id="rp-nombre" name="nombre" type="text" className="rp-input"
+              <input id="rp-nombre" name="nombre" type="text" maxLength="100" className="rp-input"
                 placeholder="Ej: Vestido de Noche Seda" value={form.nombre}
                 onChange={handleChange} onBlur={handleBlur} />
             </div>
@@ -108,7 +106,7 @@ const RegisterProducto = ({ isOpen, onClose }) => {
             <label className="rp-label" htmlFor="rp-referencia">Referencia</label>
             <div className={`rp-input-wrap ${hasError('referencia') ? 'rp-input-wrap--err' : ''}`}>
               <i className="ti ti-barcode" />
-              <input id="rp-referencia" name="referencia" type="text" className="rp-input"
+              <input id="rp-referencia" name="referencia" type="text" maxLength="30" className="rp-input"
                 placeholder="Ej: VNS-001" value={form.referencia}
                 onChange={handleChange} onBlur={handleBlur} />
             </div>
@@ -131,15 +129,74 @@ const RegisterProducto = ({ isOpen, onClose }) => {
         </div>
 
         <div className="rp-row">
-          <div className="rp-group rp-group--full">
-            <label className="rp-label" htmlFor="rp-material">Material principal</label>
-            <div className={`rp-input-wrap ${hasError('material') ? 'rp-input-wrap--err' : ''}`}>
-              <i className="ti ti-rollers" />
-              <input id="rp-material" name="material" type="text" className="rp-input"
-                placeholder="Ej: Seda Natural China" value={form.material}
-                onChange={handleChange} onBlur={handleBlur} />
+          <div className="rp-group">
+            <label className="rp-label" htmlFor="rp-tipo">Tipo de producto</label>
+            <div className={`rp-input-wrap ${hasError('tipo') ? 'rp-input-wrap--err' : ''}`}>
+              <i className="ti ti-tag" />
+              <select id="rp-tipo" name="tipo" className="rp-input rp-select"
+                value={form.tipo} onChange={handleChange} onBlur={handleBlur}>
+                <option value="">Seleccione...</option>
+                <option value="Vestido">Vestido</option>
+                <option value="Blazer">Blazer</option>
+                <option value="Corbata">Corbata</option>
+                <option value="Pañuelo">Pañuelo</option>
+                <option value="Camisa">Camisa</option>
+                <option value="Pantalón">Pantalón</option>
+                <option value="Falda">Falda</option>
+                <option value="Chaqueta">Chaqueta</option>
+                <option value="Otro">Otro</option>
+              </select>
             </div>
-            {hasError('material') && <p className="rp-err">{errors.material}</p>}
+            {hasError('tipo') && <p className="rp-err">{errors.tipo}</p>}
+          </div>
+          <div className="rp-group">
+            <label className="rp-label" htmlFor="rp-genero">Género</label>
+            <div className={`rp-input-wrap ${hasError('genero') ? 'rp-input-wrap--err' : ''}`}>
+              <i className="ti ti-gender-male" />
+              <select id="rp-genero" name="genero" className="rp-input rp-select"
+                value={form.genero} onChange={handleChange} onBlur={handleBlur}>
+                <option value="">Seleccione...</option>
+                <option value="Femenino">Femenino</option>
+                <option value="Masculino">Masculino</option>
+                <option value="Unisex">Unisex</option>
+              </select>
+            </div>
+            {hasError('genero') && <p className="rp-err">{errors.genero}</p>}
+          </div>
+        </div>
+
+        <div className="rp-row">
+          <div className="rp-group">
+            <label className="rp-label" htmlFor="rp-talla">Talla</label>
+            <div className={`rp-input-wrap ${hasError('talla') ? 'rp-input-wrap--err' : ''}`}>
+              <i className="ti ti-ruler" />
+              <select id="rp-talla" name="talla" className="rp-input rp-select"
+                value={form.talla} onChange={handleChange} onBlur={handleBlur}>
+                <option value="">Seleccione...</option>
+                <option value="XS">XS</option>
+                <option value="S">S</option>
+                <option value="M">M</option>
+                <option value="L">L</option>
+                <option value="XL">XL</option>
+                <option value="XXL">XXL</option>
+                <option value="Única">Talla Única</option>
+              </select>
+            </div>
+            {hasError('talla') && <p className="rp-err">{errors.talla}</p>}
+          </div>
+          <div className="rp-group">
+            <label className="rp-label" htmlFor="rp-categoria">Categoría</label>
+            <div className={`rp-input-wrap ${hasError('categoria') ? 'rp-input-wrap--err' : ''}`}>
+              <i className="ti ti-category" />
+              <select id="rp-categoria" name="categoria" className="rp-input rp-select"
+                value={form.categoria} onChange={handleChange} onBlur={handleBlur}>
+                <option value="">Seleccione...</option>
+                <option value="Vestidos">Vestidos</option>
+                <option value="Chaquetas">Chaquetas</option>
+                <option value="Accesorios">Accesorios</option>
+              </select>
+            </div>
+            {hasError('categoria') && <p className="rp-err">{errors.categoria}</p>}
           </div>
         </div>
 
@@ -176,19 +233,7 @@ const RegisterProducto = ({ isOpen, onClose }) => {
           </div>
         </div>
 
-        <div className="rp-row">
-          <div className="rp-group rp-group--full">
-            <label className="rp-label" htmlFor="rp-estado">Estado</label>
-            <div className="rp-input-wrap">
-              <i className="ti ti-circle-check" />
-              <select id="rp-estado" name="estado" className="rp-input rp-select" value={form.estado} onChange={handleChange}>
-                <option value="In Stock">In Stock</option>
-                <option value="Low Stock">Low Stock</option>
-                <option value="Sin Stock">Sin Stock</option>
-              </select>
-            </div>
-          </div>
-        </div>
+
       </form>
     </Drawer>
   )

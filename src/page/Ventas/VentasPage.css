@@ -17,6 +17,16 @@
 .vtas-title { font-size: var(--text-2xl); font-weight: 700; color: var(--text-primary); margin: 0 0 4px; letter-spacing: -0.02em; }
 .vtas-subtitle { font-size: var(--text-xs); color: var(--text-muted); margin: 0; }
 
+.vtas-btn-primary {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  background: var(--accent-gold); color: #1a1a1a; border: none;
+  border-radius: var(--radius-sm); padding: 0.7rem 1.4rem;
+  font-size: var(--text-sm); font-weight: 600; cursor: pointer;
+  box-shadow: var(--shadow-gold);
+  transition: all var(--transition-base); font-family: inherit;
+}
+.vtas-btn-primary:hover { background: var(--accent-gold-light); transform: translateY(-2px); box-shadow: var(--shadow-gold-lg); }
+
 /* Stats */
 .vtas-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
 .vtas-stat-card {

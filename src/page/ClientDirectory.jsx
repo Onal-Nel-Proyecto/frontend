@@ -1,11 +1,6 @@
 import React, { useState } from 'react'
 import NewClientPanel   from '../page/RegisterClient'
-import StatCard         from '../components/stats/StatCard'
-import GrowthCard       from '../components/stats/GrowthCard'
-import TableFilters     from '../components/table/TableFilters'
 import ContactTable     from '../components/table/ContactTable'
-import MaintenanceCard  from '../components/cards/MaintenanceCard'
-import InsightsCard     from '../components/cards/InsightsCard'
 import { useClientes }  from '../hooks/useClientes'
 import ViewClientModal   from '../components/ui/feedback/ViewClientModal/ViewClientModal'
 import './ClientDirectory.css'
@@ -14,6 +9,7 @@ const ClientDirectory = () => {
   const [showRegister, setShowRegister] = useState(false)
   const [clienteEditando, setClienteEditando] = useState(null)
   const [clienteViendo, setClienteViendo] = useState(null)
+  const [searchQuery, setSearchQuery] = useState('')
   const {
     clientes,
     meta,
@@ -25,13 +21,14 @@ const ClientDirectory = () => {
     deleteCliente,
   } = useClientes()
 
-  const handleFilterChange = (filters) => {
-    console.log('Filtros activos:', filters)
-  }
-
-  const handleExport = () => {
-    console.log('Exportando clientes...')
-  }
+  const filteredClientes = clientes.filter((c) => {
+    if (!searchQuery) return true
+    const q = searchQuery.toLowerCase()
+    return (
+      c.name.toLowerCase().includes(q) ||
+      (c.phone && c.phone.toLowerCase().includes(q))
+    )
+  })
 
   // ── VER ─────────────────────────────────
   const handleViewCliente = (cliente) => {
@@ -95,29 +92,18 @@ const ClientDirectory = () => {
         </button>
       </div>
 
-      {/* Grid de estadísticas */}
-      <div className="stats-grid">
-        <StatCard
-          icon="ti-users"
-          label="Total Clientes"
-          value={meta?.total ?? 0}
+      {/* Buscador simple */}
+      <div className="cd-search">
+        <i className="ti ti-search" />
+        <input
+          type="text"
+          placeholder="Buscar cliente por nombre o teléfono..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
         />
-        <StatCard
-          icon="ti-star"
-          label="Clientes VIP"
-          value={48}
-          highlight
-        />
-        <StatCard
-          icon="ti-shopping-cart"
-          label="Pedidos Activos"
-          value={127}
-        />
-        <GrowthCard
-          percentage="+12.4%"
-          period="Crecimiento Mensual"
-          description="Continúas expandiendo tu presencia en el mercado de alta costura este trimestre."
-        />
+        <span className="cd-search-count">
+          {filteredClientes.length} de {clientes.length} clientes
+        </span>
       </div>
 
       {/* Indicador de carga / error */}
@@ -135,28 +121,14 @@ const ClientDirectory = () => {
         </div>
       )}
 
-      {/* Sección tabla */}
-      <div className="table-section">
-        <TableFilters
-          onFilterChange={handleFilterChange}
-          onExport={handleExport}
-        />
+      {/* Tabla */}
+      <div className="cd-table-section">
         <ContactTable
-          clients={clientes}
+          clients={filteredClientes}
           onView={handleViewCliente}
           onEdit={handleEditCliente}
           onDelete={handleDeleteCliente}
-          totalClientes={meta?.total}
-        />
-      </div>
-
-      {/* Fila inferior de cards */}
-      <div className="bottom-row">
-        <MaintenanceCard
-          onCta={() => console.log('Configurar alertas')}
-        />
-        <InsightsCard
-          onCta={() => console.log('Ver reporte')}
+          totalClientes={filteredClientes.length}
         />
       </div>
 
