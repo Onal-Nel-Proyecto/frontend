@@ -35,7 +35,7 @@ const kpiConfig = [
   { key: "activos", label: "Pedidos Activos", icon: <FiShoppingBag />, color: "var(--pastel-blue)" },
   { key: "pendientes", label: "Pendientes", icon: <FiClock />, color: "var(--pastel-orange)" },
   { key: "en_proceso", label: "En Proceso", icon: <FiActivity />, color: "var(--pastel-violet)" },
-  { key: "terminados", label: "Entregados", icon: <FiCheckCircle />, color: "var(--pastel-green)" },
+  { key: "terminados", label: "Terminados", icon: <FiCheckCircle />, color: "var(--pastel-green)" },
 ];
 
 // Mapa de estados que vienen del backend → etiqueta + color para el gráfico

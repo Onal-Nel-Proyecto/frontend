@@ -374,6 +374,24 @@
 
 .tableWrapper {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tableWrapper::-webkit-scrollbar {
+  height: 6px;
+}
+
+.tableWrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tableWrapper::-webkit-scrollbar-thumb {
+  background: #d0d0d0;
+  border-radius: 999px;
+}
+
+.tableWrapper::-webkit-scrollbar-thumb:hover {
+  background: #bbb;
 }
 
 .detalleTable {
@@ -759,9 +777,61 @@
   border-color: #dc2626;
 }
 
+/* ── Vista móvil del detalle (cards) ── */
+
+.detalleMobileList {
+  display: none;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.detalleMobileCard {
+  background: #fafafa;
+  border-radius: 14px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border: 1px solid #f0f0f0;
+}
+
+.detalleMobileHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.detalleMobileBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.detalleMobileRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+}
+
+.detalleMobileLabel {
+  font-size: 0.72rem;
+  color: #999;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.detalleMobileValue {
+  font-weight: 600;
+  color: #333;
+}
+
 /* ── Responsive ── */
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .header {
     padding: 1rem;
   }
@@ -796,5 +866,47 @@
   .btnAdd {
     width: 100%;
     justify-content: center;
+  }
+
+  /* Ocultar tabla desktop, mostrar cards mobile */
+  .detalleTable {
+    display: none;
+  }
+
+  .detalleMobileList {
+    display: flex;
+  }
+
+  .tableWrapper {
+    overflow: visible;
+  }
+
+  .produccionResumen {
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .pedidoId {
+    font-size: 12px;
+  }
+
+  .descripcion {
+    font-size: 15px;
+  }
+
+  .subTab {
+    font-size: 13px;
+    padding: 0.45rem 0.5rem;
+  }
+
+  .prodCardMeta {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .prodCardHeader {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

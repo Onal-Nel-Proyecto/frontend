@@ -19,6 +19,7 @@ import Produccion from "../features/pedidos/components/Produccion";
 import Pagos from "../features/pedidos/components/Pagos";
 import Config from "../page/Config";
 import InConstruction from "../components/ui/feedback/InConstruction/InConstruction";
+import Entregas from "../features/pedidos/pages/Entregas";
 
 const AppRoutes = () => {
   return (
@@ -48,21 +49,22 @@ const AppRoutes = () => {
             <Route path="produccion" element={<Produccion />} />
             <Route path="pagos" element={<Pagos />} />
           </Route>
-          <Route path="/pedidos/entregas" element={<InConstruction title="Entregas" />} />
-
-          {/* Inventario */}
-          <Route path="/inventario" element={<InventarioPage />} />
-
-          {/* Ventas */}
-          <Route path="/ventas" element={<VentasPage />} />
-
-          {/* Personal */}
-          <Route path="/gestion-personal" element={<GestionPersonal />} />
+          <Route
+            path="/pedidos/entregas"
+            element={<Entregas />}
+          />
+          <Route
+            path="/gestion-personal"
+            element={<GestionPersonal />}
+          />
+          <Route
+            path="/gestion-clientes"
+            element={<InConstruction title="Clientes" />}
+          />
         </Route>
-      </Route>
 
-      {/* ── SÓLO ADMIN ── */}
-      <Route element={<AdminRoute />}>
+        {/* RUTAS SOLO ADMIN */}
+        <Route element={<AdminRoute />}>
         <Route path="/" element={<MainLayout />}>
           <Route path="/gestion-usuarios" element={<InConstruction title="Usuarios" />} />
           <Route path="/config" element={<Config />} />
@@ -70,6 +72,7 @@ const AppRoutes = () => {
           <Route path="/config/copia-seguridad" element={<InConstruction title="Copia de seguridad" />} />
           <Route path="/config/medidas" element={<InConstruction title="Medidas" />} />
         </Route>
+      </Route>
       </Route>
     </Routes>
   );

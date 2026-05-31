@@ -1,5 +1,5 @@
 export const CLIENTES_ENDPOINTS = {
-  /** GET — listar clientes paginados (?pagina=&limite=) */
+  /** GET — listar clientes paginados (?search=&pagina=&limite=) */
   BASE: "/clientes",
 
   /** GET — listar clientes */
@@ -16,4 +16,6 @@ export const CLIENTES_ENDPOINTS = {
 
   /** PATCH — cambiar estado (activar / eliminar lógico) */
   CHANGE_STATUS: (id) => `/clientes/${id}/estado`,
+
+
 };
