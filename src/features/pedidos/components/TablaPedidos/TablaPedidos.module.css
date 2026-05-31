@@ -12,10 +12,6 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
 }
 
-.tableWrapper {
-  overflow-x: auto;
-}
-
 /* ── Header ── */
 
 .header {
@@ -89,6 +85,24 @@
 
 .tableWrapper {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tableWrapper::-webkit-scrollbar {
+  height: 6px;
+}
+
+.tableWrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tableWrapper::-webkit-scrollbar-thumb {
+  background: #d0d0d0;
+  border-radius: 999px;
+}
+
+.tableWrapper::-webkit-scrollbar-thumb:hover {
+  background: #bbb;
 }
 
 .table {
@@ -322,12 +336,12 @@
   flex-shrink: 0;
 }
 
-/* ── Footer / Paginación ── */
+/* ── Footer / Paginación (derecha, inteligente) ── */
 
 .footer {
   display: flex;
   justify-content: flex-end;
-  padding: 0.9rem 0;
+  padding: 0.9rem 1rem;
   border-top: 1px solid #f0f0f0;
   margin-top: 0.5rem;
 }
@@ -335,24 +349,39 @@
 .pagination {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.35rem;
   font-size: 0.82rem;
   color: #888;
 }
 
-.pagination svg {
+.pageArrow {
+  font-size: 1rem;
+  color: #999;
   cursor: pointer;
   padding: 0.25rem;
   border-radius: 999px;
   transition: background 0.2s ease;
+  display: inline-flex;
+  align-items: center;
 }
 
-.pagination svg:hover {
+.pageArrow:hover {
   background: #f0f0f0;
+  color: #555;
 }
 
-.pagination span {
-  width: 1.8rem;
+.pageArrowDisabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.pageArrowDisabled:hover {
+  background: transparent;
+  color: #999;
+}
+
+.pagination span:not(.pageEllipsis) {
+  min-width: 1.8rem;
   height: 1.8rem;
   display: flex;
   align-items: center;
@@ -370,6 +399,15 @@
   background: #333 !important;
   color: #fff;
   font-weight: 600;
+}
+
+.pageEllipsis {
+  min-width: 1.2rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #bbb;
+  letter-spacing: 0.1em;
+  user-select: none;
 }
 
 /* ── Vista móvil ── */
@@ -450,7 +488,7 @@
 
 /* ── Responsive ── */
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .card {
     padding: 1.25rem 1rem 0;
     border-radius: 18px;
@@ -462,10 +500,6 @@
 
   .mobileList {
     display: flex;
-  }
-
-  .tableWrapper {
-    overflow: visible;
   }
 
   .header {
@@ -492,6 +526,10 @@
 
   .footer {
     justify-content: center;
+  }
+
+  .pagination {
+    flex-wrap: wrap;
   }
 }
 

@@ -2,7 +2,7 @@
 // TablaPedidos — Tabla del listado completo de pedidos
 // ================================================================
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -26,6 +26,30 @@ const statusMap = {
   TERMINADO:  { label: 'Terminado',  className: 'delivered' },
   ENTREGADO:  { label: 'Entregado',  className: 'delivered' },
   CANCELADO:  { label: 'Cancelado',  className: 'delayed' },
+};
+
+/**
+ * Calcula los números de página a mostrar con inteligencia:
+ * - Siempre muestra la primera y última página.
+ * - Muestra la página actual y sus vecinos inmediatos.
+ * - Cuando hay más de 5 páginas inserta "..." donde corresponda.
+ */
+const getPageNumbers = (current, total) => {
+  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
+
+  const pages = [1];
+  let start = Math.max(2, current - 1);
+  let end = Math.min(total - 1, current + 1);
+
+  if (current <= 2) end = 3;
+  if (current >= total - 1) start = total - 2;
+
+  if (start > 2) pages.push('...');
+  for (let i = start; i <= end; i++) pages.push(i);
+  if (end < total - 1) pages.push('...');
+
+  pages.push(total);
+  return pages;
 };
 
 // ─── Menú de acciones por fila (portal a body para evitar recorte por overflow) ───
@@ -437,15 +461,29 @@ const TablaPedidos = () => {
         </div>
       </div>
 
-      {/* Paginación */}
+      {/* Paginación (derecha, inteligente) */}
       {maxPag > 1 && (
         <div className={styles.footer}>
           <div className={styles.pagination}>
-            <FiChevronLeft onClick={() => setPagAct((p) => Math.max(1, p - 1))} />
-            {Array.from({ length: maxPag }, (_, i) => i + 1).map((n) => (
-              <span key={n} className={n === pagAct ? styles.pageActive : ''} onClick={() => setPagAct(n)}>{n}</span>
-            ))}
-            <FiChevronRight onClick={() => setPagAct((p) => Math.min(maxPag, p + 1))} />
+            <FiChevronLeft
+              className={`${styles.pageArrow} ${pagAct <= 1 ? styles.pageArrowDisabled : ''}`}
+              onClick={() => pagAct > 1 && setPagAct((p) => p - 1)}
+            />
+            {getPageNumbers(pagAct, maxPag).map((n, i) =>
+              n === '...' ? (
+                <span key={`ellipsis-${i}`} className={styles.pageEllipsis}>…</span>
+              ) : (
+                <span
+                  key={n}
+                  className={n === pagAct ? styles.pageActive : ''}
+                  onClick={() => setPagAct(n)}
+                >{n}</span>
+              )
+            )}
+            <FiChevronRight
+              className={`${styles.pageArrow} ${pagAct >= maxPag ? styles.pageArrowDisabled : ''}`}
+              onClick={() => pagAct < maxPag && setPagAct((p) => p + 1)}
+            />
           </div>
         </div>
       )}

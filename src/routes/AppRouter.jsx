@@ -14,6 +14,7 @@ import Produccion from "../features/pedidos/components/Produccion";
 import Pagos from "../features/pedidos/components/Pagos";
 import Config from "../page/Config";
 import InConstruction from "../components/ui/feedback/InConstruction/InConstruction";
+import Entregas from "../features/pedidos/pages/Entregas";
 
 const AppRoutes = () => {
   return (
@@ -58,7 +59,7 @@ const AppRoutes = () => {
           </Route>
           <Route
             path="/pedidos/entregas"
-            element={<InConstruction title="Entregas" />}
+            element={<Entregas />}
           />
           <Route
             path="/gestion-personal"

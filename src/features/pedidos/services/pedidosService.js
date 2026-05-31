@@ -65,6 +65,31 @@ export const updateProduccion = async (pedidoId, detalleId, produccionId, data) 
   return res.data;
 };
 
+/** Obtener listado paginado de entregas (entregados + terminados) */
+export const getEntregas = async ({
+  pag = 1,
+  cliente,
+  estado,
+  mes,
+  fecha_desde,
+  fecha_hasta,
+} = {}) => {
+  const params = new URLSearchParams({ pag });
+  if (cliente) params.append("cliente", cliente);
+  if (estado) params.append("estado", estado);
+  if (mes) params.append("mes", mes);
+  if (fecha_desde) params.append("fecha_desde", fecha_desde);
+  if (fecha_hasta) params.append("fecha_hasta", fecha_hasta);
+  const res = await axiosInstance.get(`/pedidos/entregas?${params}`);
+  return res.data;
+};
+
+/** Marcar un pedido como entregado (TERMINADO → ENTREGADO) */
+export const entregarPedido = async (id, data = {}) => {
+  const res = await axiosInstance.patch(`/pedidos/${id}/entregar`, data);
+  return res.data;
+};
+
 /** Cancelar un pedido */
 export const cancelPedido = async (pedidoId, data) => {
   const res = await axiosInstance.patch(`${BASE}/${pedidoId}/cancelar`, data);
