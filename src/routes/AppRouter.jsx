@@ -12,7 +12,8 @@ import ClientDirectory from "../page/ClientDirectory";
 import InventarioPage from "../page/Inventario/InventarioPage";
 import VentasPage from "../page/Ventas/VentasPage";
 
-import Pedidos from "../page/Pedidos";
+import Pedidos from "../features/pedidos/pages/Pedidos";
+import DashboardPedidos from "../features/pedidos/pages/Dashboard";
 import PedidoSeleccionado from "../features/pedidos/pages/PedidoSeleccionado";
 import DetallePedido from "../features/pedidos/components/DetallePedido";
 import Produccion from "../features/pedidos/components/Produccion";
@@ -43,6 +44,7 @@ const AppRoutes = () => {
           <Route path="/gestion-clientes" element={<ClientDirectory />} />
 
           {/* Pedidos */}
+          <Route path="/pedidos/dash" element={<DashboardPedidos />} />
           <Route path="/pedidos" element={<Pedidos />} />
           <Route path="/pedidos/:id" element={<PedidoSeleccionado />}>
             <Route index element={<DetallePedido />} />

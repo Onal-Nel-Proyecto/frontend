@@ -93,6 +93,34 @@
   font-size: 0.9rem;
 }
 
+.helpBtn {
+  width: 100%;
+  padding: 0.65rem 1rem;
+  margin-bottom: 0.5rem;
+  border: none;
+  border-radius: 0.75rem;
+  background: rgba(107, 114, 128, 0.08);
+  color: var(--text-soft);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: background 0.2s ease;
+}
+
+.helpBtn:hover {
+  background: rgba(107, 114, 128, 0.18);
+}
+
+@media (max-width: 1023px) {
+  .helpBtn {
+    display: flex;
+  }
+}
+
 /* ── Notificaciones ── */
 
 .notifTitle {
