@@ -42,8 +42,8 @@ body {
 
 /* ── Selección ── */
 ::selection {
-  background: var(--accent-gold-subtle);
-  color: var(--accent-gold);
+  background: var(--accent-gold);
+  color: var(--text-inverse);
 }
 
 /* ── Links ── */
