@@ -91,19 +91,35 @@ const GestionUsuarios = () => {
   const inactivos = total - activos;
 
   // ── Validación formulario ──
+  const SOLO_LETRAS = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/;
+
   const validate = (values, isEdit) => {
     const errs = {};
-    if (!values.nombre.trim()) errs.nombre = 'El nombre es obligatorio';
-    if (!values.email.trim()) {
+    
+    const nom = values.nombre.trim();
+    if (!nom) errs.nombre = 'El nombre es obligatorio';
+    else if (nom.length < 3) errs.nombre = 'Mínimo 3 caracteres';
+    else if (nom.length > 100) errs.nombre = 'Máximo 100 caracteres';
+    else if (!SOLO_LETRAS.test(nom)) errs.nombre = 'Solo letras y espacios, sin números';
+
+    const email = values.email.trim();
+    if (!email) {
       errs.email = 'El email es obligatorio';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
+    } else if (email.length > 100) {
+      errs.email = 'Máximo 100 caracteres';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       errs.email = 'Email inválido';
     }
-    if (!isEdit && !values.password) {
+    
+    const pass = values.password;
+    if (!isEdit && !pass) {
       errs.password = 'La contraseña es obligatoria';
-    } else if (!isEdit && values.password && values.password.length < 4) {
+    } else if (!isEdit && pass && pass.length < 4) {
       errs.password = 'Mínimo 4 caracteres';
+    } else if (pass && pass.length > 72) {
+      errs.password = 'Máximo 72 caracteres';
     }
+    
     if (!values.rol) errs.rol = 'Selecciona un rol';
     return errs;
   };
@@ -111,17 +127,11 @@ const GestionUsuarios = () => {
   // ── Handlers ──
   const setField = (name, value) => {
     setForm((prev) => ({ ...prev, [name]: value }));
-    if (formTouched[name]) {
-      const newForm = { ...form, [name]: value };
-      const newErrors = validate(newForm, !!editTarget);
-      setFormErrors((prev) => ({ ...prev, [name]: newErrors[name] || undefined }));
-    }
   };
 
   const handleBlur = (name) => {
     setFormTouched((prev) => ({ ...prev, [name]: true }));
-    const newErrors = validate(form, !!editTarget);
-    setFormErrors((prev) => ({ ...prev, [name]: newErrors[name] || undefined }));
+    // La validación solo se activa en submit
   };
 
   // ── Abrir drawer: crear ──
@@ -427,6 +437,7 @@ const GestionUsuarios = () => {
               <FiUser className={styles.inputIcon} />
               <input
                 type="text"
+                maxLength="100"
                 className={styles.input}
                 placeholder="Ej: María García"
                 value={form.nombre}
@@ -444,6 +455,7 @@ const GestionUsuarios = () => {
               <FiMail className={styles.inputIcon} />
               <input
                 type="email"
+                maxLength="100"
                 className={styles.input}
                 placeholder="ej: usuario@correo.com"
                 value={form.email}
@@ -463,6 +475,7 @@ const GestionUsuarios = () => {
               <FiLock className={styles.inputIcon} />
               <input
                 type="password"
+                maxLength="72"
                 className={styles.input}
                 placeholder={isEdit ? '•••••••• (dejar vacío)' : 'Mínimo 4 caracteres'}
                 value={form.password}

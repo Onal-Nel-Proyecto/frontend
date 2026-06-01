@@ -1,6 +1,6 @@
 import styles from './ipt.module.css';
 
-const Input = ({ label, type, placeholder, name, value, onChange, error }) => {
+const Input = ({ label, type, placeholder, name, value, onChange, error, maxLength }) => {
   return (
     <div className={`${styles.inputGroup} ${error ? styles.hasError : ''}`}>
       <label className={styles.label}>{label}</label>
@@ -11,6 +11,7 @@ const Input = ({ label, type, placeholder, name, value, onChange, error }) => {
         name={name}
         value={value}
         onChange={onChange}
+        maxLength={maxLength}
       />
       {error && <span className={styles.fieldError}>{error}</span>}
     </div>

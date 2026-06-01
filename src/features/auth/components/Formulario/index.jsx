@@ -52,8 +52,22 @@ const Formulario = () => {
   // =========================
 
   const handleSubmit = async (e) => {
-
     e.preventDefault();
+    
+    const errs = {};
+    const email = formData.email.trim();
+    if (!email) errs.email = 'El correo es obligatorio';
+    else if (email.length > 100) errs.email = 'Máximo 100 caracteres';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.email = 'Correo electrónico inválido';
+    
+    if (!formData.pass) errs.pass = 'La contraseña es obligatoria';
+    else if (formData.pass.length < 4) errs.pass = 'Mínimo 4 caracteres';
+    
+    if (Object.keys(errs).length > 0) {
+      setFieldErrors(errs);
+      return;
+    }
+    
     setLoading(true);
     setGeneralError("");
     setFieldErrors({});
@@ -121,6 +135,7 @@ const Formulario = () => {
         value={formData.email}
         onChange={handleChange}
         error={fieldErrors.email}
+        maxLength={100}
       />
 
       <Input
@@ -131,6 +146,7 @@ const Formulario = () => {
         value={formData.pass}
         onChange={handleChange}
         error={fieldErrors.pass}
+        maxLength={72}
       />
 
       <Button

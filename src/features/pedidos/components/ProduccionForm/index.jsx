@@ -61,11 +61,16 @@ const ProduccionForm = ({ isOpen, onClose, detalles, onSuccess }) => {
       setAlert({ type: 'error', title: 'Error', message: 'Selecciona un detalle', onClose: () => setAlert(null) });
       return;
     }
-    if (!form.cantidad || form.cantidad < 1) {
+    const cant = Number(form.cantidad);
+    if (!form.cantidad || isNaN(cant) || cant < 1) {
       setAlert({ type: 'error', title: 'Error', message: 'La cantidad debe ser mayor a 0', onClose: () => setAlert(null) });
       return;
     }
-    if (form.cantidad > (detalleSeleccionado?.pendiente || 0)) {
+    if (cant > 99999) {
+      setAlert({ type: 'error', title: 'Error', message: 'Cantidad demasiado alta', onClose: () => setAlert(null) });
+      return;
+    }
+    if (cant > (detalleSeleccionado?.pendiente || 0)) {
       setAlert({ type: 'error', title: 'Error', message: `Solo faltan ${detalleSeleccionado?.pendiente} por producir`, onClose: () => setAlert(null) });
       return;
     }
@@ -151,7 +156,7 @@ const ProduccionForm = ({ isOpen, onClose, detalles, onSuccess }) => {
               value={form.cantidad}
               onChange={(e) => setForm((p) => ({ ...p, cantidad: Number(e.target.value) }))}
               min={1}
-              max={detalleSeleccionado?.pendiente || 1}
+              max={Math.min(detalleSeleccionado?.pendiente || 1, 99999)}
             />
             {detalleSeleccionado && (
               <span className={styles.hint}>

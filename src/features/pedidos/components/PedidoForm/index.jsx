@@ -64,12 +64,24 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
   };
 
+  const validateForm = () => {
+    const errs = {};
+    if (!form.cliente_id) errs.cliente_id = 'Selecciona un cliente';
+    const desc = (form.descripcion || '').trim();
+    if (desc && desc.length < 3) errs.descripcion = 'Mínimo 3 caracteres';
+    if (desc && desc.length > 500) errs.descripcion = 'Máximo 500 caracteres';
+    const obs = (form.observacion || '').trim();
+    if (obs && obs.length > 500) errs.observacion = 'Máximo 500 caracteres';
+    if (form.recordatorio_activo && (!form.recordatorio || form.recordatorio < 1 || form.recordatorio > 90))
+      errs.recordatorio = 'Ingresa un valor entre 1 y 90 días';
+    return errs;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.cliente_id) {
-      setErrors({ cliente_id: 'Selecciona un cliente' });
-      return;
-    }
+    const newErrors = validateForm();
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
 
     setSubmitting(true);
     onClose();
@@ -176,15 +188,17 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
           <div className={styles.field}>
             <label className={styles.label}>Descripción</label>
             <div className={styles.inputWrap}>
-              <input name="descripcion" className={styles.input} placeholder="Describe el pedido…" value={form.descripcion} onChange={handleChange} />
+              <input name="descripcion" maxLength="500" className={`${styles.input} ${errors.descripcion ? styles.inputError : ''}`} placeholder="Describe el pedido…" value={form.descripcion} onChange={handleChange} />
             </div>
+            {errors.descripcion && <span className={styles.fieldError}>{errors.descripcion}</span>}
           </div>
 
           <div className={styles.field}>
             <label className={styles.label}>Observación</label>
             <div className={styles.inputWrap}>
-              <textarea name="observacion" className={styles.textarea} placeholder="Notas adicionales…" rows={3} value={form.observacion} onChange={handleChange} />
+              <textarea name="observacion" maxLength="500" className={`${styles.textarea} ${errors.observacion ? styles.inputError : ''}`} placeholder="Notas adicionales…" rows={3} value={form.observacion} onChange={handleChange} />
             </div>
+            {errors.observacion && <span className={styles.fieldError}>{errors.observacion}</span>}
           </div>
 
           <div className={styles.field}>
@@ -205,10 +219,11 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
             </div>
             {form.recordatorio_activo && (
               <div className={styles.inputWrap} style={{ marginTop: '0.5rem' }}>
-                <input type="number" name="recordatorio" className={styles.input} value={form.recordatorio} onChange={handleChange} min={1} />
+                <input type="number" name="recordatorio" className={`${styles.input} ${errors.recordatorio ? styles.inputError : ''}`} value={form.recordatorio} onChange={handleChange} min={1} max={90} />
                 <span className={styles.inputSuffix}>días antes</span>
               </div>
             )}
+            {errors.recordatorio && <span className={styles.fieldError}>{errors.recordatorio}</span>}
           </div>
         </form>
       </Drawer>

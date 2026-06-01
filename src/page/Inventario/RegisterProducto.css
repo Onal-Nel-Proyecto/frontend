@@ -53,3 +53,18 @@
 .rp-btn--primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
 .rp-btn--outline { background: transparent; color: var(--text-secondary); border: 1px solid var(--border-glass); }
 .rp-btn--outline:hover { background: var(--bg-glass-hover); color: var(--text-primary); border-color: var(--border-glass-hover); }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .rp-form { gap: 0.8rem; }
+  .rp-row { gap: 0.8rem; }
+  .rp-label { font-size: 0.7rem; }
+  .rp-input { font-size: var(--text-xs); padding: 0.55rem 0; }
+  .rp-input-wrap { padding: 0 0.7rem; }
+}
+
+@media (max-width: 480px) {
+  .rp-row { grid-template-columns: 1fr; }
+  .rp-group--full { grid-column: span 1; }
+  .rp-btn { font-size: var(--text-xs); padding: 0.65rem 1rem; }
+}

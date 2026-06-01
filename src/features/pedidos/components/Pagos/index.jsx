@@ -305,6 +305,7 @@ const Pagos = () => {
                   <i className={`ti ti-edit ${styles.inputIcon}`} />
                   <input
                     type="text"
+                    maxLength="50"
                     className={styles.formInput}
                     placeholder="Ej: Mercado Pago, Cripto, etc."
                     value={form.metodo_otro}
@@ -341,6 +342,7 @@ const Pagos = () => {
                 <i className={`ti ti-notes ${styles.inputIcon}`} />
                 <input
                   type="text"
+                  maxLength="255"
                   className={styles.formInput}
                   placeholder="Observaciones del pago..."
                   value={form.notas}

@@ -208,7 +208,7 @@ const RegistrarPago = ({ isOpen, onClose, venta }) => {
           <label className="rpv-label" htmlFor="rpv-notas">Notas (opcional)</label>
           <div className="rpv-input-wrap">
             <i className="ti ti-notes" />
-            <input id="rpv-notas" type="text" className="rpv-input"
+            <input id="rpv-notas" type="text" maxLength="255" className="rpv-input"
               placeholder="Observaciones del pago..." value={form.notas}
               onChange={(e) => setField('notas', e.target.value)} />
           </div>

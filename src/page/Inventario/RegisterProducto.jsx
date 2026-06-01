@@ -3,34 +3,54 @@ import { FiTag } from 'react-icons/fi'
 import Drawer from '../../components/common/Drawer'
 import './RegisterProducto.css'
 
+const SOLO_LETRAS = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/
+
 const validate = (form) => {
   const errs = {}
-  if (!form.nombre.trim()) errs.nombre = 'El nombre del producto es obligatorio'
-  else if (form.nombre.trim().length < 3) errs.nombre = 'Mínimo 3 caracteres'
+  
+  const nom = form.nombre.trim()
+  if (!nom) errs.nombre = 'El nombre del producto es obligatorio'
+  else if (nom.length < 3) errs.nombre = 'Mínimo 3 caracteres'
+  else if (nom.length > 100) errs.nombre = 'Máximo 100 caracteres'
+  else if (!SOLO_LETRAS.test(nom)) errs.nombre = 'Solo letras y espacios, sin números'
 
-  if (!form.referencia.trim()) errs.referencia = 'La referencia es obligatoria'
-  else if (!/^[A-Z0-9-]+$/i.test(form.referencia.trim())) errs.referencia = 'Solo letras, números y guiones'
+  const ref = form.referencia.trim()
+  if (!ref) errs.referencia = 'La referencia es obligatoria'
+  else if (ref.length < 3) errs.referencia = 'Mínimo 3 caracteres'
+  else if (ref.length > 30) errs.referencia = 'Máximo 30 caracteres'
+  else if (!/^[A-Z0-9-]+$/i.test(ref)) errs.referencia = 'Solo letras, números y guiones'
 
   if (!form.categoria) errs.categoria = 'Selecciona una categoría'
-
   if (!form.tipo) errs.tipo = 'Selecciona el tipo de producto'
-
   if (!form.genero) errs.genero = 'Selecciona el género'
-
   if (!form.talla) errs.talla = 'Selecciona la talla'
 
-  const precio = parseFloat(form.precio)
-  if (!form.precio || isNaN(precio)) errs.precio = 'Ingresa un precio válido'
-  else if (precio <= 0) errs.precio = 'El precio debe ser mayor a $0'
+  const precioStr = form.precio.trim()
+  if (precioStr === '') errs.precio = 'Ingresa un precio válido'
+  else if (!/^\d+(\.\d{1,2})?$/.test(precioStr)) errs.precio = 'Solo números (máx 2 decimales)'
+  else {
+    const precio = parseFloat(precioStr)
+    if (precio <= 0) errs.precio = 'El precio debe ser mayor a $0'
+    else if (precio > 99999999) errs.precio = 'Precio demasiado alto'
+  }
 
-  const stock = parseInt(form.stock)
-  if (form.stock === '' || isNaN(stock)) errs.stock = 'Ingresa el stock actual'
-  else if (stock < 0) errs.stock = 'No puede ser negativo'
+  const stockStr = form.stock.trim()
+  if (stockStr === '') errs.stock = 'Ingresa el stock actual'
+  else if (!/^\d+$/.test(stockStr)) errs.stock = 'Solo números enteros'
+  else {
+    const stock = parseInt(stockStr, 10)
+    if (stock < 0) errs.stock = 'No puede ser negativo'
+    else if (stock > 999999) errs.stock = 'Stock demasiado alto'
 
-  const min = parseInt(form.stockMinimo)
-  if (form.stockMinimo === '' || isNaN(min)) errs.stockMinimo = 'Ingresa el stock mínimo'
-  else if (min < 0) errs.stockMinimo = 'No puede ser negativo'
-  else if (min > stock && stock >= 0) errs.stockMinimo = 'El mínimo no puede superar el stock actual'
+    const minStr = form.stockMinimo.trim()
+    if (minStr === '') errs.stockMinimo = 'Ingresa el stock mínimo'
+    else if (!/^\d+$/.test(minStr)) errs.stockMinimo = 'Solo números enteros'
+    else {
+      const min = parseInt(minStr, 10)
+      if (min < 0) errs.stockMinimo = 'No puede ser negativo'
+      else if (min > stock) errs.stockMinimo = 'El mínimo no puede superar el stock actual'
+    }
+  }
 
   return errs
 }

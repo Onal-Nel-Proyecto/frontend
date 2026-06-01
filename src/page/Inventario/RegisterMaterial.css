@@ -53,3 +53,17 @@
 .rm-btn--primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
 .rm-btn--outline { background: transparent; color: var(--text-secondary); border: 1px solid var(--border-glass); }
 .rm-btn--outline:hover { background: var(--bg-glass-hover); color: var(--text-primary); border-color: var(--border-glass-hover); }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .rm-form { gap: 0.8rem; }
+  .rm-row { gap: 0.8rem; }
+  .rm-label { font-size: 0.7rem; }
+  .rm-input { font-size: var(--text-xs); padding: 0.55rem 0.85rem 0.55rem 2.2rem; }
+}
+
+@media (max-width: 480px) {
+  .rm-row { grid-template-columns: 1fr; }
+  .rm-group--full { grid-column: span 1; }
+  .rm-btn { font-size: var(--text-xs); padding: 0.65rem 1rem; }
+}

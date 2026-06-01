@@ -10,8 +10,47 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
     telefono:  clienteEdit?.telefono ?? '',
     direccion: clienteEdit?.address ?? '',
   })
+  const [errors, setErrors] = useState({})
+  const [touched, setTouched] = useState({})
   const [guardando, setGuardando] = useState(false)
   const [errorForm, setErrorForm] = useState(null)
+
+  const SOLO_LETRAS = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  const TELEFONO_RE = /^[+\d\s-]{7,20}$/
+
+  const validate = (form) => {
+    const errs = {}
+    
+    const nom = form.nombres.trim()
+    if (!nom) errs.nombres = 'El nombre es obligatorio'
+    else if (nom.length < 2) errs.nombres = 'Mínimo 2 caracteres'
+    else if (nom.length > 60) errs.nombres = 'Máximo 60 caracteres'
+    else if (!SOLO_LETRAS.test(nom)) errs.nombres = 'Solo letras, sin números'
+
+    const ape = form.apellidos.trim()
+    if (!ape) errs.apellidos = 'Los apellidos son obligatorios'
+    else if (ape.length < 2) errs.apellidos = 'Mínimo 2 caracteres'
+    else if (ape.length > 60) errs.apellidos = 'Máximo 60 caracteres'
+    else if (!SOLO_LETRAS.test(ape)) errs.apellidos = 'Solo letras, sin números'
+
+    const email = form.correo.trim()
+    if (!email) errs.correo = 'El correo es obligatorio'
+    else if (email.length > 60) errs.correo = 'Máximo 60 caracteres'
+    else if (!EMAIL_RE.test(email)) errs.correo = 'Correo electrónico inválido'
+
+    const tel = form.telefono.trim()
+    if (!tel) errs.telefono = 'El teléfono es obligatorio'
+    else if (tel.length > 20) errs.telefono = 'Máximo 20 caracteres'
+    else if (!TELEFONO_RE.test(tel)) errs.telefono = 'Solo números, +, - y espacios'
+
+    const dir = form.direccion.trim()
+    if (!dir) errs.direccion = 'La dirección es obligatoria'
+    else if (dir.length < 5) errs.direccion = 'Mínimo 5 caracteres'
+    else if (dir.length > 60) errs.direccion = 'Máximo 60 caracteres'
+
+    return errs
+  }
 
   // Cerrar con Escape
   const handleKeyDown = useCallback((e) => {
@@ -36,6 +75,12 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    
+    const newErrors = validate(form)
+    setErrors(newErrors)
+    setTouched({ nombres: true, apellidos: true, correo: true, telefono: true, direccion: true })
+    if (Object.keys(newErrors).length > 0) return
+
     if (!onGuardar) {
       console.log('Cliente registrado (modo demo):', form)
       onClose()
@@ -105,27 +150,29 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
           <div className="ncp-row">
             <div className="ncp-group">
               <label className="ncp-label" htmlFor="nombres">Nombres</label>
-              <div className="ncp-input-wrap">
+              <div className={`ncp-input-wrap ${errors.nombres && touched.nombres ? 'ncp-input-wrap--err' : ''}`}>
                 <i className="ti ti-user" aria-hidden="true" />
                 <input
-                  id="nombres" name="nombres" type="text"
+                  id="nombres" name="nombres" type="text" maxLength="60"
                   className="ncp-input"
                   placeholder="María Elena"
                   value={form.nombres} onChange={handleChange} required
                 />
               </div>
+              {errors.nombres && touched.nombres && <p className="ncp-field-err">{errors.nombres}</p>}
             </div>
             <div className="ncp-group">
               <label className="ncp-label" htmlFor="apellidos">Apellidos</label>
-              <div className="ncp-input-wrap">
+              <div className={`ncp-input-wrap ${errors.apellidos && touched.apellidos ? 'ncp-input-wrap--err' : ''}`}>
                 <i className="ti ti-users" aria-hidden="true" />
                 <input
-                  id="apellidos" name="apellidos" type="text"
+                  id="apellidos" name="apellidos" type="text" maxLength="60"
                   className="ncp-input"
                   placeholder="Rossi García"
                   value={form.apellidos} onChange={handleChange} required
                 />
               </div>
+              {errors.apellidos && touched.apellidos && <p className="ncp-field-err">{errors.apellidos}</p>}
             </div>
           </div>
 
@@ -133,15 +180,16 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
           <div className="ncp-row">
             <div className="ncp-group ncp-group--full">
               <label className="ncp-label" htmlFor="correo">Correo electrónico</label>
-              <div className="ncp-input-wrap">
+              <div className={`ncp-input-wrap ${errors.correo && touched.correo ? 'ncp-input-wrap--err' : ''}`}>
                 <i className="ti ti-mail" aria-hidden="true" />
                 <input
-                  id="correo" name="correo" type="email"
+                  id="correo" name="correo" type="email" maxLength="60"
                   className="ncp-input"
                   placeholder="ejemplo@onaandnel.com"
                   value={form.correo} onChange={handleChange} required
                 />
               </div>
+              {errors.correo && touched.correo && <p className="ncp-field-err">{errors.correo}</p>}
             </div>
           </div>
 
@@ -149,27 +197,29 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
           <div className="ncp-row">
             <div className="ncp-group">
               <label className="ncp-label" htmlFor="telefono">Teléfono</label>
-              <div className="ncp-input-wrap">
+              <div className={`ncp-input-wrap ${errors.telefono && touched.telefono ? 'ncp-input-wrap--err' : ''}`}>
                 <i className="ti ti-phone" aria-hidden="true" />
                 <input
-                  id="telefono" name="telefono" type="tel"
+                  id="telefono" name="telefono" type="tel" maxLength="20"
                   className="ncp-input"
-                  placeholder="+34 912 345 678"
+                  placeholder="+57 300 123 4567"
                   value={form.telefono} onChange={handleChange} required
                 />
               </div>
+              {errors.telefono && touched.telefono && <p className="ncp-field-err">{errors.telefono}</p>}
             </div>
             <div className="ncp-group ncp-group--full">
               <label className="ncp-label" htmlFor="direccion">Dirección</label>
-              <div className="ncp-input-wrap">
+              <div className={`ncp-input-wrap ${errors.direccion && touched.direccion ? 'ncp-input-wrap--err' : ''}`}>
                 <i className="ti ti-map-pin" aria-hidden="true" />
                 <input
-                  id="direccion" name="direccion" type="text"
+                  id="direccion" name="direccion" type="text" maxLength="60"
                   className="ncp-input"
                   placeholder="Calle, número, ciudad"
                   value={form.direccion} onChange={handleChange} required
                 />
               </div>
+              {errors.direccion && touched.direccion && <p className="ncp-field-err">{errors.direccion}</p>}
             </div>
           </div>
 

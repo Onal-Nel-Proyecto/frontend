@@ -98,10 +98,25 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle }) => {
   };
 
   const handleSubmit = async () => {
-    // Validar
     const errs = {};
-    if (!form.producto_nombre) errs.producto_nombre = 'El nombre del producto es obligatorio';
-    if (!form.cantidad || form.cantidad < 1) errs.cantidad = 'La cantidad debe ser mayor a 0';
+    
+    const nom = (form.producto_nombre || '').trim();
+    if (!nom) errs.producto_nombre = 'El nombre del producto es obligatorio';
+    else if (nom.length < 2) errs.producto_nombre = 'Mínimo 2 caracteres';
+    else if (nom.length > 150) errs.producto_nombre = 'Máximo 150 caracteres';
+
+    const cant = Number(form.cantidad);
+    if (!form.cantidad || isNaN(cant)) errs.cantidad = 'Ingresa una cantidad';
+    else if (cant < 1) errs.cantidad = 'La cantidad debe ser mayor a 0';
+    else if (cant > 99999) errs.cantidad = 'Cantidad demasiado alta';
+
+    const precio = parseFloat(form.producto_precio);
+    if (form.producto_precio && (isNaN(precio) || precio < 0)) errs.producto_precio = 'Precio inválido';
+    else if (precio > 99999999) errs.producto_precio = 'Precio demasiado alto';
+
+    const obs = (form.observacion || '').trim();
+    if (obs && obs.length > 500) errs.observacion = 'Máximo 500 caracteres';
+
     setErrors(errs);
     if (Object.keys(errs).length > 0) return;
 
@@ -257,6 +272,7 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle }) => {
               <label className={styles.label}>Nombre del producto *</label>
               <input
                 name="producto_nombre"
+                maxLength="150"
                 className={`${styles.input} ${errors.producto_nombre ? styles.inputError : ''}`}
                 value={form.producto_nombre}
                 onChange={handleChange}
@@ -274,6 +290,7 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle }) => {
                   value={form.cantidad}
                   onChange={handleChange}
                   min={1}
+                  max={99999}
                 />
                 {errors.cantidad && <span className={styles.fieldError}>{errors.cantidad}</span>}
               </div>
@@ -283,11 +300,14 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle }) => {
                   name="producto_precio"
                   type="number"
                   step="0.01"
-                  className={styles.input}
+                  min="0"
+                  max="99999999"
+                  className={`${styles.input} ${errors.producto_precio ? styles.inputError : ''}`}
                   value={form.producto_precio}
                   onChange={handleChange}
                   placeholder="0.00"
                 />
+                {errors.producto_precio && <span className={styles.fieldError}>{errors.producto_precio}</span>}
               </div>
             </div>
           </section>
@@ -296,12 +316,14 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle }) => {
             <h4 className={styles.formSectionTitle}>Observación</h4>
             <textarea
               name="observacion"
-              className={styles.textarea}
+              maxLength="500"
+              className={`${styles.textarea} ${errors.observacion ? styles.inputError : ''}`}
               value={form.observacion}
               onChange={handleChange}
               placeholder="Notas adicionales…"
               rows={2}
             />
+            {errors.observacion && <span className={styles.fieldError}>{errors.observacion}</span>}
           </section>
 
           <section className={styles.formSection}>
