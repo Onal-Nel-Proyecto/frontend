@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import RegistrarPagoPedido from '../../components/RegistrarPagoPedido'
 import styles from './pedidos.module.css'
 
 const PEDIDOS = [
@@ -132,6 +133,15 @@ const PedidosPage = () => {
         </table>
         {filtered.length === 0 && <p className={styles.pedEmpty}>No se encontraron pedidos.</p>}
       </div>
+
+      {/* ══ DRAWER DE PAGO ══ */}
+      {pedidoCobrar && (
+        <RegistrarPagoPedido
+          isOpen={!!pedidoCobrar}
+          onClose={() => setPedidoCobrar(null)}
+          pedido={pedidoCobrar}
+        />
+      )}
     </div>
   )
 }

@@ -77,6 +77,16 @@
   font-size: 0.9rem; color: var(--text-muted); transition: all var(--transition-fast); text-decoration: none;
 }
 .pedActionBtn:hover { background: var(--bg-glass-hover); color: var(--text-primary); }
+.pedCobrarBtn {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  padding: 0.35rem 0.65rem; border: none; border-radius: var(--radius-xs);
+  background: var(--accent-gold); color: #1a1a1a;
+  font-size: 0.68rem; font-weight: 600; cursor: pointer; font-family: inherit;
+  transition: all var(--transition-fast); white-space: nowrap;
+}
+.pedCobrarBtn:hover { background: var(--accent-gold-light); transform: translateY(-1px); }
+.pedPagadoBadge { display: inline-flex; align-items: center; gap: 3px; font-size: 0.68rem; color: var(--accent-emerald); font-weight: 600; white-space: nowrap; }
+.pedPagadoBadge i { font-size: 0.85rem; }
 .pedEmpty { padding: 2rem; text-align: center; color: var(--text-muted); font-size: var(--text-sm); margin: 0; }
 
 @media (max-width: 1200px) { .pedStats { grid-template-columns: 1fr 1fr; } }
