@@ -181,5 +181,21 @@
  .noteIcon {
   font-size: 1.25rem;
 }
+.userName {
+  margin: 0 6px;
+  font-weight: 600;
+}
+
+.roleBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  margin-left: 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #eef2ff;
+  color: #4338ca;
+}
 
 /* Old inline modal styles removed in favor of ModalRegistrarUsuario component */

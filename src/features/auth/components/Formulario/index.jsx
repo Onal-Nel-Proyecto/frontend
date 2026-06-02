@@ -132,8 +132,6 @@ const Formulario = () => {
         onChange={handleChange}
         error={fieldErrors.pass}
       />
-<<<<<<< Updated upstream
-=======
 {/* 
       <div className={styles.formOptions}>
 
@@ -147,17 +145,6 @@ const Formulario = () => {
         </a>
 
       </div> */}
-
-
-      {
-        error && (
-          <p className={styles.errorMessage}>
-            {error}
-          </p>
-        )
-      }
-
->>>>>>> Stashed changes
 
       <Button
         type="submit"
