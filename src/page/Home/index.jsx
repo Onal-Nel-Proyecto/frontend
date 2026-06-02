@@ -67,7 +67,7 @@ const actions = [
   { label: "Nuevo Pedido", icon: <FiPlusCircle />, path: "/pedidos", color: "#3b82f6", admin: false },
   { label: "Registrar Cliente", icon: <FiUserPlus />, path: "/gestion-clientes", color: "#8b5cf6", admin: false },
   { label: "Registrar Compra", icon: <FiShoppingCart />, path: "/compras", color: "#10b981", admin: false },
-  { label: "Generar Reporte", icon: <FiBarChart2 />, path: "/reportes", color: "#f59e0b", admin: true },
+  { label: "Generar Reporte", icon: <FiBarChart2 />, path: "/ventas/reportes", color: "#f59e0b", admin: true },
 ];
 
 // ================================================================

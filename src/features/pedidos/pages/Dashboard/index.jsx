@@ -251,7 +251,7 @@ const DashboardPedidos = () => {
       try {
         const response = await getDashboardPedidos();
         if (cancelled) return;
-        if (response?.success && response?.data) {
+        if (response?.status && response?.data) {
           setData(response.data);
         } else {
           setError('Respuesta inválida del servidor');
