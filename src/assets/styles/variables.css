@@ -5,8 +5,8 @@
      ═══════════════════════════════════════════ */
 
   /* ── Fondos ── */
-  --bg-root: #FDF0F7;
-  --bg-surface: #FFF5FA;
+  --bg-root: #F5EEEC;
+  --bg-surface: #F8F3F1;
   --bg-elevated: #FFFFFF;
   --bg-glass: rgba(255, 255, 255, 0.7);
   --bg-glass-hover: rgba(255, 255, 255, 0.85);
@@ -76,14 +76,14 @@
   --font-display: 'Playfair Display', 'Georgia', serif;
 
   /* ── Tamaños de fuente ── */
-  --text-xs: 0.72rem;
-  --text-sm: 0.82rem;
-  --text-base: 0.94rem;
-  --text-md: 1.05rem;
-  --text-lg: 1.2rem;
-  --text-xl: 1.5rem;
-  --text-2xl: 1.85rem;
-  --text-3xl: 2.4rem;
+  --text-xs: 0.80rem;
+  --text-sm: 0.92rem;
+  --text-base: 1.05rem;
+  --text-md: 1.15rem;
+  --text-lg: 1.35rem;
+  --text-xl: 1.65rem;
+  --text-2xl: 2.05rem;
+  --text-3xl: 2.6rem;
 
   /* ── Transiciones ── */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -113,9 +113,9 @@
   --pastel-pink: #FDE8F0;
   --pastel-cyan: #D4E8F0;
 
-  --sidebar-bg: #FDF0F7;
-  --header-bg: #FDF0F7;
-  --main-bg: #FFF5FA;
+  --sidebar-bg: #EFE5E2;
+  --header-bg: #EFE5E2;
+  --main-bg: #F5EEEC;
 
   --text-dark: var(--text-primary);
   --text-gray: var(--text-secondary);

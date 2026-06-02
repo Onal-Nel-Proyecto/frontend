@@ -13,7 +13,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  background: var(--bg-elevated);
+  background: var(--header-bg);
   border-bottom: 1px solid var(--border-glass);
   z-index: 40;
   backdrop-filter: var(--blur-glass);

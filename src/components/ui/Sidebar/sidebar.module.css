@@ -16,7 +16,7 @@
   left: 0;
   bottom: 0;
   width: var(--sidebar-width);
-  background: var(--bg-elevated);
+  background: var(--sidebar-bg);
   border-right: 1px solid var(--border-glass);
   z-index: 50;
   transition: transform 0.4s var(--ease-out);
@@ -93,10 +93,10 @@
 }
 
 .active {
-  background: var(--accent-gold-subtle);
+  background: #FFFFFF;
   color: var(--accent-gold);
-  border: 1px solid rgba(201, 162, 61, 0.15);
-  box-shadow: 0 0 20px rgba(201, 162, 61, 0.06);
+  border: 1px solid rgba(212, 168, 75, 0.10);
+  box-shadow: 0 0 12px rgba(212, 168, 75, 0.06);
 }
 
 .inactive {
