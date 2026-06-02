@@ -55,10 +55,19 @@ const validate = (form) => {
   return errs
 }
 
-const RegisterProducto = ({ isOpen, onClose }) => {
+const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
+  const isEditing = !!initialData
+
   const [form, setForm] = useState({
-    nombre: '', referencia: '', categoria: '', tipo: '', genero: '', talla: '',
-    precio: '', stock: '', stockMinimo: '',
+    nombre: initialData?.name || '',
+    referencia: initialData?.ref || '',
+    categoria: initialData?.category || '',
+    tipo: initialData?.tipo || '',
+    genero: initialData?.genero || '',
+    talla: initialData?.talla || '',
+    precio: initialData?.price?.toString() || '',
+    stock: initialData?.stock?.toString() || '',
+    stockMinimo: initialData?.minStock?.toString() || '',
   })
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
@@ -83,9 +92,22 @@ const RegisterProducto = ({ isOpen, onClose }) => {
     if (Object.keys(newErrors).length > 0) return
     setSaving(true)
     setTimeout(() => {
-      console.log('Producto registrado:', form)
+      const stockNum = parseInt(form.stock, 10) || 0
+      const saved = {
+        id: initialData?.id,
+        name: form.nombre.trim(),
+        ref: form.referencia.trim(),
+        category: form.categoria,
+        tipo: form.tipo,
+        genero: form.genero,
+        talla: form.talla,
+        price: parseFloat(form.precio) || 0,
+        stock: stockNum,
+        minStock: parseInt(form.stockMinimo, 10) || 0,
+        status: stockNum === 0 ? 'agotado' : 'disponible',
+      }
+      onSave?.(saved)
       setSaving(false)
-      onClose()
     }, 800)
   }
 
@@ -95,14 +117,14 @@ const RegisterProducto = ({ isOpen, onClose }) => {
     <Drawer
       isOpen={isOpen}
       onClose={onClose}
-      title="Nuevo Producto"
-      subtitle="Añade un nuevo producto confeccionado al catálogo."
+      title={isEditing ? 'Editar Producto' : 'Nuevo Producto'}
+      subtitle={isEditing ? 'Modifica los datos del producto.' : 'Añade un nuevo producto confeccionado al catálogo.'}
       icon={<FiTag />}
       footer={
         <>
           <button type="button" className="rp-btn rp-btn--outline" onClick={onClose} disabled={saving}>Cancelar</button>
           <button type="submit" form="rp-form" className="rp-btn rp-btn--primary" onClick={handleSubmit} disabled={saving}>
-            {saving ? <><i className="ti ti-loader ti-spin" /> Guardando…</> : <><i className="ti ti-device-floppy" /> Guardar Producto</>}
+            {saving ? <><i className="ti ti-loader ti-spin" /> Guardando…</> : <><i className="ti ti-device-floppy" /> {isEditing ? 'Guardar Cambios' : 'Guardar Producto'}</>}
           </button>
         </>
       }
@@ -186,7 +208,7 @@ const RegisterProducto = ({ isOpen, onClose }) => {
         </div>
 
         <div className="rp-row">
-          <div className="rp-group">
+          <div className="rp-group rp-group--full">
             <label className="rp-label" htmlFor="rp-talla">Talla</label>
             <div className={`rp-input-wrap ${hasError('talla') ? 'rp-input-wrap--err' : ''}`}>
               <i className="ti ti-ruler" />
@@ -203,20 +225,6 @@ const RegisterProducto = ({ isOpen, onClose }) => {
               </select>
             </div>
             {hasError('talla') && <p className="rp-err">{errors.talla}</p>}
-          </div>
-          <div className="rp-group">
-            <label className="rp-label" htmlFor="rp-categoria">Categoría</label>
-            <div className={`rp-input-wrap ${hasError('categoria') ? 'rp-input-wrap--err' : ''}`}>
-              <i className="ti ti-category" />
-              <select id="rp-categoria" name="categoria" className="rp-input rp-select"
-                value={form.categoria} onChange={handleChange} onBlur={handleBlur}>
-                <option value="">Seleccione...</option>
-                <option value="Vestidos">Vestidos</option>
-                <option value="Chaquetas">Chaquetas</option>
-                <option value="Accesorios">Accesorios</option>
-              </select>
-            </div>
-            {hasError('categoria') && <p className="rp-err">{errors.categoria}</p>}
           </div>
         </div>
 

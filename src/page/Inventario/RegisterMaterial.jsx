@@ -47,10 +47,16 @@ const validate = (form) => {
   return errs
 }
 
-const RegisterMaterial = ({ isOpen, onClose }) => {
+const RegisterMaterial = ({ isOpen, onClose, initialData, onSave }) => {
+  const isEditing = !!initialData
+
   const [form, setForm] = useState({
-    nombre: '', referencia: '', categoria: '', descripcion: '',
-    stock: '', stockMinimo: '',
+    nombre: initialData?.name || '',
+    referencia: initialData?.ref || '',
+    categoria: initialData?.category || '',
+    descripcion: initialData?.desc || '',
+    stock: initialData?.stock?.toString() || '',
+    stockMinimo: initialData?.minStock?.toString() || '',
   })
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
@@ -75,9 +81,19 @@ const RegisterMaterial = ({ isOpen, onClose }) => {
     if (Object.keys(newErrors).length > 0) return
     setSaving(true)
     setTimeout(() => {
-      console.log('Material registrado:', form)
+      const stockNum = parseInt(form.stock, 10) || 0
+      const saved = {
+        id: initialData?.id,
+        name: form.nombre.trim(),
+        ref: form.referencia.trim(),
+        category: form.categoria,
+        desc: form.descripcion.trim(),
+        stock: stockNum,
+        minStock: parseInt(form.stockMinimo, 10) || 0,
+        status: stockNum === 0 ? 'agotado' : 'disponible',
+      }
+      onSave?.(saved)
       setSaving(false)
-      onClose()
     }, 800)
   }
 
@@ -87,14 +103,14 @@ const RegisterMaterial = ({ isOpen, onClose }) => {
     <Drawer
       isOpen={isOpen}
       onClose={onClose}
-      title="Añadir Material"
-      subtitle="Registra un nuevo material textil o acabado en el inventario."
+      title={isEditing ? 'Editar Material' : 'Añadir Material'}
+      subtitle={isEditing ? 'Modifica los datos del material.' : 'Registra un nuevo material textil o acabado en el inventario.'}
       icon={<FiPackage />}
       footer={
         <>
           <button type="button" className="rm-btn rm-btn--outline" onClick={onClose} disabled={saving}>Cancelar</button>
           <button type="submit" form="rm-form" className="rm-btn rm-btn--primary" onClick={handleSubmit} disabled={saving}>
-            {saving ? <><i className="ti ti-loader ti-spin" /> Guardando…</> : <><i className="ti ti-device-floppy" /> Guardar Material</>}
+            {saving ? <><i className="ti ti-loader ti-spin" /> Guardando…</> : <><i className="ti ti-device-floppy" /> {isEditing ? 'Guardar Cambios' : 'Guardar Material'}</>}
           </button>
         </>
       }

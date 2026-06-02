@@ -3,8 +3,8 @@ import RegisterMaterial from './RegisterMaterial'
 import RegisterProducto from './RegisterProducto'
 import './InventarioPage.css'
 
-// ── Datos hardcodeados ─────────────────────────
-const MATERIALS = [
+// ── Datos iniciales ─────────────────────────
+const INITIAL_MATERIALS = [
   { id: 1, name: 'Seda Natural China', ref: 'SNC-001', category: 'Telas de Seda', desc: '5.5 mm, 12 mm, 120 g/m²', stock: 340, minStock: 50, status: 'disponible' },
   { id: 2, name: 'Lino Belga Crudo', ref: 'LBC-004', category: 'Linos', desc: '220 g/m², 150 cm ancho', stock: 12, minStock: 30, status: 'disponible' },
   { id: 3, name: 'Terciopelo de Seda Italiano', ref: 'TSI-009', category: 'Terciopelos', desc: '320 g/m², 140 cm ancho', stock: 0, minStock: 20, status: 'agotado' },
@@ -12,7 +12,7 @@ const MATERIALS = [
   { id: 5, name: 'Seda Orgánica Tussar', ref: 'SOT-007', category: 'Telas de Seda', desc: '6 mm, 15 mm, 110 g/m²', stock: 28, minStock: 25, status: 'disponible' },
 ]
 
-const PRODUCTOS = [
+const INITIAL_PRODUCTOS = [
   { id: 1, name: 'Vestido de Noche Seda', ref: 'VNS-001', category: 'Vestidos', tipo: 'Vestido', genero: 'Femenino', talla: 'M', price: 320000, stock: 8, minStock: 3, status: 'disponible' },
   { id: 2, name: 'Blazer Lino Clásico', ref: 'BLC-004', category: 'Chaquetas', tipo: 'Blazer', genero: 'Masculino', talla: 'L', price: 245000, stock: 2, minStock: 4, status: 'disponible' },
   { id: 3, name: 'Corbata Terciopelo Italia', ref: 'CTI-009', category: 'Accesorios', tipo: 'Corbata', genero: 'Masculino', talla: 'Única', price: 85000, stock: 0, minStock: 6, status: 'agotado' },
@@ -169,10 +169,79 @@ const TablaSection = ({ items, tipo, columns, renderRow, statConfig, filters, on
 
 // ── Página principal ─────────────────────────
 const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
+  // ── Datos en estado (mutables) ──
+  const [materials, setMaterials] = useState(INITIAL_MATERIALS)
+  const [products, setProducts] = useState(INITIAL_PRODUCTOS)
+  const [nextMatId, setNextMatId] = useState(6)
+  const [nextProdId, setNextProdId] = useState(6)
+
+  // ── Drawers ──
   const [showDrawerMat, setShowDrawerMat] = useState(false)
   const [showDrawerProd, setShowDrawerProd] = useState(false)
+
+  // ── Edición ──
+  const [editingMaterial, setEditingMaterial] = useState(null)
+  const [editingProduct, setEditingProduct] = useState(null)
+
+  // ── Filtros ──
   const [matFilters, setMatFilters] = useState({ category: '', status: '', search: '', categoryOptions: ['Telas de Seda', 'Linos', 'Terciopelos', 'Tintes y Acabados'] })
   const [prodFilters, setProdFilters] = useState({ category: '', status: '', search: '', categoryOptions: ['Vestidos', 'Chaquetas', 'Accesorios'] })
+
+  // ══ Handlers Materiales ══
+  const handleAddMaterial = () => {
+    setEditingMaterial(null)
+    setShowDrawerMat(true)
+  }
+
+  const handleEditMaterial = (item) => {
+    setEditingMaterial(item)
+    setShowDrawerMat(true)
+  }
+
+  const handleDeleteMaterial = (item) => {
+    if (!window.confirm(`¿Eliminar "${item.name}"?\n\nEsta acción no se puede deshacer.`)) return
+    setMaterials((prev) => prev.filter((m) => m.id !== item.id))
+  }
+
+  const handleSaveMaterial = (data) => {
+    if (data.id) {
+      setMaterials((prev) => prev.map((m) => (m.id === data.id ? data : m)))
+    } else {
+      const nuevo = { ...data, id: nextMatId }
+      setMaterials((prev) => [...prev, nuevo])
+      setNextMatId((id) => id + 1)
+    }
+    setShowDrawerMat(false)
+    setEditingMaterial(null)
+  }
+
+  // ══ Handlers Productos ══
+  const handleAddProduct = () => {
+    setEditingProduct(null)
+    setShowDrawerProd(true)
+  }
+
+  const handleEditProduct = (item) => {
+    setEditingProduct(item)
+    setShowDrawerProd(true)
+  }
+
+  const handleDeleteProduct = (item) => {
+    if (!window.confirm(`¿Eliminar "${item.name}"?\n\nEsta acción no se puede deshacer.`)) return
+    setProducts((prev) => prev.filter((p) => p.id !== item.id))
+  }
+
+  const handleSaveProduct = (data) => {
+    if (data.id) {
+      setProducts((prev) => prev.map((p) => (p.id === data.id ? data : p)))
+    } else {
+      const nuevo = { ...data, id: nextProdId }
+      setProducts((prev) => [...prev, nuevo])
+      setNextProdId((id) => id + 1)
+    }
+    setShowDrawerProd(false)
+    setEditingProduct(null)
+  }
 
   // ── Config Materiales ──
   const matStats = (items) => {
@@ -204,8 +273,8 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
       </td>
       <td>
         <div className={`inv-actions ${hovered ? 'inv-actions--visible' : ''}`}>
-          <button className="inv-action-btn" title="Editar"><i className="ti ti-edit" /></button>
-          <button className="inv-action-btn inv-action-btn--danger" title="Eliminar"><i className="ti ti-trash" /></button>
+          <button className="inv-action-btn" title="Editar" onClick={() => handleEditMaterial(m)}><i className="ti ti-edit" /></button>
+          <button className="inv-action-btn inv-action-btn--danger" title="Eliminar" onClick={() => handleDeleteMaterial(m)}><i className="ti ti-trash" /></button>
         </div>
       </td>
     </>
@@ -244,8 +313,8 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
       </td>
       <td>
         <div className={`inv-actions ${hovered ? 'inv-actions--visible' : ''}`}>
-          <button className="inv-action-btn" title="Editar"><i className="ti ti-edit" /></button>
-          <button className="inv-action-btn inv-action-btn--danger" title="Eliminar"><i className="ti ti-trash" /></button>
+          <button className="inv-action-btn" title="Editar" onClick={() => handleEditProduct(p)}><i className="ti ti-edit" /></button>
+          <button className="inv-action-btn inv-action-btn--danger" title="Eliminar" onClick={() => handleDeleteProduct(p)}><i className="ti ti-trash" /></button>
         </div>
       </td>
     </>
@@ -269,7 +338,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
             </p>
           </div>
         </div>
-        <button className="inv-btn-primary" onClick={() => activeTab === 'materiales' ? setShowDrawerMat(true) : setShowDrawerProd(true)}>
+        <button className="inv-btn-primary" onClick={() => activeTab === 'materiales' ? handleAddMaterial() : handleAddProduct()}>
           <i className="ti ti-plus" />
           {activeTab === 'materiales' ? 'Añadir Material' : 'Nuevo Producto'}
         </button>
@@ -279,15 +348,29 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
 
       {/* ══ CONTENIDO ══ */}
       {activeTab === 'materiales' && (
-        <TablaSection items={MATERIALS} tipo="materiales" columns={matColumns} renderRow={matRenderRow} statConfig={matStats} filters={matFilters} onFiltersChange={setMatFilters} />
+        <TablaSection items={materials} tipo="materiales" columns={matColumns} renderRow={matRenderRow} statConfig={matStats} filters={matFilters} onFiltersChange={setMatFilters} />
       )}
       {activeTab === 'productos' && (
-        <TablaSection items={PRODUCTOS} tipo="productos" columns={prodColumns} renderRow={prodRenderRow} statConfig={prodStats} filters={prodFilters} onFiltersChange={setProdFilters} />
+        <TablaSection items={products} tipo="productos" columns={prodColumns} renderRow={prodRenderRow} statConfig={prodStats} filters={prodFilters} onFiltersChange={setProdFilters} />
       )}
 
       {/* ══ DRAWERS ══ */}
-      {showDrawerMat && <RegisterMaterial isOpen={showDrawerMat} onClose={() => setShowDrawerMat(false)} />}
-      {showDrawerProd && <RegisterProducto isOpen={showDrawerProd} onClose={() => setShowDrawerProd(false)} />}
+      {showDrawerMat && (
+        <RegisterMaterial
+          isOpen={showDrawerMat}
+          onClose={() => { setShowDrawerMat(false); setEditingMaterial(null) }}
+          initialData={editingMaterial}
+          onSave={handleSaveMaterial}
+        />
+      )}
+      {showDrawerProd && (
+        <RegisterProducto
+          isOpen={showDrawerProd}
+          onClose={() => { setShowDrawerProd(false); setEditingProduct(null) }}
+          initialData={editingProduct}
+          onSave={handleSaveProduct}
+        />
+      )}
     </div>
   )
 }
