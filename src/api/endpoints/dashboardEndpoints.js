@@ -12,5 +12,7 @@ export const getDashboardResumen = async () => {
 
 export const getDashboardPedidos = async () => {
   const response = await axiosInstance.get(DASHBOARD_ENDPOINTS.PEDIDOS);
+  // console.log(response);
+  
   return response.data;
 };

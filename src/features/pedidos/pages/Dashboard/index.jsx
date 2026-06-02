@@ -61,15 +61,23 @@ const formatDate = (str) => {
 
 const parseDate = (str) => {
   if (!str) return new Date(0);
+
   // DD/MM/YYYY
   if (/^\d{2}\/\d{2}\/\d{4}$/.test(str)) {
     const [d, m, y] = str.split('/').map(Number);
     return new Date(y, m - 1, d);
   }
-  // YYYY-MM-DD
-  const [y, m, d] = str.split('-').map(Number);
-  return new Date(y, m - 1, d);
+
+  // YYYY-MM-DD o YYYY-MM-DDTHH:mm:ss.sssZ (ISO)
+  const match = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (match) {
+    return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  }
+
+  return new Date(0);
 };
+
+const pad = (n) => String(n).padStart(2, '0');
 
 const diffDays = (a, b) => {
   const ms = a.getTime() - b.getTime();
@@ -81,24 +89,85 @@ const isSameDay = (a, b) =>
   a.getMonth() === b.getMonth() &&
   a.getDate() === b.getDate();
 
+const getDateFromEvent = (p) =>
+  p.fecha_entrega || p.fechaEntrega || p.fecha || p.start || p.fecha_entrega_estimada;
+
 const isOverdue = (pedido) => {
+  // Si el backend ya retorna el booleano, usarlo directamente
+  if (pedido.esRetrasado !== undefined) return pedido.esRetrasado;
   if (pedido.estado === 'ENTREGADO') return false;
-  const entrega = parseDate(pedido.fecha_entrega || pedido.start);
+  const entrega = parseDate(getDateFromEvent(pedido));
   return diffDays(today, entrega) < 0;
 };
 
 const isNearDue = (pedido) => {
+  // Si el backend ya retorna el booleano, usarlo directamente
+  if (pedido.esProximoVencer !== undefined) return pedido.esProximoVencer;
   if (pedido.estado === 'ENTREGADO') return false;
-  const entrega = parseDate(pedido.fecha_entrega || pedido.start);
+  const entrega = parseDate(getDateFromEvent(pedido));
   const days = diffDays(today, entrega);
   return days >= 0 && days <= 3;
+};
+
+// ═══════════════════════════════════════════════════════════════
+// COMPONENTE: Modal de desborde (muestra todos los pedidos de un día)
+// ═══════════════════════════════════════════════════════════════
+
+const DayOverflowModal = ({ day, month, year, pedidos, onSelectPedido, onClose }) => {
+  if (!pedidos || pedidos.length === 0) return null;
+
+  return (
+    <div className={styles.modalOverlay} onClick={onClose}>
+      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.modalHeader}>
+          <h3 className={styles.modalTitle}>
+            Pedidos — {pad(day)}/{pad(month + 1)}/{year}
+          </h3>
+          <button className={styles.modalClose} onClick={onClose}>
+            <FiX />
+          </button>
+        </div>
+        <div className={styles.modalBody}>
+          {pedidos.map((p) => {
+            const st = STATUS_MAP[p.estado] || {};
+            const overdue = isOverdue(p);
+            const near = isNearDue(p);
+            return (
+              <div
+                key={p.id}
+                className={styles.overflowItem}
+                onClick={() => {
+                  onSelectPedido(p);
+                  onClose();
+                }}
+              >
+                <div className={styles.overflowItemHeader}>
+                  <span className={styles.prodId}>#{p.id}</span>
+                  <span className={`${styles.badgeSmall} ${styles[st.className] || ''}`}>
+                    {st.label}
+                  </span>
+                  {overdue && <span className={styles.eventTagRetrasado}>Retrasado</span>}
+                  {near && !overdue && <span className={styles.eventTagProximo}>Próximo</span>}
+                </div>
+                <span className={styles.overflowItemClient}>{p.cliente}</span>
+                {p.descripcion && (
+                  <span className={styles.overflowItemDesc}>{p.descripcion}</span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
 };
 
 // ═══════════════════════════════════════════════════════════════
 // COMPONENTE: Calendario de mes
 // ═══════════════════════════════════════════════════════════════
 
-const CalendarGrid = ({ currentDate, pedidos, onSelectPedido }) => {
+const CalendarGrid = ({ currentDate, pedidos, onSelectPedido, onShowOverflow, overflowDay }) => {
+
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
@@ -117,60 +186,67 @@ const CalendarGrid = ({ currentDate, pedidos, onSelectPedido }) => {
   while (cells.length % 7 !== 0) cells.push(null);
 
   const pedidosDelMes = (pedidos || []).filter((p) => {
-    const d = parseDate(p.fecha_entrega || p.start);
+    const d = parseDate(getDateFromEvent(p));
     return d.getFullYear() === year && d.getMonth() === month;
   });
 
   const getPedidosForDay = (day) =>
     pedidosDelMes.filter((p) => {
-      const d = parseDate(p.fecha_entrega || p.start);
+      const d = parseDate(getDateFromEvent(p));
       return d.getDate() === day;
     });
 
   return (
-    <div className={styles.calendarGrid}>
-      {DAYS_OF_WEEK.map((name) => (
-        <div key={name} className={styles.calWeekday}>{name}</div>
-      ))}
+    <>
+      <div className={styles.calendarGrid}>
+        {DAYS_OF_WEEK.map((name) => (
+          <div key={name} className={styles.calWeekday}>{name}</div>
+        ))}
 
-      {cells.map((day, i) => {
-        if (day === null) return <div key={`empty-${i}`} className={styles.calDayEmpty} />;
+        {cells.map((day, i) => {
+          if (day === null) return <div key={`empty-${i}`} className={styles.calDayEmpty} />;
 
-        const dayPedidos = getPedidosForDay(day);
-        const isToday = isSameDay(new Date(year, month, day), today);
+          const dayPedidos = getPedidosForDay(day);
+          const isToday = isSameDay(new Date(year, month, day), today);
 
-        return (
-          <div
-            key={day}
-            className={`${styles.calDay} ${isToday ? styles.calDayToday : ''}`}
-          >
-            <span className={styles.calDayNum}>{day}</span>
-            <div className={styles.calEvents}>
-              {dayPedidos.slice(0, 3).map((p) => {
-                const st = STATUS_MAP[p.estado] || {};
-                const overdue = isOverdue(p);
-                const near = isNearDue(p);
-                return (
-                  <button
-                    key={p.id}
-                    className={`${styles.calEvent} ${styles[st.className] || ''} ${overdue ? styles.eventOverdue : ''} ${near && !overdue ? styles.eventNear : ''}`}
-                    onClick={() => onSelectPedido(p)}
-                    title={`#${p.id} - ${p.cliente} (${st.label})`}
+          return (
+            <div
+              key={day}
+              className={`${styles.calDay} ${isToday ? styles.calDayToday : ''}`}
+            >
+              <span className={styles.calDayNum}>{day}</span>
+              <div className={styles.calEvents}>
+                {dayPedidos.slice(0, 3).map((p) => {
+                  const st = STATUS_MAP[p.estado] || {};
+                  const overdue = isOverdue(p);
+                  const near = isNearDue(p);
+                  return (
+                    <button
+                      key={p.id}
+                      className={`${styles.calEvent} ${styles[st.className] || ''} ${overdue ? styles.eventOverdue : ''} ${near && !overdue ? styles.eventNear : ''}`}
+                      onClick={() => onSelectPedido(p)}
+                      title={`#${p.id} - ${p.cliente} (${st.label})`}
+                    >
+                      {p.title || p.id}
+                      {overdue && <span className={styles.eventTagRetrasado}>Retrasado</span>}
+                      {near && !overdue && <span className={styles.eventTagProximo}>Próximo</span>}
+                    </button>
+                  );
+                })}
+                {dayPedidos.length > 3 && (
+                  <span
+                    className={styles.calMore}
+                    onClick={() => onShowOverflow(day)}
                   >
-                    {p.title || p.id}
-                    {overdue && <span className={styles.eventTagRetrasado}>Retrasado</span>}
-                    {near && !overdue && <span className={styles.eventTagProximo}>Próximo</span>}
-                  </button>
-                );
-              })}
-              {dayPedidos.length > 3 && (
-                <span className={styles.calMore}>+{dayPedidos.length - 3} más</span>
-              )}
+                    +{dayPedidos.length - 3} más
+                  </span>
+                )}
+              </div>
             </div>
-          </div>
-        );
-      })}
-    </div>
+          );
+        })}
+      </div>
+    </>
   );
 };
 
@@ -238,6 +314,7 @@ const DashboardPedidos = () => {
 
   const [currentDate, setCurrentDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [selectedPedido, setSelectedPedido] = useState(null);
+  const [overflowDay, setOverflowDay] = useState(null);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -279,13 +356,28 @@ const DashboardPedidos = () => {
   }, [data]);
 
   // ─── Eventos del calendario ───
-  const calendarEvents = useMemo(() => data?.calendarEvents || [], [data]);
+  // Soporta múltiples nombres que el backend pueda usar
+  const calendarEvents = useMemo(
+    () => data?.calendarEvents || data?.eventos || data?.calendario || [],
+    [data]
+  );
 
   // ─── Producción activa ───
   const produccionActiva = useMemo(() => data?.produccionActiva || [], [data]);
 
   // ─── Últimos pedidos ───
   const ultimosPedidos = useMemo(() => data?.ultimosPedidos || [], [data]);
+
+  // ─── Pedidos del día de desborde ───
+  const overflowPedidos = useMemo(() => {
+    if (overflowDay === null) return [];
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    return (calendarEvents || []).filter((p) => {
+      const d = parseDate(getDateFromEvent(p));
+      return d.getFullYear() === year && d.getMonth() === month && d.getDate() === overflowDay;
+    });
+  }, [overflowDay, currentDate, calendarEvents]);
 
   const handlePrevMonth = useCallback(
     () => setCurrentDate((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1)),
@@ -299,6 +391,14 @@ const DashboardPedidos = () => {
 
   const handleSelectPedido = useCallback((pedido) => {
     setSelectedPedido(pedido);
+  }, []);
+
+  const handleShowOverflow = useCallback((day) => {
+    setOverflowDay(day);
+  }, []);
+
+  const handleCloseOverflow = useCallback(() => {
+    setOverflowDay(null);
   }, []);
 
   const currentMonthLabel = `${MONTHS[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
@@ -425,6 +525,8 @@ const DashboardPedidos = () => {
             currentDate={currentDate}
             pedidos={calendarEvents}
             onSelectPedido={handleSelectPedido}
+            onShowOverflow={handleShowOverflow}
+            overflowDay={overflowDay}
           />
         </Card>
 
@@ -434,12 +536,12 @@ const DashboardPedidos = () => {
 
           <div className={styles.prodList}>
             {produccionActiva.length > 0 ? (
-              produccionActiva.map((pedido) => {
+              produccionActiva.map((pedido, idx) => {
                 const st = STATUS_MAP[pedido.estado] || {};
                 const overdue = isOverdue(pedido);
                 const near = isNearDue(pedido);
                 return (
-                  <div key={pedido.id} className={styles.prodItem}>
+                  <div key={`${pedido.id}-${idx}`} className={styles.prodItem}>
                     <div className={styles.prodHeader}>
                       <span className={styles.prodId}>#{pedido.id}</span>
                       <span className={`${styles.badgeSmall} ${styles[st.className] || ''}`}>
@@ -555,6 +657,18 @@ const DashboardPedidos = () => {
         <PedidoModal
           pedido={selectedPedido}
           onClose={() => setSelectedPedido(null)}
+        />
+      )}
+
+      {/* ─── Modal de desborde del calendario ─── */}
+      {overflowDay !== null && overflowPedidos.length > 0 && (
+        <DayOverflowModal
+          day={overflowDay}
+          month={currentDate.getMonth()}
+          year={currentDate.getFullYear()}
+          pedidos={overflowPedidos}
+          onSelectPedido={handleSelectPedido}
+          onClose={handleCloseOverflow}
         />
       )}
     </div>
