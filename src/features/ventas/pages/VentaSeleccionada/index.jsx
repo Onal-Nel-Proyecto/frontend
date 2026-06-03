@@ -3,23 +3,15 @@
 // Incluye: DetalleVenta + PagosVenta + botón "Generar Factura"
 // ================================================================
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { FiArrowLeft, FiFileText, FiShoppingCart, FiDollarSign } from 'react-icons/fi';
 import { useDocumentTitle } from '../../../../hooks/useDocumentTitle';
+import { useVentas } from '../../../../hooks/useVentas';
 import { getStoredUser } from '../../../../utils/session';
 import DetalleVenta from '../../components/DetalleVenta';
 import PagosVenta from '../../components/PagosVenta';
 import styles from './venta_seleccionada.module.css';
-
-// ── Hardcoded data (misma fuente que VentasPage) ─────
-const VENTAS_DATA = [
-  { id: 1, pedido_id: 'PED-001', cliente: 'María García López', descripcion: 'Vestido de Noche Seda — Talla M', total: 520000, abonado: 520000, metodo: 'transferencia', estado: 'Pagado', fecha: '2025-01-15', productos: [{ nombre: 'Vestido de Noche Seda', cantidad: 1, precio_unitario: 520000 }] },
-  { id: 2, pedido_id: 'PED-003', cliente: 'Alejandro Martínez Ruiz', descripcion: 'Blazer Lino Clásico — Talla L', total: 245000, abonado: 245000, metodo: 'tarjeta', estado: 'Pagado', fecha: '2025-01-18', productos: [{ nombre: 'Blazer Lino Clásico', cantidad: 1, precio_unitario: 245000 }] },
-  { id: 3, pedido_id: 'PED-007', cliente: 'Carmen Herrera Díaz', descripcion: 'Vestido de Día Lino + Pañuelo Seda', total: 315000, abonado: 150000, metodo: 'efectivo', estado: 'Abono parcial', fecha: '2025-02-01', productos: [{ nombre: 'Vestido de Día Lino', cantidad: 1, precio_unitario: 250000 }, { nombre: 'Pañuelo Seda', cantidad: 1, precio_unitario: 65000 }] },
-  { id: 4, pedido_id: 'PED-012', cliente: 'Roberto Sánchez Vega', descripcion: 'Corbata Terciopelo Italia x2', total: 170000, abonado: 0, metodo: null, estado: 'Pendiente', fecha: '2025-02-05', productos: [{ nombre: 'Corbata Terciopelo Italia', cantidad: 2, precio_unitario: 85000 }] },
-  { id: 5, pedido_id: 'PED-015', cliente: 'Laura Jiménez Torres', descripcion: 'Pañuelo Seda Tussar + Vestido Noche', total: 440000, abonado: 200000, metodo: 'transferencia', estado: 'Abono parcial', fecha: '2025-02-10', productos: [{ nombre: 'Pañuelo Seda Tussar', cantidad: 1, precio_unitario: 120000 }, { nombre: 'Vestido Noche', cantidad: 1, precio_unitario: 320000 }] },
-];
 
 const fmtCOP = (val) =>
   Number(val || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
@@ -182,22 +174,56 @@ const VentaSeleccionada = () => {
   const location = useLocation();
   useDocumentTitle(`Venta #${id}`);
 
-  // Buscar venta por ID numérico o pedido_id
-  const venta = useMemo(() => {
-    // Primero intentar desde location.state (pasado desde VentasPage)
-    if (location.state?.venta) return location.state.venta;
+  const { getVenta } = useVentas();
 
-    // Buscar en datos hardcodeados
-    return VENTAS_DATA.find(
-      (v) => String(v.id) === String(id) || String(v.pedido_id) === String(id)
-    );
-  }, [id, location.state]);
+  // Buscar venta por ID
+  const [venta, setVenta] = useState(null);
+  const [loadingVenta, setLoadingVenta] = useState(true);
+
+  useEffect(() => {
+    const cargarVenta = async () => {
+      setLoadingVenta(true);
+      try {
+        // Primero intentar desde location.state (pasado desde VentasPage)
+        if (location.state?.venta) {
+          setVenta(location.state.venta);
+        } else {
+          const data = await getVenta(id);
+          setVenta(data);
+        }
+      } catch {
+        setVenta(null);
+      } finally {
+        setLoadingVenta(false);
+      }
+    };
+    cargarVenta();
+  }, [id, location.state, getVenta]);
 
   const [refreshKey, setRefreshKey] = useState(0);
 
   const handlePagoRegistrado = () => {
     setRefreshKey((k) => k + 1);
   };
+
+  if (loadingVenta) {
+    return (
+      <div className={styles.page}>
+        <header className={styles.header}>
+          <button className={styles.backBtn} onClick={() => navigate('/ventas')}>
+            <FiArrowLeft />
+            regresar a ventas
+          </button>
+        </header>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '4rem 0' }}>
+          <div style={{ textAlign: 'center' }}>
+            <i className="ti ti-loader ti-spin" style={{ fontSize: '2rem', color: 'var(--accent-gold)', marginBottom: '0.75rem', display: 'block' }} />
+            <p style={{ color: 'var(--text-muted)', fontSize: 'var(--text-sm)' }}>Cargando venta…</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!venta) {
     return (

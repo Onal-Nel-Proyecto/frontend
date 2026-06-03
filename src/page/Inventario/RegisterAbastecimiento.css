@@ -103,7 +103,7 @@
 
 .ra-item-row {
   display: grid;
-  grid-template-columns: 100px 1fr 100px;
+  grid-template-columns: 90px 130px 1fr 100px;
   gap: 0.5rem; align-items: start;
 }
 
@@ -127,6 +127,12 @@
   .ra-label { font-size: 0.7rem; }
   .ra-input { font-size: var(--text-xs); padding: 0.55rem 0.85rem 0.55rem 2.2rem; }
   .ra-item-row { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 600px) {
+  .ra-item-row {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 480px) {

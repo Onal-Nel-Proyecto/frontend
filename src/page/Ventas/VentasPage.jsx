@@ -1,17 +1,12 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FiFileText } from 'react-icons/fi'
+import { useVentas } from '../../hooks/useVentas'
+import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 import RegistrarPago from './RegistrarPago'
 import './VentasPage.css'
 
-// ── Datos hardcodeados ─────────────────────────
-const VENTAS = [
-  { id: 1, pedido_id: 'PED-001', cliente: 'María García López', descripcion: 'Vestido de Noche Seda — Talla M', total: 520000, abonado: 520000, metodo: 'transferencia', estado: 'Pagado', fecha: '2025-01-15' },
-  { id: 2, pedido_id: 'PED-003', cliente: 'Alejandro Martínez Ruiz', descripcion: 'Blazer Lino Clásico — Talla L', total: 245000, abonado: 245000, metodo: 'tarjeta', estado: 'Pagado', fecha: '2025-01-18' },
-  { id: 3, pedido_id: 'PED-007', cliente: 'Carmen Herrera Díaz', descripcion: 'Vestido de Día Lino + Pañuelo Seda', total: 315000, abonado: 150000, metodo: 'efectivo', estado: 'Abono parcial', fecha: '2025-02-01' },
-  { id: 4, pedido_id: 'PED-012', cliente: 'Roberto Sánchez Vega', descripcion: 'Corbata Terciopelo Italia x2', total: 170000, abonado: 0, metodo: null, estado: 'Pendiente', fecha: '2025-02-05' },
-  { id: 5, pedido_id: 'PED-015', cliente: 'Laura Jiménez Torres', descripcion: 'Pañuelo Seda Tussar + Vestido Noche', total: 440000, abonado: 200000, metodo: 'transferencia', estado: 'Abono parcial', fecha: '2025-02-10' },
-]
+// ── Los datos se cargan desde useVentas (API con fallback local) ──
 
 const fmt = (val) =>
   Number(val || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
@@ -117,6 +112,7 @@ const generarFactura = (venta) => {
 
 const VentasPage = () => {
   const navigate = useNavigate()
+  useDocumentTitle('Ventas')
   const [showDrawer, setShowDrawer] = useState(false)
   const [ventaSel, setVentaSel] = useState(null)
   const [hoveredRow, setHoveredRow] = useState(null)
@@ -124,7 +120,10 @@ const VentasPage = () => {
   const [metodoFilter, setMetodoFilter] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
 
-  const filtered = VENTAS.filter((v) => {
+  // ── Hook de ventas (API + fallback) ──
+  const { ventas, loading } = useVentas()
+
+  const filtered = ventas.filter((v) => {
     if (estadoFilter && v.estado !== estadoFilter) return false
     if (metodoFilter && (v.metodo || '') !== metodoFilter) return false
     if (searchQuery) {
@@ -135,10 +134,10 @@ const VentasPage = () => {
   })
 
   const mesActual = new Date().toLocaleString('es-ES', { month: 'long', year: 'numeric' })
-  const totalVendido = VENTAS.reduce((s, v) => s + v.total, 0)
-  const totalCobrado = VENTAS.filter(v => v.estado === 'Pagado').reduce((s, v) => s + v.total, 0)
-  const pendienteCobrar = VENTAS.reduce((s, v) => s + (v.total - v.abonado), 0)
-  const abonosActivos = VENTAS.filter(v => v.estado === 'Abono parcial').length
+  const totalVendido = ventas.reduce((s, v) => s + v.total, 0)
+  const totalCobrado = ventas.filter(v => v.estado === 'Pagado').reduce((s, v) => s + v.total, 0)
+  const pendienteCobrar = ventas.reduce((s, v) => s + (v.total - v.abonado), 0)
+  const abonosActivos = ventas.filter(v => v.estado === 'Abono parcial').length
 
   const abrirPago = (venta) => { setVentaSel(venta); setShowDrawer(true) }
 
@@ -175,7 +174,7 @@ const VentasPage = () => {
           <div>
             <p className="vtas-stat-value">{fmt(totalVendido)}</p>
             <p className="vtas-stat-label">Total Vendido <span className="vtas-stat-tag">{mesActual}</span></p>
-            <p className="vtas-stat-sub">{VENTAS.length} pedidos procesados</p>
+            <p className="vtas-stat-sub">{ventas.length} pedidos procesados</p>
           </div>
         </div>
         <div className="vtas-stat-card" style={{ '--delay': '0.08s' }}>
@@ -183,7 +182,7 @@ const VentasPage = () => {
           <div>
             <p className="vtas-stat-value">{fmt(totalCobrado)}</p>
             <p className="vtas-stat-label">Cobrado</p>
-            <p className="vtas-stat-sub">{VENTAS.filter(v => v.estado === 'Pagado').length} ventas completadas</p>
+            <p className="vtas-stat-sub">{ventas.filter(v => v.estado === 'Pagado').length} ventas completadas</p>
           </div>
         </div>
         <div className="vtas-stat-card" style={{ '--delay': '0.16s' }}>
@@ -230,10 +229,21 @@ const VentasPage = () => {
             <input type="text" placeholder="Buscar cliente o pedido..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
           </div>
         </div>
-        <p className="vtas-filters__count">{filtered.length} de {VENTAS.length} ventas</p>
+        <p className="vtas-filters__count">{filtered.length} de {ventas.length} ventas</p>
       </div>
 
+      {/* ══ LOADING ══ */}
+      {loading && (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '3rem 0' }}>
+          <div style={{ textAlign: 'center' }}>
+            <i className="ti ti-loader ti-spin" style={{ fontSize: '2rem', color: 'var(--accent-gold)', marginBottom: '0.75rem', display: 'block' }} />
+            <p style={{ color: 'var(--text-muted)', fontSize: 'var(--text-sm)' }}>Cargando ventas…</p>
+          </div>
+        </div>
+      )}
+
       {/* ══ TABLA ══ */}
+      {!loading && (
       <div className="vtas-table-wrap">
         <table className="vtas-table">
           <thead>
@@ -330,6 +340,7 @@ const VentasPage = () => {
           </div>
         )}
       </div>
+      )}
 
       {/* ══ DRAWER ══ */}
       {showDrawer && ventaSel && (

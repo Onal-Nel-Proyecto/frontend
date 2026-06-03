@@ -69,7 +69,9 @@ const TablaSection = ({ items, tipo, columns, renderRow, statConfig, filters, on
     if (filters.status && item.status !== filters.status) return false
     if (searchDebounced) {
       const q = searchDebounced.toLowerCase()
-      if (!item.name.toLowerCase().includes(q) && !item.ref.toLowerCase().includes(q)) return false
+      const matchName = item.name?.toLowerCase()?.includes(q)
+      const matchRef = item.ref?.toLowerCase()?.includes(q)
+      if (!matchName && !matchRef) return false
     }
     return true
   })

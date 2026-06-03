@@ -5,7 +5,24 @@ import './RegisterAbastecimiento.css'
 
 const TIPOS_ITEM = ['MATERIAL', 'PRODUCTO']
 
-const ITEM_VACIO = { tipo: 'MATERIAL', cantidad: '', costo: '' }
+// ── Mock de referencias por tipo ──
+const REFERENCIAS_POR_TIPO = {
+  PRODUCTO: [
+    { value: 'PR001', label: 'PR001' },
+    { value: 'PR002', label: 'PR002' },
+    { value: 'PR003', label: 'PR003' },
+    { value: 'PR004', label: 'PR004' },
+  ],
+  MATERIAL: [
+    { value: '1', label: '1' },
+    { value: '2', label: '2' },
+    { value: '3', label: '3' },
+    { value: '4', label: '4' },
+    { value: '5', label: '5' },
+  ],
+}
+
+const ITEM_VACIO = { tipo: 'MATERIAL', cantidad: '', costo: '', refId: '' }
 
 // ── Validaciones ──────────────────────────
 const validate = (form, proveedores) => {
@@ -23,6 +40,9 @@ const validate = (form, proveedores) => {
     const itemsErrs = []
     form.detalles.forEach((item, i) => {
       const ie = {}
+
+      // Referencia obligatoria
+      if (!item.refId) ie.refId = 'Selecciona una referencia'
 
       const cant = item.cantidad.toString().trim()
       if (cant === '') ie.cantidad = 'Ingresa la cantidad'
@@ -74,7 +94,12 @@ const RegisterAbastecimiento = ({ isOpen, onClose, proveedores = [], onSave }) =
   const handleItemChange = (index, field, value) => {
     setForm((prev) => {
       const nuevos = [...prev.detalles]
-      nuevos[index] = { ...nuevos[index], [field]: value }
+      // Si cambia el tipo, reseteamos la referencia (distintas opciones)
+      if (field === 'tipo') {
+        nuevos[index] = { ...nuevos[index], tipo: value, refId: '' }
+      } else {
+        nuevos[index] = { ...nuevos[index], [field]: value }
+      }
       return { ...prev, detalles: nuevos }
     })
   }
@@ -110,6 +135,7 @@ const RegisterAbastecimiento = ({ isOpen, onClose, proveedores = [], onSave }) =
       provIdFk: form.provIdFk,
       detalles: form.detalles.map((d) => ({
         tipo: d.tipo,
+        referencia: d.refId,
         cantidad: parseInt(d.cantidad, 10),
         costo: d.costo !== '' && d.costo !== null ? parseFloat(d.costo) : null,
       })),
@@ -209,6 +235,28 @@ const RegisterAbastecimiento = ({ isOpen, onClose, proveedores = [], onSave }) =
                       <option key={t} value={t}>{t === 'MATERIAL' ? 'Material' : 'Producto'}</option>
                     ))}
                   </select>
+                </div>
+
+                {/* Referencia (depende del tipo) */}
+                <div className="ra-group ra-group--ref">
+                  <label className="ra-label">
+                    Referencia <span className="ra-required">*</span>
+                  </label>
+                  <select
+                    className={`ra-input ra-select ra-input--no-icon ${errors.detallesItems?.[index]?.refId ? 'ra-input--error' : ''}`}
+                    value={item.refId}
+                    onChange={(e) => handleItemChange(index, 'refId', e.target.value)}
+                  >
+                    <option value="">Seleccionar...</option>
+                    {(REFERENCIAS_POR_TIPO[item.tipo] || []).map((ref) => (
+                      <option key={ref.value} value={ref.value}>
+                        {ref.label}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.detallesItems?.[index]?.refId && (
+                    <p className="ra-err">{errors.detallesItems[index].refId}</p>
+                  )}
                 </div>
 
                 {/* Cantidad */}
