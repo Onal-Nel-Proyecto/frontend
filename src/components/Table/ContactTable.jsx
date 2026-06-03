@@ -17,7 +17,7 @@ const ContactTable = ({ clients = [], onView, onEdit, onDelete, totalClientes })
             <th>Nombre del Cliente</th>
             <th>Teléfono</th>
             <th>Dirección de Entrega</th>
-            <th>Último Pedido</th>
+            <th>fecha de registro</th>
             <th>Acciones</th>
           </tr>
         </thead>

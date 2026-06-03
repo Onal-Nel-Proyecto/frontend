@@ -1,6 +1,8 @@
 import { useState, useRef, useCallback } from 'react'
 import RegisterMaterial from './RegisterMaterial'
 import RegisterProducto from './RegisterProducto'
+import RegisterAbastecimiento from './RegisterAbastecimiento'
+import { useAbastecimiento } from '../../hooks/useAbastecimiento'
 import './InventarioPage.css'
 
 // ── Datos iniciales ─────────────────────────
@@ -178,14 +180,27 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
   // ── Drawers ──
   const [showDrawerMat, setShowDrawerMat] = useState(false)
   const [showDrawerProd, setShowDrawerProd] = useState(false)
+  const [showDrawerAbs, setShowDrawerAbs] = useState(false)
 
   // ── Edición ──
   const [editingMaterial, setEditingMaterial] = useState(null)
   const [editingProduct, setEditingProduct] = useState(null)
 
+  // ── Abastecimiento (hook) ──
+  const {
+    abastecimientos,
+    proveedores,
+    meta: absMeta,
+    loading: absLoading,
+    addAbastecimiento,
+    completar: completarAbs,
+    cancelar: cancelarAbs,
+  } = useAbastecimiento()
+
   // ── Filtros ──
   const [matFilters, setMatFilters] = useState({ category: '', status: '', search: '', categoryOptions: ['Telas de Seda', 'Linos', 'Terciopelos', 'Tintes y Acabados'] })
   const [prodFilters, setProdFilters] = useState({ category: '', status: '', search: '', categoryOptions: ['Vestidos', 'Chaquetas', 'Accesorios'] })
+  const [absFilters, setAbsFilters] = useState({ category: '', status: '', search: '', categoryOptions: [] })
 
   // ══ Handlers Materiales ══
   const handleAddMaterial = () => {
@@ -213,6 +228,38 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
     }
     setShowDrawerMat(false)
     setEditingMaterial(null)
+  }
+
+  // ══ Handlers Abastecimiento ══
+  const handleAddAbastecimiento = () => {
+    setShowDrawerAbs(true)
+  }
+
+  const handleSaveAbastecimiento = async (data) => {
+    try {
+      await addAbastecimiento(data)
+      setShowDrawerAbs(false)
+    } catch (err) {
+      alert('Error al registrar abastecimiento: ' + (err?.response?.data?.message || err?.message))
+    }
+  }
+
+  const handleCompletarAbastecimiento = async (item) => {
+    if (!window.confirm(`¿Completar el abastecimiento #${item.id}?\n\nEsto actualizará el stock de los ítems.`)) return
+    try {
+      await completarAbs(item.id)
+    } catch (err) {
+      alert('Error: ' + (err?.response?.data?.message || err?.message))
+    }
+  }
+
+  const handleCancelarAbastecimiento = async (item) => {
+    if (!window.confirm(`¿Cancelar el abastecimiento #${item.id}?\n\nNo se afectará el stock.`)) return
+    try {
+      await cancelarAbs(item.id)
+    } catch (err) {
+      alert('Error: ' + (err?.response?.data?.message || err?.message))
+    }
   }
 
   // ══ Handlers Productos ══
@@ -322,6 +369,68 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
 
   const prodColumns = ['PRODUCTO', 'CATEGORÍA', 'TIPO · GÉNERO · TALLA', 'PRECIO', 'STOCK', 'ESTADO', '']
 
+  // ── Config Abastecimiento ──
+  const fmtAbs = (val) =>
+    Number(val || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
+
+  const absStats = (items) => {
+    const pendientes = items.filter((a) => a.estado === 'PENDIENTE').length
+    const completados = items.filter((a) => a.estado === 'COMPLETADO').length
+    const costoTotal = items.reduce((s, a) => s + (a.costoTotal || 0), 0)
+    return [
+      { color: 'blue', icon: 'ti ti-truck', value: items.length, unit: '', label: 'Total Abastecimientos', sub: 'registros en el sistema' },
+      { color: 'red', icon: 'ti ti-clock', value: pendientes, unit: '', label: 'Pendientes', valueRed: true, sub: 'aún sin procesar' },
+      { color: 'green', icon: 'ti ti-circle-check', value: completados, unit: '', label: 'Completados', sub: 'stock actualizado' },
+      { color: 'gold', icon: 'ti ti-coin', value: fmtAbs(costoTotal), unit: '', label: 'Costo Total', sub: 'de abastecimientos completados' },
+    ]
+  }
+
+  const absRenderRow = (a, hovered) => {
+    const fecha = a.fecha ? new Date(a.fecha).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'
+    const estadoClass =
+      a.estado === 'COMPLETADO' ? 'inv-badge--ok' :
+      a.estado === 'CANCELADO' ? 'inv-badge--empty' :
+      'inv-badge--warn'
+    const estadoLabel =
+      a.estado === 'COMPLETADO' ? 'Completado' :
+      a.estado === 'CANCELADO' ? 'Cancelado' :
+      'Pendiente'
+    return (
+      <>
+        <td>
+          <div className="inv-cell-name">
+            <p className="inv-material-name">#{a.id} — {a.proveedorNombre}</p>
+            <p className="inv-material-ref">{fecha} · {a.totalItems} ítems</p>
+          </div>
+        </td>
+        <td>
+          <span className={`inv-badge ${estadoClass}`}>
+            <i className={`ti ti-${a.estado === 'COMPLETADO' ? 'circle-check' : a.estado === 'CANCELADO' ? 'x-circle' : 'clock'}`} />
+            {estadoLabel}
+          </span>
+        </td>
+        <td className="inv-cell-price">{fmtAbs(a.costoTotal)}</td>
+        <td className="inv-cell-specs">{a.observacion || '—'}</td>
+        <td>
+          <div className={`inv-actions ${hovered ? 'inv-actions--visible' : ''}`}>
+            {a.estado === 'PENDIENTE' && (
+              <>
+                <button className="inv-action-btn inv-action-btn--success" title="Completar" onClick={() => handleCompletarAbastecimiento(a)}>
+                  <i className="ti ti-circle-check" />
+                </button>
+                <button className="inv-action-btn inv-action-btn--danger" title="Cancelar" onClick={() => handleCancelarAbastecimiento(a)}>
+                  <i className="ti ti-x-circle" />
+                </button>
+              </>
+            )}
+          </div>
+        </td>
+      </>
+    )
+  }
+
+  const absColumns = ['ABASTECIMIENTO', 'ESTADO', 'COSTO TOTAL', 'OBSERVACIÓN', '']
+
   return (
     <div className="inv-content">
 
@@ -338,9 +447,9 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
             </p>
           </div>
         </div>
-        <button className="inv-btn-primary" onClick={() => activeTab === 'materiales' ? handleAddMaterial() : handleAddProduct()}>
+        <button className="inv-btn-primary" onClick={() => activeTab === 'materiales' ? handleAddMaterial() : activeTab === 'productos' ? handleAddProduct() : handleAddAbastecimiento()}>
           <i className="ti ti-plus" />
-          {activeTab === 'materiales' ? 'Añadir Material' : 'Nuevo Producto'}
+          {activeTab === 'materiales' ? 'Añadir Material' : activeTab === 'productos' ? 'Nuevo Producto' : 'Nuevo Abastecimiento'}
         </button>
       </div>
 
@@ -352,6 +461,9 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
       )}
       {activeTab === 'productos' && (
         <TablaSection items={products} tipo="productos" columns={prodColumns} renderRow={prodRenderRow} statConfig={prodStats} filters={prodFilters} onFiltersChange={setProdFilters} />
+      )}
+      {activeTab === 'abastecimiento' && (
+        <TablaSection items={abastecimientos} tipo="abastecimientos" columns={absColumns} renderRow={absRenderRow} statConfig={absStats} filters={absFilters} onFiltersChange={setAbsFilters} />
       )}
 
       {/* ══ DRAWERS ══ */}
@@ -369,6 +481,14 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
           onClose={() => { setShowDrawerProd(false); setEditingProduct(null) }}
           initialData={editingProduct}
           onSave={handleSaveProduct}
+        />
+      )}
+      {showDrawerAbs && (
+        <RegisterAbastecimiento
+          isOpen={showDrawerAbs}
+          onClose={() => setShowDrawerAbs(false)}
+          proveedores={proveedores}
+          onSave={handleSaveAbastecimiento}
         />
       )}
     </div>

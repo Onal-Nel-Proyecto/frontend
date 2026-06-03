@@ -15,8 +15,10 @@ const StatusBadge = ({ date }) => {
     )
   }
 
-  // Separa mes+día del año para mostrarlos en dos líneas
-  const [monthDay, year] = date.split(', ')
+  // Parsea la fecha y la formatea como "mes día, año" (sin hora)
+  const dateObj = new Date(date)
+  const monthDay = dateObj.toLocaleDateString('es-CO', { month: 'short', day: 'numeric' })
+  const year = dateObj.getFullYear()
 
   return (
     <span className="status-badge status-badge--date">

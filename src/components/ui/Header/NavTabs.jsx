@@ -31,8 +31,9 @@ const modules = [
   {
     path: '/inventario',
     tabs: [
-      { label: 'Materiales', to: '/inventario/materiales', icon: <FiPackage /> },
-      { label: 'Productos',  to: '/inventario/productos', icon: <FiShoppingBag /> },
+      { label: 'Materiales',     to: '/inventario/materiales',     icon: <FiPackage /> },
+      { label: 'Productos',      to: '/inventario/productos',      icon: <FiShoppingBag /> },
+      { label: 'Abastecimiento', to: '/inventario/abastecimiento', icon: <FiTruck /> },
     ],
   },
 ];
