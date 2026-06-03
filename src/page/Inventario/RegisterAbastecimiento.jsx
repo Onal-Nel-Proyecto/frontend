@@ -5,7 +5,7 @@ import './RegisterAbastecimiento.css'
 
 const TIPOS_ITEM = ['MATERIAL', 'PRODUCTO']
 
-const ITEM_VACIO = { tipo: 'MATERIAL', referencia: '', cantidad: '', costo: '' }
+const ITEM_VACIO = { tipo: 'MATERIAL', cantidad: '', costo: '' }
 
 // ── Validaciones ──────────────────────────
 const validate = (form, proveedores) => {
@@ -16,9 +16,6 @@ const validate = (form, proveedores) => {
   else if (!proveedores.some((p) => p.provId === form.provIdFk))
     errs.provIdFk = 'El proveedor seleccionado no es válido'
 
-  // Observación (opcional)
-  if (form.absObs && form.absObs.length > 255) errs.absObs = 'Máximo 255 caracteres'
-
   // Detalles
   if (!form.detalles || form.detalles.length === 0) {
     errs.detalles = 'Agrega al menos un ítem al abastecimiento'
@@ -26,7 +23,6 @@ const validate = (form, proveedores) => {
     const itemsErrs = []
     form.detalles.forEach((item, i) => {
       const ie = {}
-      if (!item.referencia.trim()) ie.referencia = 'La referencia es obligatoria'
 
       const cant = item.cantidad.toString().trim()
       if (cant === '') ie.cantidad = 'Ingresa la cantidad'
@@ -55,7 +51,6 @@ const validate = (form, proveedores) => {
 const RegisterAbastecimiento = ({ isOpen, onClose, proveedores = [], onSave }) => {
   const [form, setForm] = useState({
     provIdFk: '',
-    absObs: '',
     detalles: [{ ...ITEM_VACIO }],
   })
   const [errors, setErrors] = useState({})
@@ -65,7 +60,7 @@ const RegisterAbastecimiento = ({ isOpen, onClose, proveedores = [], onSave }) =
   // Resetear formulario al abrir
   useEffect(() => {
     if (isOpen) {
-      setForm({ provIdFk: '', absObs: '', detalles: [{ ...ITEM_VACIO }] })
+      setForm({ provIdFk: '', detalles: [{ ...ITEM_VACIO }] })
       setErrors({})
       setTouched({})
     }
@@ -100,7 +95,7 @@ const RegisterAbastecimiento = ({ isOpen, onClose, proveedores = [], onSave }) =
     setTouched((prev) => ({ ...prev, [e.target.name]: true }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const newErrors = validate(form, proveedores)
     setErrors(newErrors)
@@ -113,16 +108,14 @@ const RegisterAbastecimiento = ({ isOpen, onClose, proveedores = [], onSave }) =
     // Construir payload para la API
     const payload = {
       provIdFk: form.provIdFk,
-      absObs: form.absObs.trim() || null,
       detalles: form.detalles.map((d) => ({
         tipo: d.tipo,
-        referencia: d.referencia.trim(),
         cantidad: parseInt(d.cantidad, 10),
         costo: d.costo !== '' && d.costo !== null ? parseFloat(d.costo) : null,
       })),
     }
 
-    onSave?.(payload)
+    await onSave?.(payload)
     setSaving(false)
   }
 
@@ -179,28 +172,6 @@ const RegisterAbastecimiento = ({ isOpen, onClose, proveedores = [], onSave }) =
           </div>
         </div>
 
-        {/* ── Observación ── */}
-        <div className="ra-row">
-          <div className="ra-group ra-group--full">
-            <label className="ra-label" htmlFor="ra-obs">Observación</label>
-            <div className="ra-input-wrap">
-              <i className="ti ti-notes ra-input-icon" />
-              <input
-                id="ra-obs"
-                name="absObs"
-                type="text"
-                maxLength="255"
-                className={`ra-input ${hasError('absObs') ? 'ra-input--error' : ''}`}
-                placeholder="Ej: Pedido mensual de telas"
-                value={form.absObs}
-                onChange={handleChange}
-                onBlur={handleBlur}
-              />
-            </div>
-            {hasError('absObs') && <p className="ra-err">{errors.absObs}</p>}
-          </div>
-        </div>
-
         {/* ── Ítems del abastecimiento ── */}
         <div className="ra-section">
           <div className="ra-section-header">
@@ -230,7 +201,7 @@ const RegisterAbastecimiento = ({ isOpen, onClose, proveedores = [], onSave }) =
                 <div className="ra-group ra-group--tipo">
                   <label className="ra-label">Tipo</label>
                   <select
-                    className="ra-input ra-select"
+                    className="ra-input ra-select ra-input--no-icon"
                     value={item.tipo}
                     onChange={(e) => handleItemChange(index, 'tipo', e.target.value)}
                   >
@@ -238,24 +209,6 @@ const RegisterAbastecimiento = ({ isOpen, onClose, proveedores = [], onSave }) =
                       <option key={t} value={t}>{t === 'MATERIAL' ? 'Material' : 'Producto'}</option>
                     ))}
                   </select>
-                </div>
-
-                {/* Referencia */}
-                <div className="ra-group ra-group--ref">
-                  <label className="ra-label">
-                    Referencia <span className="ra-required">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    maxLength="20"
-                    className={`ra-input ${errors.detallesItems?.[index]?.referencia ? 'ra-input--error' : ''}`}
-                    placeholder={item.tipo === 'MATERIAL' ? 'ID del material' : 'ID del producto'}
-                    value={item.referencia}
-                    onChange={(e) => handleItemChange(index, 'referencia', e.target.value)}
-                  />
-                  {errors.detallesItems?.[index]?.referencia && (
-                    <p className="ra-err">{errors.detallesItems[index].referencia}</p>
-                  )}
                 </div>
 
                 {/* Cantidad */}
@@ -267,7 +220,7 @@ const RegisterAbastecimiento = ({ isOpen, onClose, proveedores = [], onSave }) =
                     type="number"
                     min="1"
                     max="99999"
-                    className={`ra-input ${errors.detallesItems?.[index]?.cantidad ? 'ra-input--error' : ''}`}
+                    className={`ra-input ra-input--no-icon ${errors.detallesItems?.[index]?.cantidad ? 'ra-input--error' : ''}`}
                     placeholder="0"
                     value={item.cantidad}
                     onChange={(e) => handleItemChange(index, 'cantidad', e.target.value)}
@@ -283,7 +236,7 @@ const RegisterAbastecimiento = ({ isOpen, onClose, proveedores = [], onSave }) =
                   <input
                     type="text"
                     inputMode="decimal"
-                    className={`ra-input ${errors.detallesItems?.[index]?.costo ? 'ra-input--error' : ''}`}
+                    className={`ra-input ra-input--no-icon ${errors.detallesItems?.[index]?.costo ? 'ra-input--error' : ''}`}
                     placeholder="0.00"
                     value={item.costo}
                     onChange={(e) => handleItemChange(index, 'costo', e.target.value)}

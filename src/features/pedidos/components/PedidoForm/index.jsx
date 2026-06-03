@@ -188,7 +188,7 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
           <div className={styles.field}>
             <label className={styles.label}>Descripción</label>
             <div className={styles.inputWrap}>
-              <input name="descripcion" maxLength="500" className={`${styles.input} ${errors.descripcion ? styles.inputError : ''}`} placeholder="Describe el pedido…" value={form.descripcion} onChange={handleChange} />
+              <input name="descripcion" maxLength="500" className={`${styles.input} ${styles.inputNoIcon} ${errors.descripcion ? styles.inputError : ''}`} placeholder="Describe el pedido…" value={form.descripcion} onChange={handleChange} />
             </div>
             {errors.descripcion && <span className={styles.fieldError}>{errors.descripcion}</span>}
           </div>
@@ -204,7 +204,7 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
           <div className={styles.field}>
             <label className={styles.label}>Fecha estimada de entrega</label>
             <div className={styles.inputWrap}>
-              <input type="date" name="fecha_estimada_entrega" className={styles.input} value={form.fecha_estimada_entrega} onChange={handleChange} />
+              <input type="date" name="fecha_estimada_entrega" className={`${styles.input} ${styles.inputNoIcon}`} value={form.fecha_estimada_entrega} onChange={handleChange} />
             </div>
           </div>
 
@@ -219,7 +219,7 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
             </div>
             {form.recordatorio_activo && (
               <div className={styles.inputWrap} style={{ marginTop: '0.5rem' }}>
-                <input type="number" name="recordatorio" className={`${styles.input} ${errors.recordatorio ? styles.inputError : ''}`} value={form.recordatorio} onChange={handleChange} min={1} max={90} />
+                <input type="number" name="recordatorio" className={`${styles.input} ${styles.inputNoIcon} ${errors.recordatorio ? styles.inputError : ''}`} value={form.recordatorio} onChange={handleChange} min={1} max={90} />
                 <span className={styles.inputSuffix}>días antes</span>
               </div>
             )}

@@ -72,14 +72,41 @@ input, textarea, select {
   font-size: inherit;
 }
 
+/* ── Focus global para campos de formulario ── */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none !important;
+  border-color: #695B58;
+  border-radius: var(--radius-xs);
+  box-shadow: 0 0 0 3px rgba(105, 91, 88, 0.15) !important;
+}
+
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none !important;
+}
+
+/* Suprime el glow del wrapper cuando el input interno ya tiene su propio anillo de focus */
+[class*="input-wrap"]:has(input:focus),
+[class*="inputWrap"]:has(input:focus),
+[class*="InputWrap"]:has(input:focus),
+[class*="input-wrap"]:has(textarea:focus),
+[class*="inputWrap"]:has(textarea:focus),
+[class*="input-wrap"]:has(select:focus),
+[class*="inputWrap"]:has(select:focus) {
+  box-shadow: none !important;
+}
+
 /* ── Imágenes ── */
 img {
   max-width: 100%;
   display: block;
 }
 
-/* ── Focus visible ── */
-:focus-visible {
+/* ── Focus visible (solo elementos interactivos no-form) ── */
+:focus-visible:not(input):not(textarea):not(select) {
   outline: 2px solid var(--accent-violet);
   outline-offset: 2px;
 }

@@ -35,11 +35,15 @@
 .ra-input:hover { background: var(--bg-glass-hover); border-color: var(--border-glass-hover); }
 .ra-input:focus { border-color: var(--accent-violet); background: var(--bg-glass-active); box-shadow: 0 0 0 4px var(--accent-violet-subtle); }
 
+/* ── Input sin ícono (ítems del abastecimiento) ── */
+.ra-input--no-icon { padding-left: 0.85rem; }
+
 .ra-select {
   padding-left: 2.4rem; appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b6975' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat; background-position: right 14px center; cursor: pointer;
 }
+.ra-select.ra-input--no-icon { padding-left: 0.85rem; }
 .ra-select option { background: var(--bg-elevated); color: var(--text-primary); }
 
 .ra-input--error { border-color: #dc2626 !important; background: rgba(239,68,68,0.05) !important; }
@@ -99,7 +103,7 @@
 
 .ra-item-row {
   display: grid;
-  grid-template-columns: 100px 1fr 90px 100px;
+  grid-template-columns: 100px 1fr 100px;
   gap: 0.5rem; align-items: start;
 }
 

@@ -240,7 +240,8 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
       await addAbastecimiento(data)
       setShowDrawerAbs(false)
     } catch (err) {
-      alert('Error al registrar abastecimiento: ' + (err?.response?.data?.message || err?.message))
+      const msg = err?.response?.data?.error || err?.response?.data?.message || err?.message || 'Error desconocido'
+      alert('Error al registrar abastecimiento: ' + msg)
     }
   }
 
