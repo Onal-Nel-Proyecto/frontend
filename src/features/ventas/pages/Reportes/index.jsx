@@ -30,6 +30,7 @@ import {
   exportReportePeriodoPDF,
   exportReportePeriodoExcel,
 } from '../../../../api/ventasService';
+import { formatCurrency, pad } from '../../../../utils/format';
 import styles from './reportes.module.css';
 
 // ═══════════════════════════════════════════════════════════════
@@ -42,18 +43,6 @@ const MESES = [
 ];
 
 const ANIOS = [2024, 2025, 2026];
-
-// ═══════════════════════════════════════════════════════════════
-// HELPERS
-// ═══════════════════════════════════════════════════════════════
-
-const formatCurrency = (value) => {
-  const num = Number(value);
-  if (isNaN(num)) return '$0';
-  return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(num);
-};
-
-const pad = (n) => String(n).padStart(2, '0');
 
 // ═══════════════════════════════════════════════════════════════
 // HELPERS DE DESCARGA
@@ -168,7 +157,7 @@ const ReportesVentas = () => {
   // Usa tipoEjecutado (congelado al generar) para que cambiar el dropdown
   // después de generar no altere el formato del gráfico.
   const rawVentas = normalized.ventasPorDia || [];
-  const ventasPorDia = rawVentas.map((item) => {
+  let ventasPorDia = rawVentas.map((item) => {
     let label;
     if (item.dia !== undefined && tipoEjecutado === 'mensual') {
       // Mensual: el backend retorna { dia: 1, totalDia: … }
@@ -176,17 +165,30 @@ const ReportesVentas = () => {
       label = `${pad(item.dia)}/${pad(mes)}`;
     } else if (item.fecha) {
       // Período: el backend retorna { fecha: "2026-05-01", totalDia: … }
-      // Mostrar como "DD/MM" → ej. "01/05"
-      const [_y, m, d] = item.fecha.split('-');
-      label = `${pad(d)}/${pad(m)}`;
+      // Mostrar fecha completa → ej. "01/05/2026"
+      const [y, m, d] = item.fecha.split('-');
+      label = `${pad(d)}/${pad(m)}/${y}`;
     } else {
       label = '';
     }
-    return {
-      fecha: label,
-      total: item.totalDia,
-    };
+    return { fecha: label, total: item.totalDia };
   });
+
+  // Si hay más de 31 puntos, agrupar por semanas para mejor visualización
+  if (ventasPorDia.length > 31) {
+    const weekly = [];
+    for (let i = 0; i < ventasPorDia.length; i += 7) {
+      const chunk = ventasPorDia.slice(i, i + 7);
+      const firstFecha = chunk[0].fecha;
+      const lastFecha = chunk[chunk.length - 1].fecha;
+      const total = chunk.reduce((sum, d) => sum + d.total, 0);
+      weekly.push({
+        fecha: chunk.length === 1 ? firstFecha : `${firstFecha} - ${lastFecha}`,
+        total,
+      });
+    }
+    ventasPorDia = weekly;
+  }
 
   // ─── Determinar si el resultado está vacío ───
   const isEmpty = reporteGenerado && (

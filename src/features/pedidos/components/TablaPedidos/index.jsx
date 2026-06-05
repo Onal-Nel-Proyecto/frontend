@@ -4,7 +4,7 @@
 
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   FiSearch,
   FiFilter,
@@ -22,7 +22,7 @@ import styles from './TablaPedidos.module.css';
 
 const statusMap = {
   PENDIENTE:  { label: 'Pendiente',  className: 'pending' },
-  EN_PROCESO: { label: 'En proceso', className: 'inProcess' },
+  "EN PROCESO": { label: 'En proceso', className: 'inProcess' },
   TERMINADO:  { label: 'Terminado',  className: 'delivered' },
   ENTREGADO:  { label: 'Entregado',  className: 'delivered' },
   CANCELADO:  { label: 'Cancelado',  className: 'delayed' },
@@ -157,23 +157,39 @@ const AccionesMenu = ({ pedidoId, estado, onVer, onCancelar }) => {
 // ─── Componente principal ───
 const TablaPedidos = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [pedidos, setPedidos] = useState([]);
   const [maxPag, setMaxPag] = useState(1);
-  const [pagAct, setPagAct] = useState(1);
-  const [search, setSearch] = useState('');
+  const [pagAct, setPagAct] = useState(() => {
+    const p = parseInt(searchParams.get('pagina'), 10);
+    return p >= 1 ? p : 1;
+  });
+  const [search, setSearch] = useState(() => searchParams.get('busqueda') || '');
   const [loading, setLoading] = useState(true);
 
   // Estado para filtros
-  const [filtros, setFiltros] = useState({
-    fecha_desde: '',
-    fecha_hasta: '',
-    tipo_pedido: '',
-    estado_pago: '',
-    estado: '',
-    fecha_entrega_desde: '',
-    fecha_entrega_hasta: '',
+  const [filtros, setFiltros] = useState(() => ({
+    fecha_desde: searchParams.get('fecha_desde') || '',
+    fecha_hasta: searchParams.get('fecha_hasta') || '',
+    tipo_pedido: searchParams.get('tipo_pedido') || '',
+    estado_pago: searchParams.get('estado_pago') || '',
+    estado: searchParams.get('estado') || '',
+    fecha_entrega_desde: searchParams.get('fecha_entrega_desde') || '',
+    fecha_entrega_hasta: searchParams.get('fecha_entrega_hasta') || '',
+  }));
+  const [filtrosActivos, setFiltrosActivos] = useState(() => {
+    const keys = ['fecha_desde', 'fecha_hasta', 'tipo_pedido', 'estado_pago', 'estado', 'fecha_entrega_desde', 'fecha_entrega_hasta'];
+    const params = {};
+    let hasAny = false;
+    for (const key of keys) {
+      const val = searchParams.get(key);
+      if (val) {
+        params[key] = val;
+        hasAny = true;
+      }
+    }
+    return hasAny ? params : null;
   });
-  const [filtrosActivos, setFiltrosActivos] = useState(null);
   const [showFiltros, setShowFiltros] = useState(false);
 
   // Estado para cancelar pedido desde la tabla
@@ -208,6 +224,19 @@ const TablaPedidos = () => {
     fetch();
     return () => { cancel = true; };
   }, [pagAct, filtrosActivos]);
+
+  // ─── Sincronizar estado a la URL ───
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (pagAct > 1) params.set('pagina', String(pagAct));
+    if (search) params.set('busqueda', search);
+    if (filtrosActivos) {
+      Object.entries(filtrosActivos).forEach(([key, val]) => {
+        if (val) params.set(key, val);
+      });
+    }
+    setSearchParams(params, { replace: true });
+  }, [pagAct, search, filtrosActivos, setSearchParams]);
 
   const filtered = pedidos.filter(
     (p) =>

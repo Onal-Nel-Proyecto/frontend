@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { FiPlus } from 'react-icons/fi';
 import { useDocumentTitle } from '../../../../hooks/useDocumentTitle';
 import TablaPedidos from '../../components/TablaPedidos';
@@ -7,7 +8,15 @@ import styles from './pedidos.module.css';
 
 const Pedidos = () => {
   useDocumentTitle('Pedidos');
+  const location = useLocation();
   const [showForm, setShowForm] = useState(false);
+
+  useEffect(() => {
+    if (location.state?.openForm) {
+      setShowForm(true);
+      window.history.replaceState(null, '');
+    }
+  }, []);
 
   return (
     <div className={styles.page}>

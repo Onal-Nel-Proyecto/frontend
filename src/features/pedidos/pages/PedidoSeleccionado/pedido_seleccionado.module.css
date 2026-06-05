@@ -317,6 +317,179 @@
   margin: 0;
 }
 
+/* ── Input file oculto ── */
+
+.fileInputHidden {
+  display: none;
+}
+
+/* ── Galería de imágenes ── */
+
+.imageGallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+}
+
+.imageThumbWrapper {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 1px solid #f0f0f0;
+  background: #fafafa;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.imageThumbWrapper:hover {
+  border-color: #ccc;
+}
+
+.imageThumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.2s ease;
+}
+
+.imageThumbWrapper:hover .imageThumb {
+  transform: scale(1.05);
+}
+
+.imageThumbDelete {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  width: 1.6rem;
+  height: 1.6rem;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease, background 0.2s ease;
+}
+
+.imageThumbWrapper:hover .imageThumbDelete {
+  opacity: 1;
+}
+
+.imageThumbDelete:hover {
+  background: rgba(220, 38, 38, 0.85);
+}
+
+/* ── Botón añadir más imágenes (dentro de la galería) ── */
+
+.btnUploadImage {
+  aspect-ratio: 1;
+  border: 1.5px dashed #ccc;
+  border-radius: 0.75rem;
+  background: transparent;
+  color: var(--text-soft);
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+
+.btnUploadImage:hover {
+  border-color: var(--text-soft);
+  color: var(--text-dark);
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.btnUploadImage:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Visor de imagen (modal full-size) ── */
+
+.imageViewerOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: viewerFadeIn 0.2s ease;
+}
+
+@keyframes viewerFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.imageViewerModal {
+  background: #fff;
+  border-radius: 1.25rem;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: viewerZoomIn 0.2s ease;
+}
+
+@keyframes viewerZoomIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.viewerActions {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f0f0f0;
+  flex-shrink: 0;
+}
+
+.viewerBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.85rem;
+  border: none;
+  border-radius: 0.65rem;
+  background: #f3f3f3;
+  color: #555;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.viewerBtn:hover {
+  background: #e8e8e8;
+  color: #333;
+}
+
+.viewerBtnDanger:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.viewerImage {
+  display: block;
+  max-width: 100%;
+  max-height: 75vh;
+  object-fit: contain;
+  padding: 1rem;
+}
+
 /* ── Botón Subir imagen (estilo outline) ── */
 
 .btnUpload {

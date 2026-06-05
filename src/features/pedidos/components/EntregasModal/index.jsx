@@ -10,10 +10,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FiX, FiPackage, FiDollarSign, FiCalendar, FiUser } from 'react-icons/fi';
 import styles from './EntregasModal.module.css';
 
-// ─── Helpers ──────────────────────────────────────────────────
+import { formatCurrency } from '../../../../utils/format';
 
-const formatCurrency = (value) =>
-  new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);
+// ─── Helpers ──────────────────────────────────────────────────
 
 const statusPayment = {
   'PAGADO':     { label: 'Pagado',     className: 'paid' },
@@ -41,7 +40,8 @@ const EntregasModal = ({ entrega, onClose }) => {
       document.body.style.overflow = '';
     };
   }, [onClose]);
-
+  console.log(entrega);
+  
   const sp = statusPayment[entrega.estado_pago] || {};
   const so = statusOrder[entrega.estado] || {};
 
@@ -83,18 +83,18 @@ const EntregasModal = ({ entrega, onClose }) => {
             {/* Cliente */}
             <div className={styles.infoSection}>
               <h4 className={styles.sectionTitle}><FiUser /> Cliente</h4>
-              <p className={styles.infoText}>{entrega.cliente}</p>
+              <p className={styles.infoText}>{entrega.cliente_nombres}</p>
             </div>
 
             {/* Fechas */}
             <div className={styles.infoRow}>
               <div className={styles.infoSection}>
-                <h4 className={styles.sectionTitle}><FiCalendar /> Fecha de entrega</h4>
-                <p className={styles.infoText}>{entrega.fecha_entrega}</p>
+                <h4 className={styles.sectionTitle}><FiCalendar /> Fecha de estimada de entrega</h4>
+                <p className={styles.infoText}>{entrega.fecha_entrega_estimada}</p>
               </div>
               <div className={styles.infoSection}>
-                <h4 className={styles.sectionTitle}><FiCalendar /> Fecha de vencimiento</h4>
-                <p className={styles.infoText}>{entrega.fecha_vencimiento}</p>
+                <h4 className={styles.sectionTitle}><FiCalendar /> Fecha de entrega</h4>
+                <p className={styles.infoText}>{entrega.fecha_entrega_real}</p>
               </div>
             </div>
 
@@ -145,7 +145,7 @@ const EntregasModal = ({ entrega, onClose }) => {
                     {entrega.pagos.map((pago, i) => (
                       <tr key={i}>
                         <td>{pago.fecha}</td>
-                        <td className={styles.colRight}>{formatCurrency(pago.monto)}</td>
+                        <td className={styles.colRight}>{formatCurrency(Number(pago.monto ?? 0))}</td>
                         <td>{pago.metodo}</td>
                       </tr>
                     ))}
@@ -154,7 +154,7 @@ const EntregasModal = ({ entrega, onClose }) => {
                     <tr>
                       <td className={styles.totalLabel}>Total pagado</td>
                       <td className={styles.totalValue}>
-                        {formatCurrency(entrega.pagos.reduce((sum, p) => sum + p.monto, 0))}
+                        {formatCurrency(entrega.pagos.reduce((sum, p) => sum + Number(p.monto ?? 0), 0))}
                       </td>
                       <td></td>
                     </tr>

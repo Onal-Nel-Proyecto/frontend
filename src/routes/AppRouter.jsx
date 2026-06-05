@@ -19,6 +19,8 @@ import DetallePedido from "../features/pedidos/components/DetallePedido";
 import Produccion from "../features/pedidos/components/Produccion";
 import Pagos from "../features/pedidos/components/Pagos";
 import Config from "../page/Config";
+import CategoriaPage from "../page/categoria/CategoriaPage";
+import MedidasPage from "../page/medidas/MedidasPage";
 import ReportesVentas from "../features/ventas/pages/Reportes";
 import InConstruction from "../components/ui/feedback/InConstruction/InConstruction";
 import Entregas from "../features/pedidos/pages/Entregas";
@@ -72,9 +74,9 @@ const AppRoutes = () => {
           <Route path="/gestion-usuarios" element={<InConstruction title="Usuarios" />} />
           <Route path="/config" element={<Config />} />
           <Route path="/ventas/reportes" element={<ReportesVentas />} />
-          <Route path="/config/categorias" element={<InConstruction title="Categorías" />} />
+          <Route path="/config/categorias" element={<CategoriaPage />} />
           <Route path="/config/copia-seguridad" element={<InConstruction title="Copia de seguridad" />} />
-          <Route path="/config/medidas" element={<InConstruction title="Medidas" />} />
+          <Route path="/config/medidas" element={<MedidasPage />} />
         </Route>
       </Route>
       </Route>

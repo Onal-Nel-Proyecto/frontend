@@ -49,8 +49,8 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle }) => {
   const [form, setForm] = useState({
     producto_nombre: detalle?.producto?.nombre || '',
     producto_precio: detalle?.producto?.precio || '',
-    producto_categoria_id: detalle?.producto?.categoria_id || '',
-    tipo_prenda: detalle?.producto?.tipo_prenda || '',
+    producto_categoria_id: detalle?.producto?.categoria || '',
+    tipo_prenda: detalle?.producto?.tipoPrenda || '',
     genero: detalle?.producto?.genero || '',
     producto_talla: detalle?.producto?.talla || '',
     cantidad: detalle?.cantidad || 1,
@@ -67,8 +67,8 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle }) => {
     setForm({
       producto_nombre: detalle?.producto?.nombre || '',
       producto_precio: detalle?.producto?.precio || '',
-      producto_categoria_id: detalle?.producto?.categoria_id || '',
-      tipo_prenda: detalle?.producto?.tipo_prenda || '',
+      producto_categoria_id: detalle?.producto?.categoria || '',
+      tipo_prenda: detalle?.producto?.tipoPrenda || '',
       genero: detalle?.producto?.genero || '',
       producto_talla: detalle?.producto?.talla || '',
       cantidad: detalle?.cantidad || 1,
@@ -177,7 +177,10 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle }) => {
       producto: {
         nombre: form.producto_nombre,
         precio: form.producto_precio ? Number(form.producto_precio) : null,
-        categoria_id: form.producto_categoria_id ? Number(form.producto_categoria_id) : null,
+        categoriaId: form.producto_categoria_id ? Number(form.producto_categoria_id) : null,
+        genero: form.genero ? form.genero : null,
+        tipoPrenda: form.tipo_prenda ? form.tipo_prenda : null,
+        talla: form.producto_talla  ? form.producto_talla : null
       },
       cantidad: Number(form.cantidad),
       observacion: form.observacion || null,

@@ -21,6 +21,7 @@ import { GiSewingMachine } from 'react-icons/gi';
 import { useDocumentTitle } from '../../../../hooks/useDocumentTitle';
 import Card from '../../../../components/common/Card';
 import { getDashboardPedidos } from '../../../../api/endpoints/dashboardEndpoints';
+import { formatCurrency, formatDate, pad } from '../../../../utils/format';
 import styles from './dashboardPed.module.css';
 
 // ═══════════════════════════════════════════════════════════════
@@ -29,8 +30,9 @@ import styles from './dashboardPed.module.css';
 
 const STATUS_MAP = {
   PENDIENTE:  { label: 'Pendiente',  className: 'pending' },
-  EN_PROCESO: { label: 'En proceso', className: 'inProcess' },
+  "EN PROCESO": { label: 'En proceso', className: 'inProcess' },
   ENTREGADO:  { label: 'Entregado',  className: 'delivered' },
+  TERMINADO:  { label: 'Terminado',  className: 'delivered' },
   CANCELADO:  { label: 'Cancelado',  className: 'cancelled' },
 };
 
@@ -42,22 +44,6 @@ const MONTHS = [
 const DAYS_OF_WEEK = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
 const today = new Date();
-
-const formatCurrency = (value) => {
-  const num = Number(value);
-  if (isNaN(num)) return '$0';
-  return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(num);
-};
-
-const formatDate = (str) => {
-  if (!str) return '—';
-  // Si ya viene en DD/MM/YYYY devolver igual
-  if (/^\d{2}\/\d{2}\/\d{4}$/.test(str)) return str;
-  // Si viene en YYYY-MM-DD convertir
-  const [y, m, d] = str.split('-').map(Number);
-  if (!y || !m || !d) return str;
-  return `${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')}/${y}`;
-};
 
 const parseDate = (str) => {
   if (!str) return new Date(0);
@@ -76,8 +62,6 @@ const parseDate = (str) => {
 
   return new Date(0);
 };
-
-const pad = (n) => String(n).padStart(2, '0');
 
 const diffDays = (a, b) => {
   const ms = a.getTime() - b.getTime();
@@ -120,9 +104,11 @@ const DayOverflowModal = ({ day, month, year, pedidos, onSelectPedido, onClose }
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
-          <h3 className={styles.modalTitle}>
-            Pedidos — {pad(day)}/{pad(month + 1)}/{year}
-          </h3>
+          <div className={styles.modalHeaderLeft}>
+            <h3 className={styles.modalTitle}>
+              Pedidos — {pad(day)}/{pad(month + 1)}/{year}
+            </h3>
+          </div>
           <button className={styles.modalClose} onClick={onClose}>
             <FiX />
           </button>
@@ -254,7 +240,7 @@ const CalendarGrid = ({ currentDate, pedidos, onSelectPedido, onShowOverflow, ov
 // COMPONENTE: Modal de detalle de pedido
 // ═══════════════════════════════════════════════════════════════
 
-const PedidoModal = ({ pedido, onClose }) => {
+const PedidoModal = ({ pedido, onClose, onNavigate }) => {
   if (!pedido) return null;
   const st = STATUS_MAP[pedido.estado] || {};
   const esEntregado = pedido.estado === 'ENTREGADO';
@@ -264,10 +250,12 @@ const PedidoModal = ({ pedido, onClose }) => {
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
-          <h3 className={styles.modalTitle}>#{pedido.id}</h3>
-          <span className={`${styles.badge} ${styles[st.className] || ''}`}>
-            {st.label || pedido.estado}
-          </span>
+          <div className={styles.modalHeaderLeft}>
+            <h3 className={styles.modalTitle}>#{pedido.id}</h3>
+            <span className={`${styles.badge} ${styles[st.className] || ''}`}>
+              {st.label || pedido.estado}
+            </span>
+          </div>
           <button className={styles.modalClose} onClick={onClose}>
             <FiX />
           </button>
@@ -282,22 +270,28 @@ const PedidoModal = ({ pedido, onClose }) => {
             <span className={styles.modalLabel}>Descripción</span>
             <span className={styles.modalValue}>{pedido.descripcion || '—'}</span>
           </div>
-          <div className={styles.modalRow}>
+          {/* <div className={styles.modalRow}>
             <span className={styles.modalLabel}>Observación</span>
             <span className={styles.modalValue}>{pedido.observacion || 'Sin observación'}</span>
           </div>
           <div className={styles.modalRow}>
             <span className={styles.modalLabel}>Fecha de registro</span>
             <span className={styles.modalValue}>{formatDate(pedido.fecha_registro)}</span>
-          </div>
+          </div> */}
           <div className={styles.modalRow}>
             <span className={styles.modalLabel}>{fechaLabel}</span>
-            <span className={styles.modalValue}>{formatDate(pedido.fecha_entrega || pedido.start)}</span>
+            <span className={styles.modalValue}>{formatDate(pedido.fecha_entrega || pedido.fechaEntrega || pedido.start)}</span>
           </div>
           <div className={styles.modalRow}>
             <span className={styles.modalLabel}>Valor total</span>
             <span className={styles.modalValue}>{formatCurrency(pedido.total)}</span>
           </div>
+
+          {onNavigate && (
+            <button className={styles.modalBtn} onClick={onNavigate}>
+              Ver Pedido
+            </button>
+          )}
         </div>
       </div>
     </div>
@@ -536,27 +530,34 @@ const DashboardPedidos = () => {
 
           <div className={styles.prodList}>
             {produccionActiva.length > 0 ? (
-              produccionActiva.map((pedido, idx) => {
-                const st = STATUS_MAP[pedido.estado] || {};
-                const overdue = isOverdue(pedido);
-                const near = isNearDue(pedido);
-                return (
-                  <div key={`${pedido.id}-${idx}`} className={styles.prodItem}>
-                    <div className={styles.prodHeader}>
-                      <span className={styles.prodId}>#{pedido.id}</span>
-                      <span className={`${styles.badgeSmall} ${styles[st.className] || ''}`}>
-                        {st.label}
+              <>
+                {produccionActiva.slice(0, 5).map((pedido, idx) => {
+                  const st = STATUS_MAP[pedido.estado] || {};
+                  const overdue = isOverdue(pedido);
+                  const near = isNearDue(pedido);
+                  return (
+                    <div key={`${pedido.id}-${idx}`} className={styles.prodItem}>
+                      <div className={styles.prodHeader}>
+                        <span className={styles.prodId}>#{pedido.id}</span>
+                        <span className={`${styles.badgeSmall} ${styles[st.className] || ''}`}>
+                          {st.label}
+                        </span>
+                      </div>
+                      <span className={styles.prodClient}>{pedido.cliente}</span>
+                      <span className={styles.prodInfo}>
+                        {pedido.producto || pedido.descripcion} — Categoría: {pedido.categoria || 'Sin categoría'} — Cantidad: {pedido.cantidad}
                       </span>
+                      {overdue && <span className={styles.prodOverdue}>Retrasado</span>}
+                      {near && !overdue && <span className={styles.prodNear}>Próximo a vencer</span>}
                     </div>
-                    <span className={styles.prodClient}>{pedido.cliente}</span>
-                    <span className={styles.prodInfo}>
-                      {pedido.producto || pedido.descripcion} — Categoría: {pedido.categoria || 'Sin categoría'} — Cantidad: {pedido.cantidad}
-                    </span>
-                    {overdue && <span className={styles.prodOverdue}>Retrasado</span>}
-                    {near && !overdue && <span className={styles.prodNear}>Próximo a vencer</span>}
-                  </div>
-                );
-              })
+                  );
+                })}
+                {produccionActiva.length > 5 && (
+                  <span className={styles.prodMore}>
+                    +{produccionActiva.length - 5} más en producción
+                  </span>
+                )}
+              </>
             ) : (
               <div className={styles.prodEmpty}>
                 <p className={styles.emptyText}>No hay ningún pedido en producción</p>
@@ -576,7 +577,6 @@ const DashboardPedidos = () => {
               <tr>
                 <th>N° Pedido</th>
                 <th>Cliente</th>
-                <th>Fecha Registro</th>
                 <th>Fecha Entrega</th>
                 <th>Estado</th>
                 <th>Total</th>
@@ -591,8 +591,7 @@ const DashboardPedidos = () => {
                     <tr key={p.id} className={styles.tableRow}>
                       <td className={styles.cellId}>#{p.id}</td>
                       <td className={styles.cellClient}>{p.cliente}</td>
-                      <td>{formatDate(p.fecha_registro)}</td>
-                      <td>{formatDate(p.fecha_entrega)}</td>
+                      <td>{formatDate(p.fechaEntrega)}</td>
                       <td>
                         <span className={`${styles.badge} ${styles[st.className] || ''}`}>
                           {st.label}
@@ -639,8 +638,7 @@ const DashboardPedidos = () => {
                   </div>
                   <span className={styles.mobileClient}>{p.cliente}</span>
                   <div className={styles.mobileInfo}>
-                    <span>Registro: {formatDate(p.fecha_registro)}</span>
-                    <span>Entrega: {formatDate(p.fecha_entrega)}</span>
+                    <span>Entrega: {formatDate(p.fechaEntrega)}</span>
                   </div>
                   <span className={styles.cellCurrency}>{formatCurrency(p.total)}</span>
                 </div>
@@ -650,6 +648,10 @@ const DashboardPedidos = () => {
             <p className={styles.emptyText}>No hay pedidos registrados</p>
           )}
         </div>
+
+        <button className={styles.viewAllBtn} onClick={() => navigate('/pedidos')}>
+          Ver más pedidos
+        </button>
       </Card>
 
       {/* ─── Modal de detalle ─── */}
@@ -657,6 +659,7 @@ const DashboardPedidos = () => {
         <PedidoModal
           pedido={selectedPedido}
           onClose={() => setSelectedPedido(null)}
+          onNavigate={() => navigate(`/pedidos/${selectedPedido.id}`)}
         />
       )}
 

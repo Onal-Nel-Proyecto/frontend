@@ -279,6 +279,28 @@ const EstadoPedidos = ({ data, total }) => {
             <svg width={150} height={150} viewBox="0 0 150 150">
               {arcs.map((seg) => {
                 if (seg.start === seg.end) return null;
+
+                // Cuando un segmento ocupa ~100% del círculo, el arco SVG
+                // degenera en un punto porque inicio y fin coinciden.
+                // Usamos un <circle> en su lugar.
+                if (seg.end - seg.start >= 359.99) {
+                  return (
+                    <circle
+                      key={seg.label}
+                      cx={cx}
+                      cy={cy}
+                      r={r}
+                      fill="none"
+                      stroke={seg.color}
+                      strokeWidth={14}
+                      className={styles.arc}
+                      style={{ opacity: hovered && hovered !== seg.label ? 0.25 : 1 }}
+                      onMouseEnter={() => setHovered(seg.label)}
+                      onMouseLeave={() => setHovered(null)}
+                    />
+                  );
+                }
+
                 const s = polar(cx, cy, r, seg.start);
                 const e = polar(cx, cy, r, seg.end);
                 const large = seg.end - seg.start > 180 ? 1 : 0;
@@ -384,7 +406,7 @@ const QuickActions = ({ navigate }) => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.35 + i * 0.1 }}
               className={styles.actionBtn}
-              onClick={() => navigate(a.path)}
+              onClick={() => navigate(a.path, { state: { openForm: true } })}
             >
               <Card className={styles.actionCard} as="div">
                 <div className={styles.actionIconBox} style={{ background: `${a.color}14`, color: a.color }}>

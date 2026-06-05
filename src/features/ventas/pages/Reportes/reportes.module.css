@@ -97,7 +97,7 @@
   padding: 0.55rem 1.25rem;
   border: none;
   border-radius: 0.75rem;
-  background: #333;
+  background: #5a4d4a;
   color: #fff;
   font-size: 0.85rem;
   font-weight: 600;
@@ -108,7 +108,7 @@
 }
 
 .btnGenerar:hover {
-  background: #555;
+  background: #4a3f3d;
   transform: translateY(-1px);
 }
 
@@ -219,8 +219,8 @@
   display: flex;
   align-items: flex-end;
   gap: 0.5rem;
-  height: 200px;
-  padding: 0 0.5rem;
+  height: 220px;
+  padding: 1.2rem 0.5rem 0;
   border-bottom: 2px solid #e5e7eb;
 }
 
@@ -232,7 +232,7 @@
   gap: 0.3rem;
   flex: 1;
   height: 100%;
-  min-width: 40px;
+  min-width: 28px;
   max-width: 80px;
 }
 

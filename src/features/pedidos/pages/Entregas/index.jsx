@@ -7,15 +7,16 @@
 // ================================================================
 
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { FiPackage, FiCheckCircle, FiCheck, FiTrendingUp, FiSearch, FiFilter, FiEye, FiExternalLink, FiChevronLeft, FiChevronRight, FiX } from 'react-icons/fi';
 import { GiTakeMyMoney } from 'react-icons/gi';
 import { useDocumentTitle } from '../../../../hooks/useDocumentTitle';
 import Card from '../../../../components/common/Card';
 import Alert from '../../../../components/ui/feedback/Alert';
 import LoadingOverlay from '../../../../components/ui/feedback/LoadingOverlay';
-import { getEntregas, entregarPedido } from '../../services/pedidosService';
+import { getEntregas, getEntregaById, getPagosByVenta, entregarPedido } from '../../services/pedidosService';
 import EntregasModal from '../../components/EntregasModal';
+import { formatCurrency } from '../../../../utils/format';
 import styles from './entregas.module.css';
 
 // ─── HELPERS ──────────────────────────────────────────────────
@@ -26,18 +27,15 @@ const MONTHS = [
 ];
 
 const statusPayment = {
-  'PAGADO':     { label: 'Pagado',     className: 'paid' },
-  'ABONADO':    { label: 'Abonado',    className: 'partial' },
-  'SIN PAGAR':  { label: 'Sin pagar',  className: 'unpaid' },
+  'PAGADO': { label: 'Pagado', className: 'paid' },
+  'ABONADO': { label: 'Abonado', className: 'partial' },
+  'SIN PAGAR': { label: 'Sin pagar', className: 'unpaid' },
 };
 
 const statusOrder = {
-  'ENTREGADO':  { label: 'Entregado',  className: 'delivered' },
-  'TERMINADO':  { label: 'Terminado',  className: 'finished' },
+  'ENTREGADO': { label: 'Entregado', className: 'delivered' },
+  'TERMINADO': { label: 'Terminado', className: 'finished' },
 };
-
-const formatCurrency = (value) =>
-  new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(value);
 
 /**
  * Calcula los números de página a mostrar con inteligencia:
@@ -76,17 +74,27 @@ const Entregas = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // ─── Paginación y modales ───
+  const [pagina, setPagina] = useState(() => {
+    const p = parseInt(searchParams.get('pagina'), 10);
+    return p >= 1 ? p : 1;
+  });
+  const [selectedEntrega, setSelectedEntrega] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [detalleLoading, setDetalleLoading] = useState(false);
+
   // ─── Búsqueda con debounce ───
-  const [searchInput, setSearchInput] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+  const searchFromUrl = searchParams.get('busqueda') || '';
+  const [searchInput, setSearchInput] = useState(searchFromUrl);
+  const [searchQuery, setSearchQuery] = useState(searchFromUrl);
   const debounceRef = useRef(null);
 
   const handleSearchChange = useCallback((e) => {
     const value = e.target.value;
     setSearchInput(value);
-    // Limpiar timeout anterior
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    // Esperar 400ms antes de disparar la búsqueda
     debounceRef.current = setTimeout(() => {
       setSearchQuery(value);
       setPagina(1);
@@ -101,13 +109,25 @@ const Entregas = () => {
   }, []);
 
   // ─── Filtros del panel ───
-  const [filtros, setFiltros] = useState({
-    estado: '',
-    mes: '',
-    fecha_desde: '',
-    fecha_hasta: '',
+  const [filtros, setFiltros] = useState(() => ({
+    estado: searchParams.get('estado') || '',
+    mes: searchParams.get('mes') || '',
+    fecha_desde: searchParams.get('fecha_desde') || '',
+    fecha_hasta: searchParams.get('fecha_hasta') || '',
+  }));
+  const [filtrosActivos, setFiltrosActivos] = useState(() => {
+    const keys = ['estado', 'mes', 'fecha_desde', 'fecha_hasta'];
+    const params = {};
+    let hasAny = false;
+    for (const key of keys) {
+      const val = searchParams.get(key);
+      if (val) {
+        params[key] = val;
+        hasAny = true;
+      }
+    }
+    return hasAny ? params : null;
   });
-  const [filtrosActivos, setFiltrosActivos] = useState(null);
   const [showFiltros, setShowFiltros] = useState(false);
 
   // ─── Confirmación de entrega ───
@@ -115,10 +135,6 @@ const Entregas = () => {
   const [deliverObservacion, setDeliverObservacion] = useState('');
   const [deliverLoading, setDeliverLoading] = useState(false);
   const [deliverResult, setDeliverResult] = useState(null);
-
-  const [pagina, setPagina] = useState(1);
-  const [selectedEntrega, setSelectedEntrega] = useState(null);
-  const [showModal, setShowModal] = useState(false);
 
   // ─── Carga de datos desde la API ───
   useEffect(() => {
@@ -151,6 +167,19 @@ const Entregas = () => {
     return () => { cancel = true; };
   }, [pagina, searchQuery, filtrosActivos]);
 
+  // ─── Sincronizar estado a la URL ───
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (pagina > 1) params.set('pagina', String(pagina));
+    if (searchQuery) params.set('busqueda', searchQuery);
+    if (filtrosActivos) {
+      Object.entries(filtrosActivos).forEach(([key, val]) => {
+        if (val) params.set(key, val);
+      });
+    }
+    setSearchParams(params, { replace: true });
+  }, [pagina, searchQuery, filtrosActivos, setSearchParams]);
+
   // ─── Números de página para la paginación inteligente ───
   const pageNumbers = useMemo(() => getPageNumbers(pagina, maxPag), [pagina, maxPag]);
 
@@ -159,10 +188,84 @@ const Entregas = () => {
     ? Object.values(filtrosActivos).filter(Boolean).length
     : 0;
 
-  // ─── Abrir modal de detalle ───
-  const verDetalle = (entrega) => {
-    setSelectedEntrega(entrega);
+  // ─── Abrir modal de detalle: items desde detalle del pedido, pagos desde endpoint propio ───
+  const verDetalle = async (entrega) => {
+    const id = entrega.id || entrega.pedido_id;
+    const ventaId = entrega.venta_id;
+    if (!id) return;
+
+    setDetalleLoading(true);
     setShowModal(true);
+    setSelectedEntrega(entrega);
+
+    try {
+      // 1. Items desde el detalle del pedido
+      let items = [];
+      const resp = await getEntregaById(id);
+      const pedidoData = resp?.data || resp?.pedido || resp || {};
+      const detallesRaw = pedidoData.detalles_pedido || pedidoData.detalles || [];
+
+      if (detallesRaw.length > 0) {
+        items = detallesRaw.map((d) => ({
+          producto: d.producto?.nombre || d.producto || '—',
+          cantidad: d.cantidad ?? 0,
+          precio: d.producto?.precio ?? d.precio_unitario ?? 0,
+        }));
+      }
+
+      // 2. Pagos desde endpoint propio (por venta_id o pedido_id)
+      let pagos = [];
+      try {
+        const pagosResp = await getPagosByVenta({ venta_id: ventaId, pedido_id: ventaId ? undefined : id });
+        // Extraer array de pagos desde distintas estructuras de respuesta
+        let pagosRaw = [];
+        if (Array.isArray(pagosResp)) {
+          pagosRaw = pagosResp;
+        } else if (Array.isArray(pagosResp?.data)) {
+          pagosRaw = pagosResp.data;
+        } else if (Array.isArray(pagosResp?.pagos)) {
+          pagosRaw = pagosResp.pagos;
+        } else if (pagosResp?.data?.pagos && Array.isArray(pagosResp.data.pagos)) {
+          pagosRaw = pagosResp.data.pagos;
+        }
+        if (pagosRaw.length > 0) {
+          pagos = pagosRaw.map((p) => ({
+            fecha: (p.fecha || p.fecha_pago || p.createdAt || p.fecha_registro)
+              ? new Date(p.fecha || p.fecha_pago || p.createdAt || p.fecha_registro).toLocaleDateString('es-CO')
+              : '—',
+            monto: Number(p.monto ?? p.monto_pagado ?? p.valor ?? 0),
+            metodo: p.metodo || p.metodo_pago || '—',
+          }));
+        }
+      } catch {
+        // Si falla la carga de pagos, mostrar sin pagos
+      }
+
+      // 3. Calcular total pagado y saldo pendiente
+      const totalPagado = pagos.reduce((sum, p) => sum + Number(p.monto ?? 0), 0);
+
+      setSelectedEntrega((prev) => {
+        const totalPedido = pedidoData.precio_total ?? pedidoData.total ?? prev.total ?? 0;
+        const saldoCalculado = Math.max(0, totalPedido - totalPagado);
+        return {
+          id: prev.id,
+          estado: prev.estado,
+          estado_pago: prev.estado_pago,
+          venta_id: prev.venta_id,
+          cliente_nombres: pedidoData.cliente_nombres || pedidoData.cliente?.cliente_nombres || prev.cliente_nombres || '—',
+          fecha_entrega_estimada: pedidoData.fecha_entrega_estimada || prev.fecha_entrega_estimada || '—',
+          fecha_entrega_real: pedidoData.fecha_entrega_real || prev.fecha_entrega_real || '—',
+          items,
+          pagos,
+          total: totalPedido,
+          saldo_pendiente: pedidoData.saldo ?? pedidoData.saldo_pendiente ?? saldoCalculado,
+        };
+      });
+    } catch {
+      // Si falla la carga completa, mostrar los datos que ya teníamos
+    } finally {
+      setDetalleLoading(false);
+    }
   };
 
   // ─── Confirmar y marcar como entregado vía API ───
@@ -383,8 +486,8 @@ const Entregas = () => {
                   <tr>
                     <th>Pedido</th>
                     <th>Cliente</th>
-                    <th>Fecha entrega</th>
-                    <th>Fecha vencimiento</th>
+                    <th>Fecha estimada</th>
+                    <th>Fecha de entrega</th>
                     <th className={styles.cellCurrencyHeader}>Total</th>
                     <th className={styles.cellCurrencyHeader}>Saldo pendiente</th>
                     <th>Estado de pago</th>
@@ -405,16 +508,16 @@ const Entregas = () => {
                       const so = statusOrder[entrega.estado] || {};
                       const idDisplay = entrega.id || entrega.pedido_id;
                       const clienteDisplay = entrega.cliente_nombres || entrega.cliente || '—';
-                      const fechaEntrega = entrega.fecha_entrega_real || entrega.fecha_entrega_estimada || entrega.fecha_entrega || '—';
-                      const fechaVenc = entrega.fecha_vencimiento || '—';
+                      const fechaEstimada = entrega.fecha_entrega_estimada || '—';
+                      const fechaReal = entrega.fecha_entrega_real || '—';
                       const total = entrega.precio_total ?? entrega.total ?? 0;
                       const saldo = entrega.saldo ?? entrega.saldo_pendiente ?? 0;
                       return (
                         <tr key={idDisplay} className={styles.tableRow}>
                           <td className={styles.cellId}>#{idDisplay}</td>
                           <td className={styles.cellClient} title={clienteDisplay !== '—' ? clienteDisplay : ''}>{clienteDisplay}</td>
-                          <td>{fechaEntrega}</td>
-                          <td>{fechaVenc}</td>
+                          <td>{fechaEstimada}</td>
+                          <td>{fechaReal}</td>
                           <td className={styles.cellCurrency}>{formatCurrency(total)}</td>
                           <td className={`${styles.cellCurrency} ${saldo > 0 ? styles.cellDanger : ''}`}>
                             {formatCurrency(saldo)}
@@ -431,10 +534,10 @@ const Entregas = () => {
                           </td>
                           <td>
                             <div className={styles.actionsCell}>
-                              <button className={`${styles.actionBtn} ${styles.actionDisabled}`} title="Ver detalle (deshabilitado)" disabled>
+                              <button className={styles.actionBtn} title="Ver detalle" onClick={() => verDetalle(entrega)}>
                                 <FiEye />
                               </button>
-                              <button className={`${styles.actionBtn} ${styles.actionDisabled}`} title="Ver venta asociada (deshabilitado)" disabled>
+                              <button className={styles.actionBtn} title={entrega.venta_id ? "Ver venta asociada" : "Ver pedido"} onClick={() => navigate(entrega.venta_id ? `/ventas/reportes` : `/pedidos/${idDisplay}`)}>
                                 <FiExternalLink />
                               </button>
                               {entrega.estado === 'TERMINADO' && (
@@ -500,8 +603,8 @@ const Entregas = () => {
             const so = statusOrder[entrega.estado] || {};
             const idDisplay = entrega.id || entrega.pedido_id;
             const clienteDisplay = entrega.cliente_nombres || entrega.cliente || '—';
-            const fechaEntrega = entrega.fecha_entrega_real || entrega.fecha_entrega_estimada || entrega.fecha_entrega || '—';
-            const fechaVenc = entrega.fecha_vencimiento || '—';
+            const fechaEstimada = entrega.fecha_entrega_estimada || '—';
+            const fechaReal = entrega.fecha_entrega_real || '—';
             const total = entrega.precio_total ?? entrega.total ?? 0;
             const saldo = entrega.saldo ?? entrega.saldo_pendiente ?? 0;
             return (
@@ -515,12 +618,12 @@ const Entregas = () => {
                 <p className={styles.mobileClient}>{clienteDisplay}</p>
                 <div className={styles.mobileInfoGrid}>
                   <div>
-                    <span className={styles.mobileLabel}>Entrega</span>
-                    <span>{fechaEntrega}</span>
+                    <span className={styles.mobileLabel}>Fecha estimada</span>
+                    <span>{fechaEstimada}</span>
                   </div>
                   <div>
-                    <span className={styles.mobileLabel}>Vencimiento</span>
-                    <span>{fechaVenc}</span>
+                    <span className={styles.mobileLabel}>Fecha de entrega</span>
+                    <span>{fechaReal}</span>
                   </div>
                   <div>
                     <span className={styles.mobileLabel}>Total</span>
@@ -538,10 +641,10 @@ const Entregas = () => {
                     {sp.label || entrega.estado_pago}
                   </span>
                   <div className={styles.actionsCell}>
-                    <button className={`${styles.actionBtn} ${styles.actionDisabled}`} disabled>
+                    <button className={styles.actionBtn} title="Ver detalle" onClick={() => verDetalle(entrega)}>
                       <FiEye />
                     </button>
-                    <button className={`${styles.actionBtn} ${styles.actionDisabled}`} disabled>
+                    <button className={styles.actionBtn} title={entrega.venta_id ? "Ver venta asociada" : "Ver pedido"} onClick={() => navigate(entrega.venta_id ? `/ventas/reportes` : `/pedidos/${idDisplay}`)}>
                       <FiExternalLink />
                     </button>
                     {entrega.estado === 'TERMINADO' && (
@@ -588,8 +691,11 @@ const Entregas = () => {
         <Alert type={deliverResult.type} title={deliverResult.title} message={deliverResult.message} onClose={deliverResult.onClose} />
       )}
 
+      {/* ─── Loading mientras se obtiene el detalle ─── */}
+      {detalleLoading && <LoadingOverlay title="Cargando detalle…" message="Obteniendo información completa del pedido" />}
+
       {/* ─── Modal de detalle ─── */}
-      {showModal && selectedEntrega && (
+      {showModal && selectedEntrega && !detalleLoading && (
         <EntregasModal
           entrega={selectedEntrega}
           onClose={() => setShowModal(false)}
