@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   getVentas as apiGetVentas,
   getVentaById as apiGetVentaById,
@@ -16,41 +16,67 @@ const VENTAS_EJEMPLO = [
 ];
 
 // ── Mapear venta de API a formato de frontend ──
-const mapearVenta = (item) => ({
-  id: item.id || item.venta_id,
-  pedido_id: item.pedido_id || `VENT-${item.id}`,
-  cliente: item.cliente_nombre || item.cliente || "—",
-  descripcion: item.descripcion || "",
-  total: Number(item.total) || 0,
-  abonado: Number(item.abonado || item.pagado || 0),
-  metodo: item.metodo || null,
-  estado: item.estado || "Pendiente",
-  fecha: item.fecha || item.created_at?.split("T")[0] || "—",
-  productos: item.productos || item.detalles || [],
-});
+// Backend real: { venta_id, cliente_nombres, cliente_apellidos, total_pagado, estado, ... }
+const mapearVenta = (item) => {
+  // Concatenar nombres de cliente (backend envía campos planos)
+  const nombreCliente = (item.cliente_nombres)
+    ? `${item.cliente_nombres || ''} ${item.cliente_apellidos || ''}`.trim() || '—'
+    : item.cliente_nombre || (typeof item.cliente === 'string' ? item.cliente : '—');
+
+  // Total pagado (backend envía total_pagado como campo plano)
+  const abonado = Number(item.total_pagado ?? item.abonado ?? item.pagado ?? 0);
+
+  // Normalizar estado: "PAGADO" → "Pagado", "ABONO_PARCIAL" → "Abono parcial"
+  const normalizarEstado = (est) => {
+    if (!est) return 'Pendiente';
+    const map = {
+      'PAGADO': 'Pagado',
+      'PENDIENTE': 'Pendiente',
+      'CANCELADO': 'Cancelado',
+      'ANULADO': 'Cancelado',
+      'ABONO_PARCIAL': 'Abono parcial',
+      'ABONO PARCIAL': 'Abono parcial',
+    };
+    return map[est.toUpperCase()] || est.charAt(0).toUpperCase() + est.slice(1).toLowerCase();
+  };
+
+  return {
+    id: item.id || item.venta_id,
+    pedido_id: item.pedido_id || `VENT-${item.venta_id || item.id}`,
+    cliente: nombreCliente,
+    descripcion: item.descripcion || '',
+    total: Number(item.total) || 0,
+    abonado,
+    metodo: item.metodo || item.metodo_pago || null,
+    estado: normalizarEstado(item.estado),
+    fecha: item.fecha || item.fecha_registro || item.created_at?.split('T')[0] || '—',
+    productos: item.productos || item.detalles || [],
+  };
+};
 
 export const useVentas = ({ paginaInicial = 1, limiteInicial = 15 } = {}) => {
   const [ventas, setVentas] = useState([]);
   const [meta, setMeta] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const mounted = useRef(true);
 
   // ── Cargar ventas ──
-  const loadVentas = useCallback(async (pagina = 1, limite = 15) => {
+  const loadVentas = useCallback(async (pagina = 1, limite = 15, signal) => {
     setLoading(true);
     setError(null);
     try {
       const respuesta = await apiGetVentas(pagina, limite);
-      const items = Array.isArray(respuesta?.data) ? respuesta.data : [];
+      if (signal?.aborted) return;
+      const items = Array.isArray(respuesta?.data) ? respuesta.data : Array.isArray(respuesta?.ventas) ? respuesta.ventas : Array.isArray(respuesta) ? respuesta : [];
       setVentas(items.map(mapearVenta));
       setMeta(respuesta?.meta ?? null);
     } catch (err) {
+      if (signal?.aborted) return;
       console.warn("API no disponible, cargando datos de ejemplo:", err?.message);
       setVentas(VENTAS_EJEMPLO.map(mapearVenta));
       setMeta({ total: VENTAS_EJEMPLO.length, pagina_actual: 1, paginas_totales: 1, limite });
     } finally {
-      if (mounted.current) setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
   }, []);
 
@@ -68,15 +94,12 @@ export const useVentas = ({ paginaInicial = 1, limiteInicial = 15 } = {}) => {
     }
   }, []);
 
-  // Carga inicial
+  // Carga inicial (con AbortController para StrictMode)
   useEffect(() => {
-    loadVentas(paginaInicial, limiteInicial);
+    const controller = new AbortController();
+    loadVentas(paginaInicial, limiteInicial, controller.signal);
+    return () => { controller.abort(); };
   }, [loadVentas, paginaInicial, limiteInicial]);
-
-  // Cleanup
-  useEffect(() => {
-    return () => { mounted.current = false; };
-  }, []);
 
   // ── Agregar venta ──
   const addVenta = useCallback(async (data) => {
@@ -89,7 +112,7 @@ export const useVentas = ({ paginaInicial = 1, limiteInicial = 15 } = {}) => {
       console.error("Error al crear venta:", err?.message);
       throw err;
     } finally {
-      if (mounted.current) setLoading(false);
+      setLoading(false);
     }
     return { ok: true };
   }, [loadVentas, meta, limiteInicial]);
@@ -105,7 +128,7 @@ export const useVentas = ({ paginaInicial = 1, limiteInicial = 15 } = {}) => {
       console.error("Error al cambiar estado de venta:", err?.message);
       throw err;
     } finally {
-      if (mounted.current) setLoading(false);
+      setLoading(false);
     }
     return { ok: true };
   }, [loadVentas, meta, limiteInicial]);

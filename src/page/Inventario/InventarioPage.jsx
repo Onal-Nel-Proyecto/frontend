@@ -142,7 +142,7 @@ const TablaSection = ({ items, tipo, columns, renderRow, statConfig, filters, on
       <div className="inv-table-wrap">
         <table className="inv-table">
           <thead>
-            <tr>{columns.map((col) => <th key={col}>{col}</th>)}</tr>
+            <tr>{columns.map((col, i) => <th key={i}>{col}</th>)}</tr>
           </thead>
           <tbody>
             {filtered.map((item) => (
