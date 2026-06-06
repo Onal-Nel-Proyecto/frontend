@@ -24,8 +24,32 @@ const DetallePedido = () => {
   const fileInputRef = useRef(null);
 
   const handleFileSelect = useCallback((e) => {
+    const MAX_SIZE_MB = 5;
+    const VALID_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'];
+
     const files = Array.from(e.target.files);
-    const newImages = files.map((file) => ({
+    const validFiles = [];
+    const errors = [];
+
+    for (const file of files) {
+      // Validar tipo MIME real
+      if (!VALID_TYPES.includes(file.type)) {
+        errors.push(`"${file.name}": formato no soportado (use JPG, PNG, WebP o GIF)`);
+        continue;
+      }
+      // Validar tamaño máximo
+      if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+        errors.push(`"${file.name}": supera el límite de ${MAX_SIZE_MB}MB`);
+        continue;
+      }
+      validFiles.push(file);
+    }
+
+    if (errors.length > 0) {
+      alert(errors.join('\n'));
+    }
+
+    const newImages = validFiles.map((file) => ({
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       file,
       preview: URL.createObjectURL(file),

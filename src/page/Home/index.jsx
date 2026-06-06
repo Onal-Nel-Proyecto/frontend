@@ -4,7 +4,7 @@
 // stock crítico y acceso rápido a funcionalidades principales.
 // ================================================================
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -179,7 +179,7 @@ const chartData = pedidosEstado
 // ─── Tarjeta KPI individual ───
 // Muestra un icono con fondo coloreado, una etiqueta y el valor numérico.
 // loading = true → muestra un skeleton animado en lugar del número.
-const KPICard = ({ label, value, icon, color, delay, loading }) => (
+const KPICard = memo(({ label, value, icon, color, delay, loading }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
@@ -206,7 +206,7 @@ const KPICard = ({ label, value, icon, color, delay, loading }) => (
       </div>
     </Card>
   </motion.div>
-);
+));
 
 // ─── Actividades del Sistema ───
 // Lista de alertas/notificaciones con icono coloreado según el tipo.
@@ -219,7 +219,7 @@ const typeStyle = {
   info: { bg: "#f0f9ff", text: "#0ea5e9", border: "#bae6fd" },
 };
 
-const SystemActivities = () => (
+const SystemActivities = memo(() => (
   <Card className={styles.activitiesCard}>
     <h3 className={styles.sectionTitle}>Actividades del Sistema</h3>
     <div className={styles.activityList}>
@@ -240,7 +240,7 @@ const SystemActivities = () => (
       })}
     </div>
   </Card>
-);
+));
 
 // ─── Gráfico de Estado de Pedidos ───
 // SVG donut minimalista con arcos. Al hacer hover sobre un segmento
@@ -276,7 +276,7 @@ const EstadoPedidos = ({ data, total }) => {
         <div className={styles.chartBody}>
           {/* SVG del donut */}
           <div className={styles.svgWrapper}>
-            <svg width={150} height={150} viewBox="0 0 150 150">
+            <svg width={150} height={150} viewBox="0 0 150 150" role="img" aria-label={`Gráfico de estado de pedidos: ${arcs.map(s => `${s.label} ${Math.round(s.pct)}%`).join(', ')}`}>
               {arcs.map((seg) => {
                 if (seg.start === seg.end) return null;
 
@@ -358,7 +358,7 @@ const EstadoPedidos = ({ data, total }) => {
 // ─── Stock Crítico ───
 // Muestra 3 productos con cantidad actual, barra de progreso
 // y un enlace para ver el inventario completo.
-const StockCritico = ({ navigate }) => (
+const StockCritico = memo(({ navigate }) => (
   <Card className={styles.stockCard}>
     <h3 className={styles.sectionTitle}>Stock Crítico</h3>
     <div className={styles.stockList}>
@@ -386,12 +386,12 @@ const StockCritico = ({ navigate }) => (
       <FiArrowRight /> Ver Inventario
     </button>
   </Card>
-);
+));
 
 // ─── Acceso Rápido ───
 // Botones con icono + texto. Los items con admin:true solo se muestran
 // si el usuario logueado tiene rol ADMINISTRADOR.
-const QuickActions = ({ navigate }) => {
+const QuickActions = memo(({ navigate }) => {
   const admin = isAdmin();
   return (
     <div className={styles.actionsCol}>
@@ -419,6 +419,6 @@ const QuickActions = ({ navigate }) => {
       </div>
     </div>
   );
-};
+});
 
 export default Home;

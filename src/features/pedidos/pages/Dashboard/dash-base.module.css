@@ -1,0 +1,139 @@
+/* ================================================================
+   Dashboard de Pedidos — Estilos
+   Basado en variables CSS del sistema (--text-dark, --radius-*, etc.)
+   Diseño moderno tipo ERP con calendario, sidebar de producción y tabla
+   ================================================================ */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.title {
+  font-size: 1.85rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 0.85rem;
+  color: var(--text-soft);
+  margin: 0.15rem 0 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TARJETAS DE INDICADORES
+   ═══════════════════════════════════════════════════════════════ */
+
+.cardsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  min-width: 0;
+}
+
+.statCard {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem !important;
+}
+
+.statIcon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+
+.statIconAmber {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.statIconBlue {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.statIconGreen {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.statIconRed {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.statBody {
+  display: flex;
+  flex-direction: column;
+}
+
+.statValue {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #1a1a1a;
+  line-height: 1.2;
+}
+
+.statValueDanger {
+  color: #dc2626;
+}
+
+.statLabel {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-soft);
+  margin-top: 0.1rem;
+}
+
+.statAlert {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #dc2626;
+  margin-top: 0.15rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CONTENIDO PRINCIPAL (Calendario + Producción Activa)
+   ═══════════════════════════════════════════════════════════════ */
+
+.mainContent {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 1.5rem;
+  align-items: stretch;
+  min-width: 0;
+}
+
+.sectionTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CALENDARIO
+   ═══════════════════════════════════════════════════════════════ */
+

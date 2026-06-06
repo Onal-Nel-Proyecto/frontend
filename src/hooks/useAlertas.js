@@ -8,7 +8,9 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { getAlertas } from "../api/endpoints/alertasEndpoints";
-import { getSocket } from "../services/socketService";
+
+// getSocket se importa dinámicamente dentro del useEffect para no cargar
+// socket.io-client en páginas que no usan notificaciones en tiempo real.
 
 const POLLING_INTERVAL = 60 * 1000; // 1 minuto (fallback si socket no funciona)
 
@@ -99,41 +101,53 @@ const useAlertas = ({ limite = 15, estado, tipo, categoria } = {}) => {
   }, [fetchAlertas]);
 
   // ─── Socket.IO: notificaciones en tiempo real ───
+  // Importación dinámica: socket.io-client solo se descarga si se usa este hook
+  // getSocket() ahora es async (dynamic import interno), por eso se encadena .then()
   useEffect(() => {
     let socket;
-    try {
-      socket = getSocket();
-    } catch {
-      console.warn("[useAlertas] Socket.IO no disponible — solo polling");
-      return;
-    }
+    let cancelled = false;
+    let cleanupSocket;
 
     const handleNuevaAlerta = () => {
-      console.log("[useAlertas] Nueva alerta recibida por socket — refrescando");
       fetchAlertas(1, true);
     };
 
     const handleAlertaResuelta = () => {
-      console.log("[useAlertas] Alerta resuelta por socket — refrescando");
       fetchAlertas(1, true);
     };
 
-    // Refrescar al reconectar (para no perder alertas durante la desconexión)
     const handleConnect = () => {
-      console.log("[useAlertas] Socket reconectado — refrescando alertas");
       fetchAlertas(1, true);
     };
 
-    socket.on("connect", handleConnect);
-    socket.on("nueva-alerta", handleNuevaAlerta);
-    socket.on("alerta-resuelta", handleAlertaResuelta);
+    import("../services/socketService")
+      .then((mod) => {
+        if (cancelled) return;
+        return mod.getSocket();
+      })
+      .then((s) => {
+        if (cancelled || !s) return;
+        socket = s;
+
+        socket.on("connect", handleConnect);
+        socket.on("nueva-alerta", handleNuevaAlerta);
+        socket.on("alerta-resuelta", handleAlertaResuelta);
+
+        cleanupSocket = () => {
+          socket.off("connect", handleConnect);
+          socket.off("nueva-alerta");
+          socket.off("alerta-resuelta");
+        };
+      })
+      .catch(() => {
+        if (!cancelled) {
+          console.warn("[useAlertas] Socket.IO no disponible — solo polling");
+        }
+      });
 
     return () => {
-      socket.off("connect", handleConnect);
-      // Limpiar TODOS los listeners del evento (sin pasar el handler,
-      // porque la referencia del cleanup es distinta a la del mount)
-      socket.off("nueva-alerta");
-      socket.off("alerta-resuelta");
+      cancelled = true;
+      if (cleanupSocket) cleanupSocket();
     };
   }, [fetchAlertas]);
 

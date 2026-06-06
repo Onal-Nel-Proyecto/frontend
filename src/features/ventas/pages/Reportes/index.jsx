@@ -530,7 +530,7 @@ const ReportesVentas = () => {
           <Card className={styles.tableCard}>
             <h3 className={styles.sectionTitle}>Top Productos Más Vendidos</h3>
             <div className={styles.tableWrapper}>
-              <table className={styles.table}>
+              <table className={styles.table} aria-label="Top productos más vendidos">
                 <thead>
                   <tr>
                     <th>Producto</th>

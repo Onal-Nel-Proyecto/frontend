@@ -481,7 +481,7 @@ const Entregas = () => {
         ) : (
           <>
             <div className={styles.tableWrapper}>
-              <table className={styles.table}>
+              <table className={styles.table} aria-label="Historial de entregas">
                 <thead>
                   <tr>
                     <th>Pedido</th>

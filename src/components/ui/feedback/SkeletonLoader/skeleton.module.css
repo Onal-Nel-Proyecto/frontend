@@ -1,0 +1,111 @@
+/* ================================================================
+   SkeletonLoader — Estilos de esqueletos animados
+   ================================================================ */
+
+@keyframes shimmer {
+  0% { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+}
+
+.skeleton {
+  background: #f0f0f0;
+  background-image: linear-gradient(90deg, #f0f0f0 0%, #e0e0e0 40%, #f0f0f0 80%);
+  background-size: 200px 100%;
+  background-repeat: no-repeat;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+/* ─── Table skeleton ─── */
+.tableSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.5rem;
+}
+
+.tableRow {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.tableCell {
+  height: 1rem;
+  flex: 1;
+}
+
+.tableCellWide {
+  flex: 2;
+}
+
+.tableCellNarrow {
+  flex: 0.5;
+}
+
+/* ─── Card skeleton ─── */
+.cardSkeleton {
+  padding: 1.5rem;
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+}
+
+.cardHeader {
+  width: 40%;
+  height: 1.2rem;
+  margin-bottom: 1.5rem;
+}
+
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.cardLine {
+  height: 0.85rem;
+  width: 100%;
+}
+
+.cardLineShort {
+  width: 60%;
+}
+
+/* ─── Dashboard skeleton ─── */
+.dashSkeleton {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  padding: 1.5rem;
+}
+
+.dashCard {
+  height: 120px;
+  border-radius: 16px;
+}
+
+/* ─── Form skeleton ─── */
+.formSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  max-width: 500px;
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.formLabel {
+  width: 30%;
+  height: 0.75rem;
+}
+
+.formInput {
+  height: 2.5rem;
+  width: 100%;
+}

@@ -486,28 +486,28 @@
 /* Estados de pago */
 .paid {
   background: #dcfce7;
-  color: #16a34a;
+  color: #166534;
 }
 
 .partial {
   background: #fef9c3;
-  color: #a16207;
+  color: #78350f;
 }
 
 .unpaid {
   background: #fee2e2;
-  color: #dc2626;
+  color: #b91c1c;
 }
 
 /* Estados de pedido */
 .delivered {
   background: #dbeafe;
-  color: #2563eb;
+  color: #1d4ed8;
 }
 
 .finished {
   background: #dcfce7;
-  color: #16a34a;
+  color: #166534;
 }
 
 /* ─── Acciones ─── */

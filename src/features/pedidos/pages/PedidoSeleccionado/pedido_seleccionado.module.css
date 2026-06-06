@@ -110,27 +110,27 @@
 
 .inProcess {
   background: #dbeafe;
-  color: #2563eb;
+  color: #1d4ed8;
 }
 
 .delivered {
   background: #dcfce7;
-  color: #16a34a;
+  color: #166534;
 }
 
 .pending {
   background: #fef9c3;
-  color: #a16207;
+  color: #78350f;
 }
 
 .cancelled {
   background: #fee2e2;
-  color: #dc2626;
+  color: #b91c1c;
 }
 
 .prodCancelled {
   background: #fee2e2;
-  color: #dc2626;
+  color: #b91c1c;
 }
 
 .descripcion {
@@ -816,17 +816,17 @@
 
 .prodPending {
   background: #fef9c3;
-  color: #a16207;
+  color: #78350f;
 }
 
 .prodInProcess {
   background: #dbeafe;
-  color: #2563eb;
+  color: #1d4ed8;
 }
 
 .prodTerminado {
   background: #dcfce7;
-  color: #16a34a;
+  color: #166534;
 }
 
 .prodCardProducto {

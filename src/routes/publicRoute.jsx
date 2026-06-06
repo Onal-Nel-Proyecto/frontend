@@ -3,7 +3,7 @@ import {
   Outlet,
 } from "react-router-dom";
 
-import { useAuth } from "../features/auth/hooks/usuAuth.js";  
+import { useAuthContext } from "../context/AuthContext";
 import LoadingPage from "../components/ui/feedback/LoadingPages/index.jsx";
 
 const PublicRoute = () => {
@@ -11,7 +11,7 @@ const PublicRoute = () => {
   const {
     authenticated,
     loading,
-  } = useAuth();
+  } = useAuthContext();
 
 
 
