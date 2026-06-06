@@ -6,7 +6,7 @@
 // ================================================================
 
 import { useState, useRef, useEffect } from 'react';
-import { FiLogOut, FiUser } from 'react-icons/fi';
+import { FiLogOut, FiUser, FiHelpCircle } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import Card from '../../common/Card';
 import { logoutUser } from '../../../features/auth/services/authService';
@@ -88,6 +88,12 @@ const UserDropdown = () => {
                   </p>
                 </div>
               </div>
+
+              {/* Ayuda (solo móvil) */}
+              <button className={styles.helpBtn} title="Ayuda / Help">
+                <FiHelpCircle />
+                Ayuda / Help
+              </button>
 
               {/* Botón de cerrar sesión */}
               <button className={styles.logoutBtn} onClick={handleLogout}>
