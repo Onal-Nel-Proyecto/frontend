@@ -24,3 +24,5 @@ intrucciones.txt
 *.sln
 *.sw?
 instrucciones.txt
+.env
+revision.md

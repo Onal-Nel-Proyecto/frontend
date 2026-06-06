@@ -1,17 +1,20 @@
 // ================================================================
 // socketService — Conexión Socket.IO para notificaciones en tiempo real
+// Carga socket.io-client de forma diferida (dynamic import) para no
+// inflar el bundle inicial con ~50KB que solo se usan en notificaciones.
 // ================================================================
-
-import { io } from "socket.io-client";
 
 let socket = null;
 
 /**
  * Obtener (o crear) la conexión Socket.IO
  * Usa la misma URL base que las peticiones HTTP (VITE_API_URL)
+ * La primera llamada importa dinámicamente socket.io-client.
  */
-export const getSocket = () => {
+export const getSocket = async () => {
   if (socket?.connected) return socket;
+
+  const { io } = await import("socket.io-client");
 
   const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
   // Extraer el origen (protocolo + host) de la URL de la API

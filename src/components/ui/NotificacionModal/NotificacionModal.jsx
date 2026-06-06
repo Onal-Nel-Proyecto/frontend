@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiX } from "react-icons/fi";
+import { useFocusTrap } from "../../../hooks/useFocusTrap";
 import styles from "./notificacionModal.module.css";
 
 const formatearValor = (valor) => {
@@ -37,6 +38,8 @@ const labelHumano = (key) => {
 };
 
 const NotificacionModal = ({ alerta, onClose }) => {
+  const modalRef = useFocusTrap(!!alerta);
+
   // Cerrar con Escape
   useEffect(() => {
     const handleKey = (e) => {
@@ -66,6 +69,7 @@ const NotificacionModal = ({ alerta, onClose }) => {
         onClick={onClose}
       >
         <motion.div
+          ref={modalRef}
           className={styles.modal}
           initial={{ opacity: 0, scale: 0.92, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -80,7 +84,7 @@ const NotificacionModal = ({ alerta, onClose }) => {
               <span className={styles.modalTipo}>{alerta.tipo_alerta}</span>
               <span className={styles.modalModulo}>{alerta.modulo}</span>
             </div>
-            <button className={styles.closeBtn} onClick={onClose} title="Cerrar">
+            <button className={styles.closeBtn} onClick={onClose} title="Cerrar" aria-label="Cerrar notificación">
               <FiX />
             </button>
           </div>

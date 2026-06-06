@@ -58,7 +58,8 @@ src/
 ├── api/
 │   ├── axiosInstance.js       # Axios + interceptor de refresh automático
 │   ├── clientesService.js     # CRUD y búsqueda de clientes
-│   └── endpoints/             # Funciones por módulo (auth, clientes, pedidos…)
+│   ├── ventasService.js       # Reportes de ventas + exportación PDF/Excel
+│   └── endpoints/             # Funciones por módulo (auth, clientes, pedidos, ventas…)
 ├── App.jsx                    # BrowserRouter + Routes
 ├── assets/
 │   ├── font/                  # Tipografía Inter
@@ -73,23 +74,26 @@ src/
 │   └── productosMock.js       # Datos mock para buscar productos como plantilla
 ├── features/
 │   ├── auth/                  # Login, formulario, hook useAuth, servicios
-│   └── pedidos/
-│       ├── components/
-│       │   ├── ClienteSearch/     # Buscador tipo YouTube para clientes
-│       │   ├── DetallePanel/      # Drawer ver/crear/editar detalle + plantilla productos
-│       │   ├── DetallePedido/     # Tabla de detalle del pedido
-│       │   ├── Pagos/             # Gestión de pagos
-│       │   ├── PedidoForm/        # Drawer crear/editar pedido
-│       │   ├── Produccion/        # Cards de producción
-│       │   ├── ProduccionForm/    # Iniciar producción
-│       │   ├── ProductoSearch/    # Buscador tipo YouTube para productos (plantilla)
-│       │   └── TablaPedidos/      # Listado principal de pedidos
-│       ├── pages/
-│       │   ├── Dashboard/         # (en desarrollo)
-│       │   ├── Pedidos/           # Layout con tabs (Detalle, Producción, Pagos)
-│       │   └── PedidoSeleccionado/# Detalle completo de un pedido
-│       └── services/
-│           └── pedidosService.js  # API de pedidos
+│   ├── pedidos/
+│   │   ├── components/
+│   │   │   ├── ClienteSearch/     # Buscador tipo YouTube para clientes
+│   │   │   ├── DetallePanel/      # Drawer ver/crear/editar detalle + plantilla productos
+│   │   │   ├── DetallePedido/     # Tabla de detalle del pedido
+│   │   │   ├── Pagos/             # Gestión de pagos
+│   │   │   ├── PedidoForm/        # Drawer crear/editar pedido
+│   │   │   ├── Produccion/        # Cards de producción
+│   │   │   ├── ProduccionForm/    # Iniciar producción
+│   │   │   ├── ProductoSearch/    # Buscador tipo YouTube para productos (plantilla)
+│   │   │   └── TablaPedidos/      # Listado principal de pedidos
+│   │   ├── pages/
+│   │   │   ├── Dashboard/         # (en desarrollo)
+│   │   │   ├── Pedidos/           # Layout con tabs (Detalle, Producción, Pagos)
+│   │   │   └── PedidoSeleccionado/# Detalle completo de un pedido
+│   │   └── services/
+│   │       └── pedidosService.js  # API de pedidos
+│   └── ventas/
+│       └── pages/
+│           └── Reportes/      # Reportes de ventas con gráfico, tabla y exportación
 ├── hooks/                     # useDocumentTitle, useAlertas
 ├── layout/
 │   └── MainLayout/            # Layout principal (Header + Sidebar + NavTabs)
@@ -123,6 +127,7 @@ src/
 | Ruta | Componente | Descripción |
 |------|-----------|-------------|
 | `/gestion-usuarios` | InConstruction | CRUD usuarios |
+| `/ventas/reportes` | ReportesVentas | Reportes mensuales y por período con gráficos, exportación PDF/Excel |
 | `/config` | Config | Categorías, Medidas, Copia seguridad |
 | `/config/categorias` | InConstruction | Categorías |
 | `/config/copia-seguridad` | InConstruction | Backups |
@@ -154,6 +159,31 @@ En el formulario de detalle del pedido hay un botón **"Plantilla"** al lado del
    - ❌ IDs, fechas y estados tampoco
 4. El formulario queda listo para editar los valores libremente
 5. Aparece una alerta de confirmación sin cerrar el formulario
+
+### Reportes de Ventas (`features/ventas/pages/Reportes`)
+
+Vista de reportes con datos reales del backend, dos modalidades de filtro:
+
+| Filtro | Endpoint | Parámetros |
+|--------|----------|------------|
+| **Mensual** | `GET /ventas/reportes/mensual` | `mes` (1-12), `anio` |
+| **Período** | `GET /ventas/reportes/periodo` | `fechaInicio`, `fechaFin` |
+
+**Componentes de la vista:**
+- **Cards resumen**: Número de ventas, total vendido, ticket promedio y producto más vendido (formato monetario COP)
+- **Gráfico de barras**: Comportamiento de ventas por día (CSS puro, sin librería externa)
+- **Tabla**: Top productos más vendidos con cantidad y total generado
+- **Exportación**: Botones para descargar el reporte en PDF o Excel
+
+**Estados implementados:**
+- `loading` → spinner mientras se consulta el backend
+- `error` → mensaje amigable con errores del backend (valida `status: false` y key `error`)
+- `empty` → "No se encontraron ventas para el período seleccionado."
+- `initial` → estado inicial antes de generar cualquier reporte
+
+**Mapeo dinámico de fechas:**
+- Reporte mensual: el backend retorna `dia` (número) → se muestra como `DD/MM` con el mes seleccionado
+- Reporte por período: el backend retorna `fecha` (YYYY-MM-DD) → se muestra como `DD/MM`
 
 ### Datos mock (`data/productosMock.js`)
 

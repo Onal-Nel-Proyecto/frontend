@@ -11,7 +11,9 @@ import Drawer from '../../../../components/common/Drawer';
 import Alert from '../../../../components/ui/feedback/Alert';
 import LoadingOverlay from '../../../../components/ui/feedback/LoadingOverlay';
 import ClienteSearch from '../ClienteSearch';
+import NewClientPanel from '../../../../page/RegisterClient';
 import { createPedido, updatePedido } from '../../services/pedidosService';
+import { createCliente } from '../../../../api/clientesService';
 import styles from './PedidoForm.module.css';
 
 const PedidoForm = ({ isOpen, onClose, pedido }) => {
@@ -22,7 +24,7 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
     cliente_id: pedido?.cliente?.cliente_id || '',
     descripcion: pedido?.descripcion || '',
     observacion: pedido?.observacion || '',
-    fecha_estimada_entrega: pedido?.fecha_estimada_entrega || '',
+    fecha_entrega_estimada: pedido?.fecha_entrega_estimada || pedido?.fecha_estimada_entrega || pedido?.fecha_estimada || '',
     recordatorio_activo: !!pedido?.recordatorio,
     recordatorio: pedido?.recordatorio || 3,
   });
@@ -31,6 +33,10 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
+
+  // Estado para el registro de nuevo cliente dentro del formulario
+  const [showClientForm, setShowClientForm] = useState(false);
+  const [nuevoCliente, setNuevoCliente] = useState(null);
   const limits = {
     recordatorio: 10
   };
@@ -38,11 +44,11 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
   /** Calcula el máximo de días de recordatorio permitido según la fecha de entrega */
   const getMaxRecordatorio = useCallback(() => {
     const absoluteMax = limits.recordatorio || 10;
-    if (!form.fecha_estimada_entrega) return absoluteMax;
+    if (!form.fecha_entrega_estimada) return absoluteMax;
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const deliveryDate = new Date(form.fecha_estimada_entrega + 'T00:00:00');
+    const deliveryDate = new Date(form.fecha_entrega_estimada + 'T00:00:00');
     const diffTime = deliveryDate - today;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
@@ -50,7 +56,7 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
     if (diffDays <= 0) return 0;
 
     return Math.min(absoluteMax, diffDays);
-  }, [form.fecha_estimada_entrega]);
+  }, [form.fecha_entrega_estimada]);
 
   const handleChange = (e) => {
     const { name, value, type } = e.target;
@@ -85,11 +91,32 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
   }, []);
 
   const handleAddCliente = useCallback(() => {
-    // Placeholder: redirigir a la página de creación de clientes
-    // Puedes cambiar la ruta según tu implementación
-    onClose();
-    navigate('/config?tab=clientes');
-  }, [navigate, onClose]);
+    // Abrir el panel de registro de cliente sin cerrar el formulario de pedido
+    setShowClientForm(true);
+  }, []);
+
+  // Callback para NewClientPanel: crear el cliente vía API
+  const handleCreateCliente = useCallback(async (clienteData) => {
+    try {
+      const resp = await createCliente(clienteData);
+      const data = resp?.data || resp;
+      if (resp?.status || data?.cliente_id) {
+        const clienteInfo = {
+          cliente_id: data.cliente_id,
+          cliente_nombre: data.cliente_nombre || clienteData.cliente_nombre,
+          cliente_apellido: data.cliente_apellido || clienteData.cliente_apellido || '',
+        };
+        // Actualizar el form con el nuevo cliente
+        handleClienteChange(clienteInfo);
+        // Guardar para que ClienteSearch muestre el nombre
+        setNuevoCliente(clienteInfo);
+        return { ok: true, data: resp };
+      }
+      return { ok: false, error: resp?.msg || 'Error al crear el cliente' };
+    } catch (err) {
+      return { ok: false, error: err?.response?.data?.error || 'Error al conectar con el servidor' };
+    }
+  }, [handleClienteChange]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -99,7 +126,7 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
     }
 
     // Validar recordatorio contra fecha de entrega
-    if (form.recordatorio_activo && form.fecha_estimada_entrega) {
+    if (form.recordatorio_activo && form.fecha_entrega_estimada) {
       const maxRecordatorio = getMaxRecordatorio();
       if (maxRecordatorio <= 0) {
         setErrors({ recordatorio: 'La fecha de entrega debe ser posterior a hoy para activar el recordatorio' });
@@ -115,11 +142,12 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
     onClose();
     setLoading(true);
 
+    const fechaEntrega = form.fecha_entrega_estimada || null;
     const payload = {
       cliente_id: form.cliente_id,
       descripcion: form.descripcion || null,
       observacion: form.observacion || null,
-      fecha_estimada_entrega: form.fecha_estimada_entrega || null,
+      [isEdit ? 'fecha_estimada_entrega' : 'fecha_estimada']: fechaEntrega,
       recordatorio: form.recordatorio_activo ? form.recordatorio : null,
     };
 
@@ -201,7 +229,9 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
           <div className={styles.field}>
             <label className={styles.label}>Cliente *</label>
             <ClienteSearch
-              initialNombre={pedido?.cliente?.cliente_nombres || ''}
+              initialNombre={nuevoCliente
+                ? `${nuevoCliente.cliente_nombre} ${nuevoCliente.cliente_apellido}`.trim()
+                : pedido?.cliente?.cliente_nombres || ''}
               onChange={handleClienteChange}
               error={errors.cliente_id}
               onAddCliente={handleAddCliente}
@@ -243,9 +273,9 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
             <div className={styles.inputWrap}>
               <input
                 type="date"
-                name="fecha_estimada_entrega"
+                name="fecha_entrega_estimada"
                 className={styles.input}
-                value={form.fecha_estimada_entrega}
+                value={form.fecha_entrega_estimada}
                 onChange={handleChange}
                 min={minDate} />
             </div>
@@ -281,7 +311,7 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
                 <span className={styles.inputSuffix}>días antes</span>
               </div>
             )}
-            {form.recordatorio_activo && form.fecha_estimada_entrega && (
+            {form.recordatorio_activo && form.fecha_entrega_estimada && (
               <span style={{ fontSize: '0.7rem', color: '#999', marginTop: '0.2rem', display: 'block' }}>
                 Máximo {getMaxRecordatorio()} día{getMaxRecordatorio() !== 1 ? 's' : ''} antes de la entrega
               </span>
@@ -292,6 +322,13 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
           </div>
         </form>
       </Drawer>
+
+      {/* Panel de registro de nuevo cliente (se superpone sin cerrar el drawer) */}
+      <NewClientPanel
+        isOpen={showClientForm}
+        onClose={() => setShowClientForm(false)}
+        onGuardar={handleCreateCliente}
+      />
 
       {loading && <LoadingOverlay title="Guardando pedido…" message="Procesando la solicitud" />}
       {alert && <Alert type={alert.type} title={alert.title} message={alert.message} onClose={alert.onClose || (() => setAlert(null))} />}

@@ -21,8 +21,6 @@ import {
   FiPackage,
   FiUsers,
   FiAlertCircle,
-  FiInfo,
-  FiAlertTriangle,
   FiExternalLink,
   FiChevronDown,
   FiX,
@@ -107,11 +105,14 @@ const NotificationsDropdown = () => {
     return () => mql.removeEventListener("change", handler);
   }, []);
 
-  // Cerrar al hacer clic fuera
+  // Cerrar al hacer clic fuera (solo si NO hay un modal activo)
   useEffect(() => {
     if (!open) return;
 
     const handleClick = (e) => {
+      // Si el modal de información extra está abierto, no cerrar el menú
+      if (alertaModal) return;
+
       // Desktop: el dropdown está dentro del wrapper
       if (!isMobile && ref.current && !ref.current.contains(e.target)) {
         console.log("[NotifDropdown] click fuera (desktop), cerrando");
@@ -134,7 +135,7 @@ const NotificationsDropdown = () => {
       clearTimeout(timeoutId);
       document.removeEventListener("mousedown", handleClick);
     };
-  }, [open, isMobile]);
+  }, [open, isMobile, alertaModal]);
 
   // Badge: si > 15 mostrar "+15"
   const badgeTexto = useMemo(() => {
@@ -185,9 +186,15 @@ const NotificationsDropdown = () => {
               key={alerta.id_alerta}
               alerta={alerta}
               onVerInfo={setAlertaModal}
-              onRedirect={(url) => {
+              onRedirect={(alerta) => {
                 setOpen(false);
-                navigate(url);
+                // Si la alerta tiene venta_id en info_extra, redirigir a ventas
+                const ventaId = alerta.info_extra?.venta_id || alerta.accion?.venta_id;
+                if (ventaId) {
+                  navigate(`/ventas/reportes`);
+                } else if (alerta.accion?.url) {
+                  navigate(alerta.accion.url);
+                }
               }}
             />
           ))
@@ -223,7 +230,6 @@ const NotificationsDropdown = () => {
       <button
         className={`${styles.trigger} ${open ? styles.triggerActive : ""}`}
         onClick={() => setOpen((o) => !o)}
-        title="Notificaciones"
       >
         <FiBell />
         {badgeTexto !== null && (
@@ -300,8 +306,7 @@ const AlertaCard = ({ alerta, onVerInfo, onRedirect }) => {
       <div className={styles.cardBody}>
         <p className={styles.cardTitle}>{alerta.titulo}</p>
 
-        {/* Mensaje con tooltip en hover */}
-        <div className={styles.cardMsgTooltip} data-fullmsg={alerta.mensaje}>
+        <div className={styles.cardMsgTooltip}>
           <p className={styles.cardMsg}>{alerta.mensaje}</p>
         </div>
 
@@ -323,7 +328,7 @@ const AlertaCard = ({ alerta, onVerInfo, onRedirect }) => {
               <div className={styles.redirectBtnWrapper}>
                 <button
                   className={styles.redirectBtn}
-                  onClick={() => onRedirect(alerta.accion.url)}
+                  onClick={() => onRedirect(alerta)}
                   title={alerta.accion.texto || "Ir"}
                 >
                   <FiExternalLink />

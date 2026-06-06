@@ -18,7 +18,7 @@ import styles from './pedido_seleccionado.module.css';
 
 const statusConfig = {
   PENDIENTE:  { label: 'Pendiente',  className: 'pending' },
-  EN_PROCESO: { label: 'En proceso', className: 'inProcess' },
+  "EN PROCESO": { label: 'En proceso', className: 'inProcess' },
   TERMINADO:  { label: 'Terminado',  className: 'delivered' },
   ENTREGADO:  { label: 'Entregado',  className: 'delivered' },
   CANCELADO:  { label: 'Cancelado',  className: 'cancelled' },

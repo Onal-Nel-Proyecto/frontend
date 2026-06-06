@@ -2,7 +2,7 @@
 // TablaPedidos — Tabla del listado completo de pedidos
 // ================================================================
 
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, memo } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -17,43 +17,19 @@ import {
 } from 'react-icons/fi';
 import Alert from '../../../../components/ui/feedback/Alert';
 import LoadingOverlay from '../../../../components/ui/feedback/LoadingOverlay';
-import { getPedidos, cancelPedido } from '../../services/pedidosService';
+import { usePedidosTable } from '../../hooks/usePedidosTable';
 import styles from './TablaPedidos.module.css';
 
 const statusMap = {
   PENDIENTE:  { label: 'Pendiente',  className: 'pending' },
-  EN_PROCESO: { label: 'En proceso', className: 'inProcess' },
+  "EN PROCESO": { label: 'En proceso', className: 'inProcess' },
   TERMINADO:  { label: 'Terminado',  className: 'delivered' },
   ENTREGADO:  { label: 'Entregado',  className: 'delivered' },
   CANCELADO:  { label: 'Cancelado',  className: 'delayed' },
 };
 
-/**
- * Calcula los números de página a mostrar con inteligencia:
- * - Siempre muestra la primera y última página.
- * - Muestra la página actual y sus vecinos inmediatos.
- * - Cuando hay más de 5 páginas inserta "..." donde corresponda.
- */
-const getPageNumbers = (current, total) => {
-  if (total <= 5) return Array.from({ length: total }, (_, i) => i + 1);
-
-  const pages = [1];
-  let start = Math.max(2, current - 1);
-  let end = Math.min(total - 1, current + 1);
-
-  if (current <= 2) end = 3;
-  if (current >= total - 1) start = total - 2;
-
-  if (start > 2) pages.push('...');
-  for (let i = start; i <= end; i++) pages.push(i);
-  if (end < total - 1) pages.push('...');
-
-  pages.push(total);
-  return pages;
-};
-
 // ─── Menú de acciones por fila (portal a body para evitar recorte por overflow) ───
-const AccionesMenu = ({ pedidoId, estado, onVer, onCancelar }) => {
+const AccionesMenu = memo(({ pedidoId, estado, onVer, onCancelar }) => {
   const [open, setOpen] = useState(false);
   const [coords, setCoords] = useState(null);
   const btnRef = useRef(null);
@@ -127,7 +103,7 @@ const AccionesMenu = ({ pedidoId, estado, onVer, onCancelar }) => {
 
   return (
     <div className={styles.actionsWrapper} ref={btnRef}>
-      <button className={styles.actionBtn} onClick={handleToggle}>
+      <button className={styles.actionBtn} onClick={handleToggle} aria-label="Acciones del pedido">
         <FiMoreVertical />
       </button>
       {open && coords && createPortal(
@@ -141,10 +117,10 @@ const AccionesMenu = ({ pedidoId, estado, onVer, onCancelar }) => {
             zIndex: 1050,
           }}
         >
-          <button className={styles.actionItem} onClick={() => { setOpen(false); onVer(); }}>
+          <button className={styles.actionItem} onClick={() => { setOpen(false); onVer(); }} aria-label="Ver detalle del pedido">
             <FiEye /> Ver
           </button>
-          <button className={styles.actionItem} disabled={!puedeCancelar} onClick={() => { setOpen(false); onCancelar(); }}>
+          <button className={styles.actionItem} disabled={!puedeCancelar} onClick={() => { setOpen(false); onCancelar(); }} aria-label="Cancelar pedido">
             <FiXCircle /> Cancelar
           </button>
         </div>,
@@ -152,91 +128,40 @@ const AccionesMenu = ({ pedidoId, estado, onVer, onCancelar }) => {
       )}
     </div>
   );
-};
+});
 
 // ─── Componente principal ───
 const TablaPedidos = () => {
   const navigate = useNavigate();
-  const [pedidos, setPedidos] = useState([]);
-  const [maxPag, setMaxPag] = useState(1);
-  const [pagAct, setPagAct] = useState(1);
-  const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(true);
 
-  // Estado para filtros
-  const [filtros, setFiltros] = useState({
-    fecha_desde: '',
-    fecha_hasta: '',
-    tipo_pedido: '',
-    estado_pago: '',
-    estado: '',
-    fecha_entrega_desde: '',
-    fecha_entrega_hasta: '',
-  });
-  const [filtrosActivos, setFiltrosActivos] = useState(null);
-  const [showFiltros, setShowFiltros] = useState(false);
+  const {
+    pedidos,
+    loading,
+    pagAct,
+    maxPag,
+    search,
+    setSearch,
+    setPagAct,
+    filtros,
+    setFiltros,
+    filtrosActivos,
+    setFiltrosActivos,
+    showFiltros,
+    setShowFiltros,
+    filtered,
+    pageNumbers,
+    // Cancelación
+    cancelTarget,
+    cancelMotivo,
+    cancelLoading,
+    cancelResult,
+    iniciarCancelacion,
+    setCancelMotivo,
+    confirmarCancelacion,
+    cancelarDialogo,
+  } = usePedidosTable();
 
-  // Estado para cancelar pedido desde la tabla
-  const [cancelTarget, setCancelTarget] = useState(null);
-  const [cancelMotivo, setCancelMotivo] = useState('');
-  const [cancelLoading, setCancelLoading] = useState(false);
-  const [cancelResult, setCancelResult] = useState(null);
-
-  useEffect(() => {
-    let cancel = false;
-    const fetch = async () => {
-      try {
-        const filtrosLimpios = {};
-        if (filtrosActivos?.fecha_desde) filtrosLimpios.fecha_desde = filtrosActivos.fecha_desde;
-        if (filtrosActivos?.fecha_hasta) filtrosLimpios.fecha_hasta = filtrosActivos.fecha_hasta;
-        if (filtrosActivos?.cliente) filtrosLimpios.cliente = filtrosActivos.cliente;
-        if (filtrosActivos?.tipo_pedido) filtrosLimpios.tipo_pedido = filtrosActivos.tipo_pedido;
-        if (filtrosActivos?.estado_pago) filtrosLimpios.estado_pago = filtrosActivos.estado_pago;
-        if (filtrosActivos?.estado) filtrosLimpios.estado = filtrosActivos.estado;
-        if (filtrosActivos?.fecha_entrega_desde) filtrosLimpios.fecha_entrega_desde = filtrosActivos.fecha_entrega_desde;
-        if (filtrosActivos?.fecha_entrega_hasta) filtrosLimpios.fecha_entrega_hasta = filtrosActivos.fecha_entrega_hasta;
-        const resp = await getPedidos(pagAct, filtrosLimpios);
-        if (cancel) return;
-        setPedidos(resp.data || []);
-        setMaxPag(resp.maxPag || 1);
-      } catch {
-        // silenciar
-      } finally {
-        if (!cancel) setLoading(false);
-      }
-    };
-    fetch();
-    return () => { cancel = true; };
-  }, [pagAct, filtrosActivos]);
-
-  const filtered = pedidos.filter(
-    (p) =>
-      p.cliente_nombres?.toLowerCase().includes(search.toLowerCase()) ||
-      p.id?.toLowerCase().includes(search.toLowerCase()) ||
-      p.descripcion?.toLowerCase().includes(search.toLowerCase())
-  );
-
-  const handleCancelConfirm = async () => {
-    if (!cancelTarget || !cancelMotivo.trim()) return;
-    const id = cancelTarget;
-    setCancelTarget(null);
-    setCancelLoading(true);
-    try {
-      const resp = await cancelPedido(id, { motivo: cancelMotivo });
-      setCancelLoading(false);
-      if (resp?.status) {
-        setCancelResult({
-          type: 'success', title: 'Pedido cancelado', message: resp.msg || 'Pedido cancelado correctamente',
-          onClose: () => { setCancelResult(null); window.location.reload(); },
-        });
-      } else {
-        setCancelResult({ type: 'error', title: 'Error', message: resp?.msg || 'Error al cancelar', onClose: () => setCancelResult(null) });
-      }
-    } catch (err) {
-      setCancelLoading(false);
-      setCancelResult({ type: 'error', title: 'Error', message: err?.response?.data?.error || 'No se pudo cancelar', onClose: () => setCancelResult(null) });
-    }
-  };
+  const handleCancelConfirm = confirmarCancelacion;
 
   return (
     <div className={styles.card}>
@@ -259,7 +184,7 @@ const TablaPedidos = () => {
           <div className={styles.filterPanel} onClick={(e) => e.stopPropagation()}>
             <div className={styles.filterHeader}>
               <h3 className={styles.filterTitle}>Filtros</h3>
-              <button className={styles.filterClose} onClick={() => setShowFiltros(false)}>
+              <button className={styles.filterClose} onClick={() => setShowFiltros(false)} aria-label="Cerrar filtros">
                 <FiX />
               </button>
             </div>
@@ -376,7 +301,7 @@ const TablaPedidos = () => {
 
       {/* Tabla */}
       <div className={styles.tableWrapper}>
-        <table className={styles.table}>
+        <table className={styles.table} aria-label="Listado de pedidos">
           <thead>
             <tr>
               <th>ID</th>
@@ -416,7 +341,7 @@ const TablaPedidos = () => {
                         pedidoId={row.id}
                         estado={row.estado}
                         onVer={() => navigate(`/pedidos/${row.id}`)}
-                        onCancelar={() => { setCancelTarget(row.id); setCancelMotivo(''); }}
+                        onCancelar={() => iniciarCancelacion(row.id)}
                       />
                     </td>
                   </tr>
@@ -468,8 +393,12 @@ const TablaPedidos = () => {
             <FiChevronLeft
               className={`${styles.pageArrow} ${pagAct <= 1 ? styles.pageArrowDisabled : ''}`}
               onClick={() => pagAct > 1 && setPagAct((p) => p - 1)}
+              role="button"
+              tabIndex={0}
+              aria-label="Página anterior"
+              onKeyDown={(e) => e.key === 'Enter' && pagAct > 1 && setPagAct((p) => p - 1)}
             />
-            {getPageNumbers(pagAct, maxPag).map((n, i) =>
+            {pageNumbers.map((n, i) =>
               n === '...' ? (
                 <span key={`ellipsis-${i}`} className={styles.pageEllipsis}>…</span>
               ) : (
@@ -477,12 +406,20 @@ const TablaPedidos = () => {
                   key={n}
                   className={n === pagAct ? styles.pageActive : ''}
                   onClick={() => setPagAct(n)}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Ir a página ${n}${n === pagAct ? ' — página actual' : ''}`}
+                  onKeyDown={(e) => e.key === 'Enter' && setPagAct(n)}
                 >{n}</span>
               )
             )}
             <FiChevronRight
               className={`${styles.pageArrow} ${pagAct >= maxPag ? styles.pageArrowDisabled : ''}`}
               onClick={() => pagAct < maxPag && setPagAct((p) => p + 1)}
+              role="button"
+              tabIndex={0}
+              aria-label="Página siguiente"
+              onKeyDown={(e) => e.key === 'Enter' && pagAct < maxPag && setPagAct((p) => p + 1)}
             />
           </div>
         </div>
@@ -494,7 +431,7 @@ const TablaPedidos = () => {
           type="confirm"
           title="¿Cancelar pedido?"
           message="Ingresa el motivo de cancelación:"
-          onCancel={() => setCancelTarget(null)}
+          onCancel={cancelarDialogo}
           onConfirm={handleCancelConfirm}
         >
           <textarea
@@ -514,4 +451,4 @@ const TablaPedidos = () => {
   );
 };
 
-export default TablaPedidos;
+export default memo(TablaPedidos);

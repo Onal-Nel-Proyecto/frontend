@@ -3,14 +3,14 @@ import { useNavigate } from "react-router-dom";
 
 import styles from "./fmr.module.css";
 
-
-import { loginUser } from "../../services/authService";
+import { useAuthContext } from "../../../../context/AuthContext";
 import Input from "../../../../components/common/Input";
 import Button from "../../../../components/common/Button";
 
 const Formulario = () => {
 
   const navigate = useNavigate();
+  const { login } = useAuthContext();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -59,23 +59,15 @@ const Formulario = () => {
     setFieldErrors({});
 
     try {
-
-      const response = await loginUser(formData);
-
-      console.log(response.data);
-
-      // Guardar datos del usuario en sessionStorage
-      sessionStorage.setItem("user", JSON.stringify(response.data));
-
-      // Redireccionar dashboard
+      // El backend setea la httpOnly cookie;
+      // AuthContext.login guarda los datos del usuario en contexto + caché
+      await login(formData);
       navigate("/dashboard");
 
     } catch (err) {
 
       const data = err.response?.data;
       const status = err.response?.status;
-
-      console.log(err);
 
       // Error de validación (express-validator) → errores por campo
       if (data?.errors) {
@@ -117,6 +109,7 @@ const Formulario = () => {
         label="Correo electrónico"
         type="email"
         name="email"
+        id="login-email"
         placeholder="ejemplo@onaandnel.com"
         value={formData.email}
         onChange={handleChange}
@@ -127,6 +120,7 @@ const Formulario = () => {
         label="Contraseña"
         type="password"
         name="pass"
+        id="login-pass"
         placeholder="••••••••"
         value={formData.pass}
         onChange={handleChange}
@@ -138,6 +132,7 @@ const Formulario = () => {
         disabled={loading}
         tipoDeEstilo={true}
         active={false}
+        style={{ opacity: loading ? 0.6 : 1 }}
       >
         {
           loading

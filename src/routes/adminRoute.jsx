@@ -6,10 +6,11 @@
 // ================================================================
 
 import { Navigate, Outlet } from "react-router-dom";
-import { isAdmin } from "../utils/session";
+import { useAuthContext } from "../context/AuthContext";
 
 const AdminRoute = () => {
-  return isAdmin() ? <Outlet /> : <Navigate to="/dashboard" replace />;
+  const { isAdmin } = useAuthContext();
+  return isAdmin ? <Outlet /> : <Navigate to="/dashboard" replace />;
 };
 
 export default AdminRoute;

@@ -84,6 +84,24 @@ export const getEntregas = async ({
   return res.data;
 };
 
+/** Obtener detalle completo de una entrega (para modal) */
+export const getEntregaById = async (id) => {
+  const res = await axiosInstance.get(`/pedidos/${id}`);
+  return res.data;
+};
+
+/** Obtener historial de pagos por venta_id (si existe) o pedido_id */
+export const getPagosByVenta = async ({ venta_id, pedido_id } = {}) => {
+  const params = {};
+  if (venta_id) {
+    params.venta_id = venta_id;
+  } else if (pedido_id) {
+    params.pedido_id = pedido_id;
+  }
+  const res = await axiosInstance.get(`/pagos`, { params });
+  return res.data;
+};
+
 /** Marcar un pedido como entregado (TERMINADO → ENTREGADO) */
 export const entregarPedido = async (id, data = {}) => {
   const res = await axiosInstance.patch(`/pedidos/${id}/entregar`, data);
