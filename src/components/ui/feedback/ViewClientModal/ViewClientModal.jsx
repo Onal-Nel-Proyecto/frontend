@@ -1,4 +1,5 @@
 import React, { useEffect, useCallback } from 'react'
+import { formatDate } from '../../../../utils/format'
 import './ViewClientModal.css'
 
 const ViewClientModal = ({ cliente, onClose }) => {
@@ -60,7 +61,7 @@ const ViewClientModal = ({ cliente, onClose }) => {
             </span>
             <div>
               <p className="vcm-field__label">Correo electrónico</p>
-              <p className="vcm-field__value">{cliente.phone || '—'}</p>
+              <p className="vcm-field__value">{cliente.email || '—'}</p>
             </div>
           </div>
 
@@ -82,7 +83,7 @@ const ViewClientModal = ({ cliente, onClose }) => {
               <p className="vcm-field__label">Último pedido</p>
               <p className="vcm-field__value">
                 {cliente.lastOrder
-                  ? <span className="vcm-fecha">{cliente.lastOrder}</span>
+                  ? <span className="vcm-fecha">{formatDate(cliente.lastOrder)}</span>
                   : <span className="vcm-sin-pedido">Sin pedidos aún</span>
                 }
               </p>
