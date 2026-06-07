@@ -4,6 +4,7 @@ import { FiFileText } from 'react-icons/fi'
 import { useVentas } from '../../hooks/useVentas'
 import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 import RegistrarPago from './RegistrarPago'
+import VentaForm from './VentaForm'
 import './VentasPage.css'
 
 // ── Los datos se cargan desde useVentas (API con fallback local) ──
@@ -115,6 +116,7 @@ const VentasPage = () => {
   useDocumentTitle('Ventas')
   const [showDrawer, setShowDrawer] = useState(false)
   const [ventaSel, setVentaSel] = useState(null)
+  const [showVentaForm, setShowVentaForm] = useState(false)
   const [hoveredRow, setHoveredRow] = useState(null)
   const [estadoFilter, setEstadoFilter] = useState('')
   const [metodoFilter, setMetodoFilter] = useState('')
@@ -161,7 +163,7 @@ const VentasPage = () => {
             <p className="vtas-subtitle">Gestiona los cobros y pagos de pedidos terminados.</p>
           </div>
         </div>
-        <button className="vtas-btn-primary" onClick={() => alert('Redirigir a formulario de venta')}>
+        <button className="vtas-btn-primary" onClick={() => setShowVentaForm(true)}>
           <i className="ti ti-plus" />
           Nueva Venta
         </button>
@@ -342,7 +344,10 @@ const VentasPage = () => {
       </div>
       )}
 
-      {/* ══ DRAWER ══ */}
+      {/* ══ DRAWERS ══ */}
+      {showVentaForm && (
+        <VentaForm isOpen={showVentaForm} onClose={() => setShowVentaForm(false)} />
+      )}
       {showDrawer && ventaSel && (
         <RegistrarPago isOpen={showDrawer} onClose={() => { setShowDrawer(false); setVentaSel(null) }} venta={ventaSel} />
       )}
