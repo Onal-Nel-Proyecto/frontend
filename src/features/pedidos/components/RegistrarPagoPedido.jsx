@@ -19,10 +19,8 @@ const validate = (form, saldoRestante) => {
   const monto = parseFloat(form.monto)
   if (!form.monto || isNaN(monto)) errs.monto = 'Ingresa un monto válido'
   else if (monto <= 0) errs.monto = 'El monto debe ser mayor a $0'
-  else if (monto > saldoRestante) errs.monto = `El monto no puede superar ${Number(saldoRestante).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })}`
 
   if (!form.metodo) errs.metodo = 'Selecciona un método de pago'
-  if (!form.fecha) errs.fecha = 'Selecciona la fecha del pago'
 
   if (form.metodo === 'otro' && !form.metodo_otro.trim()) errs.metodo_otro = 'Especifica el método de pago'
 
@@ -37,8 +35,7 @@ const RegistrarPagoPedido = ({ isOpen, onClose, pedido }) => {
     monto: '',
     metodo: null,
     metodo_otro: '',
-    fecha: new Date().toISOString().split('T')[0],
-    notas: '',
+
   })
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
@@ -53,6 +50,13 @@ const RegistrarPagoPedido = ({ isOpen, onClose, pedido }) => {
   }, [form.tipoPago, saldoRestante])
 
   const setField = (name, value) => {
+    // Auto-clamp monto al saldo restante
+    if (name === 'monto' && value) {
+      const num = Number(value)
+      if (num > saldoRestante) {
+        value = String(saldoRestante)
+      }
+    }
     setForm((prev) => ({ ...prev, [name]: value }))
     if (touched[name]) {
       const newForm = { ...form, [name]: value }
@@ -70,7 +74,7 @@ const RegistrarPagoPedido = ({ isOpen, onClose, pedido }) => {
   const handleSubmit = () => {
     const newErrors = validate(form, saldoRestante)
     setErrors(newErrors)
-    setTouched({ tipoPago: true, monto: true, metodo: true, fecha: true, metodo_otro: true })
+    setTouched({ tipoPago: true, monto: true, metodo: true, metodo_otro: true })
     if (Object.keys(newErrors).length > 0) return
     setGuardando(true)
     setTimeout(() => {
@@ -80,8 +84,6 @@ const RegistrarPagoPedido = ({ isOpen, onClose, pedido }) => {
         monto: Number(form.monto),
         metodo: form.metodo,
         metodo_otro: form.metodo_otro,
-        fecha: form.fecha,
-        notas: form.notas,
       })
       setGuardando(false)
       onClose()
@@ -95,6 +97,17 @@ const RegistrarPagoPedido = ({ isOpen, onClose, pedido }) => {
   const completaPago = form.tipoPago === 'completo' || nuevoAbonado >= (pedido?.total || 0)
   const hasError = (field) => touched[field] && errors[field]
 
+  const limpiar = () => {
+    setForm({
+      tipoPago: 'completo',
+      monto: '',
+      metodo: null,
+      metodo_otro: '',
+    })
+    setErrors({})
+    setTouched({})
+  }
+
   return (
     <Drawer
       isOpen={isOpen}
@@ -104,9 +117,9 @@ const RegistrarPagoPedido = ({ isOpen, onClose, pedido }) => {
       icon={<FiDollarSign />}
       footer={
         <>
-          <button className="rpp-btn rpp-btn--outline" onClick={onClose} disabled={guardando}>Cancelar</button>
+          <button className="rpp-btn rpp-btn--outline" onClick={limpiar} disabled={guardando}>Limpiar</button>
           <button className="rpp-btn rpp-btn--primary" disabled={guardando} onClick={handleSubmit}>
-            {guardando ? <><i className="ti ti-loader ti-spin" /> Procesando…</> : <><i className="ti ti-device-floppy" /> Confirmar Pago</>}
+            {guardando ? <><i className="ti ti-loader ti-spin" /> Procesando…</> : <><i className="ti ti-device-floppy" /> Registrar Pago</>}
           </button>
         </>
       }
@@ -204,27 +217,7 @@ const RegistrarPagoPedido = ({ isOpen, onClose, pedido }) => {
           </div>
         )}
 
-        <div className="rpp-field">
-          <label className="rpp-label" htmlFor="rpp-fecha">Fecha del pago</label>
-          <div className={`rpp-input-wrap ${hasError('fecha') ? 'rpp-input-wrap--err' : ''}`}>
-            <i className="ti ti-calendar" />
-            <input id="rpp-fecha" type="date" className="rpp-input"
-              value={form.fecha}
-              onChange={(e) => setField('fecha', e.target.value)}
-              onBlur={() => handleBlur('fecha')} />
-          </div>
-          {hasError('fecha') && <p className="rpp-err">{errors.fecha}</p>}
-        </div>
 
-        <div className="rpp-field">
-          <label className="rpp-label" htmlFor="rpp-notas">Notas (opcional)</label>
-          <div className="rpp-input-wrap">
-            <i className="ti ti-notes" />
-            <input id="rpp-notas" type="text" maxLength="255" className="rpp-input"
-              placeholder="Observaciones del pago..." value={form.notas}
-              onChange={(e) => setField('notas', e.target.value)} />
-          </div>
-        </div>
       </div>
     </Drawer>
   )
