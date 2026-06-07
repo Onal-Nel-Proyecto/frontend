@@ -2,6 +2,14 @@
    NavTabs — Dark theme
    ─────────────────────────────────────── */
 
+/* ── Base nav (el padre aplica .navDesktop o .navMobile) ── */
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 0.1rem;
+}
+
 /* ── Desktop (in header) ── */
 
 .navDesktop {

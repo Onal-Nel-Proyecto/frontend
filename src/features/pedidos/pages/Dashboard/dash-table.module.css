@@ -279,6 +279,13 @@
   font-size: 0.82rem;
 }
 
+.emptyRow {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--text-soft);
+  font-size: 0.85rem;
+}
+
 /* ═══════════════════════════════════════════════════════════════
    MODAL DE DETALLE
    ═══════════════════════════════════════════════════════════════ */
