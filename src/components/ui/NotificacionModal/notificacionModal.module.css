@@ -20,9 +20,9 @@
   max-width: 520px;
   max-height: 85vh;
   overflow-y: auto;
-  background: #fff;
+  background: var(--bg-elevated);
   border-radius: 1.5rem;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-xl);
   padding: 1.5rem;
 }
 
@@ -30,7 +30,7 @@
   width: 4px;
 }
 .modal::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.12);
+  background: var(--border-glass);
   border-radius: 999px;
 }
 
@@ -58,8 +58,8 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  background: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
+  background: var(--accent-violet-subtle);
+  color: var(--accent-violet);
   margin-right: 0.4rem;
 }
 
@@ -69,7 +69,7 @@
   border-radius: 0.35rem;
   font-size: 0.68rem;
   font-weight: 600;
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--bg-glass);
   color: var(--text-soft);
 }
 
@@ -78,7 +78,7 @@
   height: 2rem;
   border: none;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--bg-glass);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -90,7 +90,7 @@
 }
 
 .closeBtn:hover {
-  background: rgba(0, 0, 0, 0.1);
+  background: var(--bg-glass-hover);
 }
 
 .modalMensaje {
@@ -116,7 +116,7 @@
   color: var(--text-dark);
   margin-bottom: 0.75rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid var(--border-glass);
 }
 
 .infoRow {
@@ -125,7 +125,7 @@
   align-items: flex-start;
   gap: 0.75rem;
   padding: 0.45rem 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  border-bottom: 1px solid var(--border-glass);
 }
 
 .infoRow:last-child {
@@ -153,7 +153,7 @@
   flex-wrap: wrap;
   gap: 0.75rem;
   padding-top: 1rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  border-top: 1px solid var(--border-glass);
 }
 
 .metaItem {

@@ -54,19 +54,19 @@
   position: absolute;
   top: 0;
   right: 0;
-  width: 6rem;
-  height: 6rem;
+  width: 7rem;
+  height: 7rem;
   border-radius: 50%;
-  opacity: 0.15;
-  transform: translate(30%, -30%);
+  opacity: 0.25;
+  transform: translate(25%, -25%);
   transition: transform 0.4s var(--ease-out);
   pointer-events: none;
-  filter: blur(20px);
+  filter: blur(24px);
 }
 
 .kpiCard:hover .kpiGlow {
-  transform: translate(30%, -30%) scale(1.4);
-  opacity: 0.22;
+  transform: translate(25%, -25%) scale(1.5);
+  opacity: 0.4;
 }
 
 .kpiBody {

@@ -41,8 +41,14 @@
 
 .viewGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 0.75rem;
+}
+
+@media (max-width: 480px) {
+  .viewGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .viewItem {
@@ -107,17 +113,25 @@
   padding: 0.6rem 1rem;
   border: none;
   border-radius: var(--radius-xs);
-  background: #695B58;
-  color: #f5f0ef;
+  background: var(--accent-gold);
+  color: #1a1a1a;
   font-size: var(--text-sm);
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition: all var(--transition-base);
 }
 
-.btnEdit:hover {
-  background: #5a4d4a;
+.btnEdit:hover:not(:disabled) {
+  background: var(--accent-gold-light);
   transform: translateY(-1px);
+  box-shadow: var(--shadow-gold);
+}
+
+.btnEdit:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 /* ───────────────────────────────────────
@@ -304,17 +318,18 @@
   padding: 0.6rem 1rem;
   border: none;
   border-radius: var(--radius-xs);
-  background: #695B58;
-  color: #f5f0ef;
+  background: var(--accent-gold);
+  color: #1a1a1a;
   font-size: var(--text-sm);
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition: all var(--transition-base);
 }
 
 .btnSave:hover {
-  background: #5a4d4a;
+  background: var(--accent-gold-light);
   transform: translateY(-1px);
+  box-shadow: var(--shadow-gold);
 }
 
 /* ── Botón "Usar plantilla" ── */
@@ -347,9 +362,9 @@
 }
 
 .templateBtn:hover {
-  background: #695B58;
-  color: #fff;
-  border-color: #695B58;
+  background: var(--accent-gold);
+  color: #1a1a1a;
+  border-color: var(--accent-gold);
 }
 
 .templateBtn svg {

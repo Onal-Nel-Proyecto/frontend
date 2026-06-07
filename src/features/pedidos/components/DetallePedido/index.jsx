@@ -15,6 +15,8 @@ import styles from '../../pages/PedidoSeleccionado/pedido_seleccionado.module.cs
 
 const DetallePedido = () => {
   const { pedido, openDetallePanel, isCanceled } = useOutletContext();
+  const isEntregado = pedido.estado?.toUpperCase() === 'ENTREGADO';
+  const isBloqueado = isCanceled || isEntregado;
   const detalles = pedido.detalles_pedido || [];
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
@@ -120,7 +122,7 @@ const DetallePedido = () => {
           <h3 className={styles.sectionTitle}>Detalle del pedido</h3>
           <button
             className={styles.btnAdd}
-            disabled={isCanceled}
+            disabled={isBloqueado}
             onClick={() => openDetallePanel({ open: true, modo: 'create', detalle: null })}
           >
             <FiPlus />
@@ -161,7 +163,7 @@ const DetallePedido = () => {
                           <button
                             className={`${styles.rowBtn} ${styles.rowBtnDanger}`}
                             title="Eliminar detalle"
-                            disabled={isCanceled}
+                            disabled={isBloqueado}
                             onClick={() => setDeleteTarget(d.detalle_id)}
                           >
                             <FiTrash2 />
@@ -187,7 +189,7 @@ const DetallePedido = () => {
                       <button
                         className={`${styles.rowBtn} ${styles.rowBtnDanger}`}
                         title="Eliminar detalle"
-                        disabled={isCanceled}
+                        disabled={isBloqueado}
                         onClick={() => setDeleteTarget(d.detalle_id)}
                       >
                         <FiTrash2 />
@@ -271,7 +273,7 @@ const DetallePedido = () => {
             ))}
             <button
               className={styles.btnUploadImage}
-              disabled={isCanceled}
+              disabled={isBloqueado}
               onClick={() => fileInputRef.current?.click()}
             >
               <FiUpload />

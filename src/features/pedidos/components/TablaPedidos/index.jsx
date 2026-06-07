@@ -50,6 +50,14 @@ const AccionesMenu = memo(({ pedidoId, estado, onVer, onCancelar }) => {
     return () => document.removeEventListener('mousedown', handleClick);
   }, [open]);
 
+  // Cerrar al hacer scroll — así no queda flotando lejos de su fila
+  useEffect(() => {
+    if (!open) return;
+    const handleScroll = () => setOpen(false);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [open]);
+
   // Ajustar posición después de renderizar el menú (por si la estimación falló)
   useEffect(() => {
     if (!open || !menuRef.current || !coords) return;

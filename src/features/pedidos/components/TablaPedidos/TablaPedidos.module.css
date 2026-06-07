@@ -60,6 +60,15 @@
 
 .actionsMenuPortal {
   z-index: 1050;
+  min-width: 140px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-glass);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  padding: 0.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 /* Menú dentro del portal */
@@ -177,6 +186,16 @@
   border-color: var(--accent-violet);
 }
 
+.filterInput option {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+.filterInput option {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+
 .filterDateRow {
   display: flex;
   gap: 0.75rem;
@@ -217,8 +236,8 @@
   padding: 0.6rem 1rem;
   border: none;
   border-radius: var(--radius-xs);
-  background: #695B58;
-  color: #f5f0ef;
+  background: var(--accent-gold);
+  color: #1a1a1a;
   font-size: var(--text-sm);
   font-weight: 600;
   cursor: pointer;
@@ -226,7 +245,7 @@
 }
 
 .filterApplyBtn:hover {
-  background: #5a4d4a;
+  background: var(--accent-gold-light);
 }
 
 /* ── Paginación ── */

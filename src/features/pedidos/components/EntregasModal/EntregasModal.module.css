@@ -18,14 +18,14 @@
 /* ─── Modal ─── */
 
 .modal {
-  background: #fff;
+  background: var(--bg-elevated);
   border-radius: var(--radius-lg, 24px);
   width: 100%;
   max-width: 680px;
   max-height: min(90vh, 700px);
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-xl);
 }
 
 /* ─── Header ─── */
@@ -35,14 +35,14 @@
   align-items: flex-start;
   justify-content: space-between;
   padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border-glass);
   gap: 1rem;
 }
 
 .modalTitle {
   font-size: 1.15rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--text-primary);
   margin: 0 0 0.4rem;
 }
 
@@ -51,19 +51,19 @@
   height: 2rem;
   border: none;
   border-radius: 999px;
-  background: #f3f3f3;
+  background: var(--bg-glass);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #666;
+  color: var(--text-muted);
   font-size: 1rem;
   transition: background 0.2s ease;
   flex-shrink: 0;
 }
 
 .closeBtn:hover {
-  background: #e8e8e8;
+  background: var(--bg-glass-hover);
 }
 
 /* ─── Badges ─── */
@@ -77,11 +77,11 @@
   white-space: nowrap;
 }
 
-.delivered { background: #dbeafe; color: #2563eb; }
-.finished  { background: #dcfce7; color: #16a34a; }
-.paid      { background: #dcfce7; color: #16a34a; }
-.partial   { background: #fef9c3; color: #a16207; }
-.unpaid    { background: #fee2e2; color: #dc2626; }
+.delivered { background: var(--accent-violet-subtle); color: var(--accent-violet); }
+.finished  { background: var(--accent-emerald-subtle); color: var(--accent-emerald); }
+.paid      { background: var(--accent-emerald-subtle); color: var(--accent-emerald); }
+.partial   { background: var(--accent-amber-subtle); color: var(--accent-amber); }
+.unpaid    { background: rgba(239, 68, 68, 0.1); color: #f87171; }
 
 /* ─── Cuerpo ─── */
 
@@ -117,7 +117,7 @@
   gap: 0.4rem;
   font-size: 0.78rem;
   font-weight: 600;
-  color: #888;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.03em;
   margin: 0;
@@ -129,7 +129,7 @@
 
 .infoText {
   font-size: 0.92rem;
-  color: #333;
+  color: var(--text-secondary);
   margin: 0;
 }
 
@@ -144,8 +144,8 @@
 .productsTable thead th {
   text-align: left;
   padding: 0.45rem 0.5rem;
-  background: #f7f7f7;
-  color: #888;
+  background: var(--bg-glass);
+  color: var(--text-muted);
   font-weight: 600;
   font-size: 0.7rem;
   letter-spacing: 0.02em;
@@ -154,15 +154,15 @@
 
 .productsTable tbody td {
   padding: 0.45rem 0.5rem;
-  border-bottom: 1px solid #f3f3f3;
-  color: #444;
+  border-bottom: 1px solid var(--border-glass);
+  color: var(--text-secondary);
 }
 
 .productsTable tfoot td {
   padding: 0.5rem;
-  border-top: 2px solid #e8e8e8;
+  border-top: 2px solid var(--border-glass);
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--text-primary);
 }
 
 .colRight {
@@ -172,19 +172,19 @@
 
 .totalLabel {
   font-size: 0.82rem;
-  color: #888;
+  color: var(--text-muted);
   font-weight: 600;
 }
 
 .totalValue {
   text-align: right;
   font-size: 0.95rem;
-  color: #1a1a1a;
+  color: var(--text-primary);
 }
 
 .emptyText {
   font-size: 0.82rem;
-  color: #bbb;
+  color: var(--text-muted);
   font-style: italic;
   margin: 0.5rem 0;
 }
@@ -201,18 +201,18 @@
 }
 
 .saldoDue {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
 .saldoClear {
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
+  background: var(--accent-emerald-subtle);
+  border: 1px solid rgba(52, 211, 153, 0.2);
 }
 
 .saldoLabel {
   font-weight: 600;
-  color: #666;
+  color: var(--text-muted);
 }
 
 .saldoValue {

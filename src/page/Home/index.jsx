@@ -32,17 +32,17 @@ import styles from "./home.module.css";
 // Cada objeto define: key (para mapear desde la API), label visible,
 // icono de react-icons y color pastel asociado.
 const kpiConfig = [
-  { key: "activos", label: "Pedidos Activos", icon: <FiShoppingBag />, color: "var(--pastel-blue)" },
-  { key: "pendientes", label: "Pendientes", icon: <FiClock />, color: "var(--pastel-orange)" },
-  { key: "en_proceso", label: "En Proceso", icon: <FiActivity />, color: "var(--pastel-violet)" },
-  { key: "terminados", label: "Terminados", icon: <FiCheckCircle />, color: "var(--pastel-green)" },
+  { key: "activos", label: "Pedidos Activos", icon: <FiShoppingBag />, color: "var(--accent-blue)" },
+  { key: "pendientes", label: "Pendientes", icon: <FiClock />, color: "var(--accent-amber)" },
+  { key: "en_proceso", label: "En Proceso", icon: <FiActivity />, color: "var(--accent-violet)" },
+  { key: "terminados", label: "Terminados", icon: <FiCheckCircle />, color: "var(--accent-emerald)" },
 ];
 
 // Mapa de estados que vienen del backend → etiqueta + color para el gráfico
 const estadoMap = {
-  pendiente: { label: "Pendiente", color: "var(--pastel-orange)" },
-  en_proceso: { label: "En proceso", color: "var(--pastel-violet)" },
-  terminado: { label: "Terminado", color: "var(--pastel-green)" },
+  pendiente: { label: "Pendiente", color: "var(--accent-amber)" },
+  en_proceso: { label: "En proceso", color: "var(--accent-violet)" },
+  terminado: { label: "Terminado", color: "var(--accent-emerald)" },
 };
 
 // ─── Datos mock (provisionales hasta que existan endpoints) ───
@@ -190,7 +190,7 @@ const KPICard = memo(({ label, value, icon, color, delay, loading }) => (
       {/* Círculo decorativo en la esquina superior derecha */}
       <div className={styles.kpiGlow} style={{ background: color }} />
       <div className={styles.kpiBody}>
-        <div className={styles.kpiIcon} style={{ background: `${color}22`, color }}>
+        <div className={styles.kpiIcon} style={{ background: `${color}25`, color, boxShadow: `${color}30 0 0 12px` }}>
           {icon}
         </div>
         <div className={styles.kpiInfo}>
@@ -212,11 +212,11 @@ const KPICard = memo(({ label, value, icon, color, delay, loading }) => (
 // Lista de alertas/notificaciones con icono coloreado según el tipo.
 // Cada activity tiene: tipo (critical/warning/info/blue/success), mensaje y tiempo.
 const typeStyle = {
-  critical: { bg: "#fef2f2", text: "#ef4444", border: "#fecaca" },
-  warning: { bg: "#fffbeb", text: "#f59e0b", border: "#fde68a" },
-  success: { bg: "#ecfdf5", text: "#10b981", border: "#a7f3d0" },
-  blue: { bg: "#eff6ff", text: "#3b82f6", border: "#bfdbfe" },
-  info: { bg: "#f0f9ff", text: "#0ea5e9", border: "#bae6fd" },
+  critical: { bg: "rgba(239, 68, 68, 0.08)", text: "#f87171", border: "rgba(239, 68, 68, 0.2)" },
+  warning: { bg: "var(--accent-amber-subtle)", text: "var(--accent-amber)", border: "rgba(251, 191, 36, 0.2)" },
+  success: { bg: "var(--accent-emerald-subtle)", text: "var(--accent-emerald)", border: "rgba(52, 211, 153, 0.2)" },
+  blue: { bg: "var(--accent-blue-subtle)", text: "var(--accent-blue)", border: "rgba(96, 165, 250, 0.2)" },
+  info: { bg: "var(--accent-violet-subtle)", text: "var(--accent-violet)", border: "rgba(167, 139, 250, 0.2)" },
 };
 
 const SystemActivities = memo(() => (

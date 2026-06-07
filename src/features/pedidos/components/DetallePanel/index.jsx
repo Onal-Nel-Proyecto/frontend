@@ -27,7 +27,7 @@ const medidasDisponibles = [
   { medida_id: 5, nombre: 'Largo total' },
 ];
 
-const DetallePanel = ({ isOpen, onClose, modo, detalle }) => {
+const DetallePanel = ({ isOpen, onClose, modo, detalle, pedidoEstado }) => {
   const { id: pedidoId } = useParams();
   const isView = modo === 'view';
   const isCreate = modo === 'create';
@@ -238,13 +238,13 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle }) => {
           subtitle={`ID: ${detalle?.detalle_id || ''}`}
           icon={<FiPackage />}
           footer={
-            <button className={styles.btnEdit} onClick={() => setEditMode(true)}>
+            <button className={styles.btnEdit} disabled={pedidoEstado?.toUpperCase() === 'ENTREGADO'} onClick={() => setEditMode(true)}>
               <FiEdit2 /> Editar detalle
             </button>
           }
         >
           <div className={styles.viewContent}>
-            <div className={styles.viewId}>{detalle?.detalle_id}</div>
+            {/* <div className={styles.viewId}>{detalle?.detalle_id}</div> */}
 
             <section className={styles.viewSection}>
               <h4 className={styles.viewSectionTitle}>Datos del producto</h4>
@@ -262,6 +262,24 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle }) => {
                   <span className={styles.viewValue}>
                     ${parseFloat(detalle?.producto?.precio || 0).toLocaleString()}
                   </span>
+                </div>
+                <div className={styles.viewItem}>
+                  <span className={styles.viewLabel}>Categoría</span>
+                  <span className={styles.viewValue}>{detalle?.producto?.categoria || detalle?.producto?.categoriaId || '—'}</span>
+                </div>
+                <div className={styles.viewItem}>
+                  <span className={styles.viewLabel}>Tipo de prenda</span>
+                  <span className={styles.viewValue}>{detalle?.producto?.tipoPrenda || detalle?.producto?.tipo_prenda || '—'}</span>
+                </div>
+                <div className={styles.viewItem}>
+                  <span className={styles.viewLabel}>Género</span>
+                  <span className={styles.viewValue}>
+                    {detalle?.producto?.genero === 'M' ? 'Hombre' : detalle?.producto?.genero === 'F' ? 'Mujer' : detalle?.producto?.genero === 'U' ? 'Unisex' : detalle?.producto?.genero || '—'}
+                  </span>
+                </div>
+                <div className={styles.viewItem}>
+                  <span className={styles.viewLabel}>Referencia talla</span>
+                  <span className={styles.viewValue}>{detalle?.producto?.talla || '—'}</span>
                 </div>
               </div>
             </section>
