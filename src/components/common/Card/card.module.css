@@ -1,32 +1,40 @@
-/* Card reutilizable: fondo blanco semitransparente + blur + sombra */
+/* ───────────────────────────────────────
+   Card — Glass surface reutilizable
+   Fondo glass + blur + borde sutil + hover
+   ─────────────────────────────────────── */
+
 .card {
-  padding: 2rem;
-  border-radius: 1.5rem;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06), 0 4px 20px rgba(0, 0, 0, 0.04);
+  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+  background: var(--bg-glass);
+  backdrop-filter: var(--blur-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
+  border: 1px solid var(--border-glass);
+  box-shadow: var(--shadow-sm);
   transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease,
-    background 0.3s ease;
+    transform 0.3s var(--ease-out),
+    box-shadow 0.3s var(--ease-out),
+    background 0.3s var(--ease-out),
+    border-color 0.3s var(--ease-out);
 }
 
 .card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10), 0 12px 32px rgba(0, 0, 0, 0.08);
-  background: rgba(255, 255, 255, 0.95);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  background: var(--bg-glass-hover);
+  border-color: var(--border-glass-hover);
 }
 
 @media (max-width: 768px) {
   .card {
     padding: 1.25rem;
-    border-radius: 1.15rem;
+    border-radius: var(--radius-md);
   }
 }
 
 @media (max-width: 480px) {
   .card {
     padding: 1rem;
-    border-radius: 1rem;
+    border-radius: var(--radius-sm);
   }
 }

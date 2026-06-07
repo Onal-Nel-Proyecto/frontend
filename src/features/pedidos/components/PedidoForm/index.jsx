@@ -184,7 +184,7 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
           },
         });
       } else {
-        setAlert({ type: 'error', title: 'Error', message: resp?.msg || 'Error al guardar el pedido' });
+        setAlert({ type: 'error', title: 'Error', message: resp?.msg || 'Error al guardar el pedido', onClose: () => setAlert(null) });
       }
     } catch (err) {
       setLoading(false);
@@ -194,7 +194,7 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
         serverErrors.forEach((e) => { if (e.path) mapped[e.path] = e.msg; });
         setErrors(mapped);
       }
-      setAlert({ type: 'error', title: 'Error', message: err?.response?.data?.error || 'No se pudo guardar el pedido' });
+      setAlert({ type: 'error', title: 'Error', message: err?.response?.data?.error || 'No se pudo guardar el pedido', onClose: () => setAlert(null) });
     } finally {
       setSubmitting(false);
     }

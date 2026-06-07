@@ -1,26 +1,125 @@
-*{
+*,
+*::before,
+*::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-body{
-  font-family: var(--font-primary);
-  background: var(--main-bg);
-  color: var(--text-dark);
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
 }
 
-a{
+body {
+  font-family: var(--font-primary);
+  background: var(--bg-root);
+  color: var(--text-primary);
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* ── Selección ── */
+::selection {
+  background: var(--accent-gold);
+  color: var(--text-inverse);
+}
+
+/* ── Links ── */
+a {
   text-decoration: none;
   color: inherit;
 }
 
-button{
+/* ── Botones ── */
+button {
   border: none;
   outline: none;
   cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
 }
 
-ul{
+/* ── Listas ── */
+ul, ol {
   list-style: none;
+}
+
+/* ── Inputs ── */
+input, textarea, select {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* ── Focus global para campos de formulario ── */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none !important;
+  border-color: #695B58;
+  border-radius: var(--radius-xs);
+  box-shadow: 0 0 0 3px rgba(105, 91, 88, 0.15) !important;
+}
+
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none !important;
+}
+
+/* Suprime el glow del wrapper cuando el input interno ya tiene su propio anillo de focus */
+[class*="input-wrap"]:has(input:focus),
+[class*="inputWrap"]:has(input:focus),
+[class*="InputWrap"]:has(input:focus),
+[class*="input-wrap"]:has(textarea:focus),
+[class*="inputWrap"]:has(textarea:focus),
+[class*="input-wrap"]:has(select:focus),
+[class*="inputWrap"]:has(select:focus) {
+  box-shadow: none !important;
+}
+
+/* ── Imágenes ── */
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* ── Focus visible (solo elementos interactivos no-form) ── */
+:focus-visible:not(input):not(textarea):not(select) {
+  outline: 2px solid var(--accent-violet);
+  outline-offset: 2px;
+}
+
+/* ── Glass surface utility ── */
+.glass-surface {
+  background: var(--bg-glass);
+  backdrop-filter: var(--blur-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
+  border: 1px solid var(--border-glass);
+}
+
+.glass-surface:hover {
+  background: var(--bg-glass-hover);
+  border-color: var(--border-glass-hover);
 }

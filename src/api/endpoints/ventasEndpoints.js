@@ -1,4 +1,16 @@
 export const VENTAS_ENDPOINTS = {
+  /** GET /ventas — lista paginada */
+  GET_ALL: "/ventas",
+
+  /** GET /ventas/:id — obtener una venta con detalles */
+  GET_BY_ID: (id) => `/ventas/${id}`,
+
+  /** POST /ventas — crear nueva venta */
+  CREATE: "/ventas",
+
+  /** PATCH /ventas/:id/estado — cambiar estado */
+  CHANGE_STATUS: (id) => `/ventas/${id}/estado`,
+
   /** GET /ventas/reportes/mensual?mes=&anio= */
   REPORTE_MENSUAL: "/ventas/reportes/mensual",
 

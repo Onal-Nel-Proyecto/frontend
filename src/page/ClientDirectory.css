@@ -1,9 +1,6 @@
 /* ═══════════════════════════════════════════
-   ClientDirectory — Contenido del dashboard
-   Se integra dentro de MainLayout
+   ClientDirectory — Dark theme
    ═══════════════════════════════════════════ */
-
-/* ── Contenido base ─────────────────────── */
 
 .cd-content {
   display: flex;
@@ -11,8 +8,37 @@
   gap: 1.5rem;
 }
 
-/* ── Encabezado ─────────────────────────── */
+/* ── Search bar ── */
+.cd-search {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0 0.85rem;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-xs);
+  transition: all var(--transition-fast);
+}
+.cd-search:focus-within { border-color: var(--accent-violet); }
+.cd-search i { font-size: 0.9rem; color: var(--text-muted); }
+.cd-search input {
+  flex: 1;
+  border: none; outline: none; padding: 0.65rem 0;
+  font-size: var(--text-sm); font-family: inherit; color: var(--text-primary);
+  background: transparent;
+}
+.cd-search input::placeholder { color: var(--text-muted); }
+.cd-search-count {
+  font-size: var(--text-xs); color: var(--text-muted); white-space: nowrap;
+}
 
+.cd-table-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ── Header ── */
 .cd-header {
   display: flex;
   align-items: flex-start;
@@ -22,88 +48,75 @@
 }
 
 .cd-title {
-  font-size: var(--text-xl, 28px);
+  font-size: var(--text-2xl);
   font-weight: 700;
-  color: var(--text-dark);
+  color: var(--text-primary);
   margin: 0 0 6px;
-  letter-spacing: -0.4px;
+  letter-spacing: -0.02em;
   line-height: 1.2;
 }
 
 .cd-subtitle {
-  font-size: 13px;
-  color: var(--text-soft);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
   margin: 0;
   max-width: 520px;
   line-height: 1.65;
 }
 
-/* ── Botón primario ─────────────────────── */
-
 .cd-btn-primary {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: var(--text-dark);
-  color: var(--text-light);
+  background: var(--accent-gold);
+  color: #1a1a1a;
   border: none;
-  border-radius: var(--radius-sm, 10px);
-  padding: 12px 22px;
-  font-size: 13px;
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 1.5rem;
+  font-size: var(--text-sm);
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
   letter-spacing: 0.2px;
-  transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
-  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-gold);
 }
 
 .cd-btn-primary:hover {
-  background: #2e2e2e;
+  background: var(--accent-gold-light);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-gold-lg);
 }
 
 .cd-btn-primary:active {
   transform: translateY(0);
 }
 
-/* ── Grid de estadísticas ──────────────── */
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
+.cd-btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
 }
 
-/* ── Sección tabla ─────────────────────── */
-
+/* ── Stats grid ── */
+/* ── Table section ── */
 .table-section {
   display: flex;
   flex-direction: column;
   gap: 0;
 }
 
-/* ── Fila inferior de tarjetas ─────────── */
-
-.bottom-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
-/* ── Loading ──────────────────────────── */
-
+/* ── Loading / Error ── */
 .cd-loading {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 1rem 1.25rem;
-  background: #f0f4ff;
-  border: 1px solid #d6e0f5;
-  border-radius: var(--radius-sm, 10px);
-  color: #1a4b8c;
-  font-size: 14px;
+  background: var(--accent-violet-subtle);
+  border: 1px solid rgba(167, 139, 250, 0.2);
+  border-radius: var(--radius-sm);
+  color: var(--accent-violet);
+  font-size: var(--text-sm);
   font-weight: 500;
 }
 
@@ -112,44 +125,44 @@
   align-items: center;
   gap: 10px;
   padding: 1rem 1.25rem;
-  background: #fff0f0;
-  border: 1px solid #f5d6d6;
-  border-radius: var(--radius-sm, 10px);
-  color: #b91c1c;
-  font-size: 14px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: var(--radius-sm);
+  color: #fca5a5;
+  font-size: var(--text-sm);
   font-weight: 500;
 }
 
-.cd-btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
+/* ── Responsive ── */
+@media (max-width: 1024px) {
+  .cd-search { flex-wrap: wrap; }
 }
 
-/* ── Responsive ────────────────────────── */
-
-@media (max-width: 1280px) {
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 900px) {
-  .stats-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .bottom-row {
-    grid-template-columns: 1fr;
-  }
-
+@media (max-width: 768px) {
   .cd-header {
     flex-direction: column;
+    align-items: stretch;
   }
+  .cd-btn-primary {
+    width: 100%;
+    justify-content: center;
+    padding: 0.85rem;
+  }
+  .cd-title { font-size: 1.4rem; }
+  .cd-subtitle { font-size: var(--text-xs); max-width: 100%; }
+  .cd-search {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    padding: 0.65rem 0.85rem;
+  }
+  .cd-search input { min-width: unset; }
+  .cd-search-count { text-align: right; }
+  .cd-loading, .cd-error { font-size: var(--text-xs); padding: 0.75rem 1rem; }
 }
 
-@media (max-width: 560px) {
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
+@media (max-width: 480px) {
+  .cd-content { gap: 1rem; }
+  .cd-title { font-size: 1.2rem; }
+  .cd-btn-primary { font-size: var(--text-xs); }
 }

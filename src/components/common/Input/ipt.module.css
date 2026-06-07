@@ -1,47 +1,110 @@
+/* ───────────────────────────────────────
+   Input — Campo de texto dark elegante
+   ─────────────────────────────────────── */
+
 .inputGroup {
-    margin-bottom: 20px;
+  margin-bottom: 1.25rem;
+  position: relative;
+}
+
+.label {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+  letter-spacing: 0.2px;
+  transition: color var(--transition-fast);
 }
 
 .inputGroup label {
-    display: block;
-    font-size: 0.85rem;
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: #444;
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+  letter-spacing: 0.2px;
+  transition: color var(--transition-fast);
 }
 
-.inputGroup input {
-    width: 100%;
-    padding: 12px 15px;
-    border-radius: 12px;
-    border: 1px solid #eee;
-    background-color: #fcfcfc;
-    font-size: 0.95rem;
-    transition: 0.3s;
+.inputGroup:focus-within label {
+  color: var(--accent-violet-light);
+}
+
+.input {
+  width: 100%;
+  padding: 0.85rem 1.1rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-glass);
+  background: var(--bg-glass);
+  font-size: var(--text-base);
+  color: var(--text-primary);
+  outline: none;
+  transition:
+    border-color var(--transition-base),
+    background var(--transition-base),
+    box-shadow var(--transition-base);
+}
+
+.inputGroup input::placeholder {
+  color: var(--text-muted);
+}
+
+.inputGroup input:hover {
+  border-color: var(--border-glass-hover);
+  background: var(--bg-glass-hover);
+}
+
+.input:focus {
+  border-color: var(--accent-violet);
+  background: var(--bg-glass-active);
+  box-shadow:
+    0 0 0 4px var(--accent-violet-subtle),
+    0 0 20px rgba(167, 139, 250, 0.1);
 }
 
 .inputGroup input:focus {
-    outline: none;
-    border-color: #d8b6e0;
-    box-shadow: 0 0 0 4px rgba(226, 215, 233, 0.4);
+  border-color: var(--accent-violet);
+  background: var(--bg-glass-active);
+  box-shadow:
+    0 0 0 4px var(--accent-violet-subtle),
+    0 0 20px rgba(167, 139, 250, 0.1);
 }
 
-/* === ESTADOS DE ERROR === */
+/* ── Error state ── */
+
+.inputError {
+  border-color: #f87171;
+  background: rgba(248, 113, 113, 0.06);
+}
+
+.inputError:focus {
+  border-color: #ef4444;
+  box-shadow:
+    0 0 0 4px rgba(239, 68, 68, 0.12),
+    0 0 20px rgba(239, 68, 68, 0.08);
+}
 
 .hasError input {
-    border-color: #f87171;
-    background-color: #fef2f2;
+  border-color: #f87171;
+  background: rgba(248, 113, 113, 0.06);
 }
 
 .hasError input:focus {
-    border-color: #ef4444;
-    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.12);
+  border-color: #ef4444;
+  box-shadow:
+    0 0 0 4px rgba(239, 68, 68, 0.12),
+    0 0 20px rgba(239, 68, 68, 0.08);
+}
+
+.hasError label {
+  color: #fca5a5;
 }
 
 .fieldError {
-    display: block;
-    margin-top: 6px;
-    font-size: 0.78rem;
-    color: #dc2626;
-    line-height: 1.3;
+  display: block;
+  margin-top: 0.4rem;
+  font-size: var(--text-xs);
+  color: #f87171;
+  line-height: 1.4;
 }

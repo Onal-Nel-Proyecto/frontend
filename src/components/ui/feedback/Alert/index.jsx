@@ -29,6 +29,8 @@ const icons = {
 
 const Alert = ({ type = 'success', title, message, children, onConfirm, onCancel, onClose }) => {
   const isConfirm = type === 'confirm';
+  const handleClose = onClose || (() => {});
+  const handleCancel = onCancel || (() => {});
 
   return (
     <AnimatePresence>
@@ -37,7 +39,7 @@ const Alert = ({ type = 'success', title, message, children, onConfirm, onCancel
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        onClick={isConfirm ? onCancel : onClose}
+        onClick={isConfirm ? handleCancel : handleClose}
       >
         <motion.div
           className={`${styles.card} ${styles[type]}`}
@@ -63,7 +65,7 @@ const Alert = ({ type = 'success', title, message, children, onConfirm, onCancel
           <div className={styles.actions}>
             {isConfirm ? (
               <>
-                <button className={styles.btnCancel} onClick={onCancel}>
+                <button className={styles.btnCancel} onClick={handleCancel}>
                   Cancelar
                 </button>
                 <button className={styles.btnConfirm} onClick={onConfirm}>
@@ -71,7 +73,7 @@ const Alert = ({ type = 'success', title, message, children, onConfirm, onCancel
                 </button>
               </>
             ) : (
-              <button className={styles.btnClose} onClick={onClose}>
+              <button className={styles.btnClose} onClick={handleClose}>
                 <FiX /> Cerrar
               </button>
             )}

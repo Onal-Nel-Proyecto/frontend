@@ -11,12 +11,13 @@ import AdminRoute from "./adminRoute";
 import NotFound from "../page/NotFount";
 import MainLayout from "../layout/MainLayout/mainLayout";
 import ClientDirectory from "../page/ClientDirectory";
-
+import VentaSeleccionada from "../features/ventas/pages/VentaSeleccionada";
 import Pedidos from "../features/pedidos/pages/Pedidos";
 import PedidoSeleccionado from "../features/pedidos/pages/PedidoSeleccionado";
 import DetallePedido from "../features/pedidos/components/DetallePedido";
 import Produccion from "../features/pedidos/components/Produccion";
 import Pagos from "../features/pedidos/components/Pagos";
+import GestionUsuarios from "../page/GestionUsuarios";
 import InConstruction from "../components/ui/feedback/InConstruction/InConstruction";
 import Entregas from "../features/pedidos/pages/Entregas";
 
@@ -67,24 +68,26 @@ const AppRoutes = () => {
             <Route path="produccion" element={<Produccion />} />
             <Route path="pagos" element={<Pagos />} />
           </Route>
-          <Route
-            path="/pedidos/entregas"
-            element={<Entregas />}
-          />
-          <Route
-            path="/gestion-personal"
-            element={<GestionPersonal />}
-          />
-          <Route
-            path="/gestion-clientes"
-            element={<InConstruction title="Clientes" />}
-          />
+          <Route path="/pedidos/entregas" element={<Entregas />} />
+
+          {/* Inventario */}
+          <Route path="/inventario" element={<InventarioPage />} />
+          <Route path="/inventario/materiales" element={<InventarioPage tipo="materiales" />} />
+          <Route path="/inventario/productos" element={<InventarioPage tipo="productos" />} />
+          <Route path="/inventario/abastecimiento" element={<InventarioPage tipo="abastecimiento" />} />
+
+          {/* Ventas */}
+          <Route path="/ventas" element={<VentasPage />} />
+          <Route path="/ventas/:id" element={<VentaSeleccionada />} />
+
+          {/* Personal */}
+          <Route path="/gestion-personal" element={<GestionPersonal />} />
         </Route>
 
         {/* RUTAS SOLO ADMIN */}
         <Route element={<AdminRoute />}>
         <Route path="/" element={<MainLayout />}>
-          <Route path="/gestion-usuarios" element={<InConstruction title="Usuarios" />} />
+          <Route path="/gestion-usuarios" element={<GestionUsuarios />} />
           <Route path="/config" element={<Config />} />
           <Route path="/ventas/reportes" element={<ReportesVentas />} />
           <Route path="/config/categorias" element={<CategoriaPage />} />

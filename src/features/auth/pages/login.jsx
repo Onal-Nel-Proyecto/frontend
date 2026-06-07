@@ -8,6 +8,11 @@ const Login = () => {
   useDocumentTitle("Login");
   return (
     <div className={styles.loginContainer}>
+
+      {/* Blobs decorativos flotantes */}
+      <div className={styles.blobLila} />
+      <div className={styles.blobGold} />
+
       <div className={styles.loginCard}>
 
         <Header />
@@ -15,10 +20,6 @@ const Login = () => {
         <Formulario />
 
         <Footer />
-
-        <div className={styles.decorativeNeedle}>
-          🪡
-        </div>
 
       </div>
     </div>

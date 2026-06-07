@@ -1,6 +1,6 @@
 import styles from './ipt.module.css';
 
-const Input = ({ label, type, placeholder, name, value, onChange, error, id }) => {
+const Input = ({ label, type, placeholder, name, value, onChange, error, id, maxLength }) => {
   const inputId = id || `input-${name}`;
   return (
     <div className={`${styles.inputGroup} ${error ? styles.hasError : ''}`}>
@@ -13,11 +13,11 @@ const Input = ({ label, type, placeholder, name, value, onChange, error, id }) =
         name={name}
         value={value}
         onChange={onChange}
+        maxLength={maxLength}
         aria-invalid={!!error}
         aria-describedby={error ? `${inputId}-error` : undefined}
       />
       {error && <span id={`${inputId}-error`} className={styles.fieldError} role="alert">{error}</span>}
-      {error && <span className={styles.fieldError}>{error}</span>}
     </div>
   );
 };

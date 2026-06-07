@@ -1,0 +1,63 @@
+/* ───────────────────────────────────────
+   RegistrarPagoPedido — Drawer
+   ─────────────────────────────────────── */
+
+.rpp-resumen { display: flex; flex-direction: column; gap: 0.35rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-glass); margin-bottom: 0.75rem; }
+.rpp-resumen-row { display: flex; justify-content: space-between; align-items: center; }
+.rpp-resumen-label { font-size: var(--text-xs); color: var(--text-muted); }
+.rpp-resumen-value { font-size: var(--text-sm); font-weight: 600; color: var(--text-primary); }
+.rpp-resumen-desc { font-size: var(--text-xs); font-weight: 400; max-width: 60%; text-align: right; }
+.rpp-resumen-divider { height: 1px; background: var(--border-glass); margin: 0.25rem 0; }
+.rpp-resumen-total { font-size: var(--text-md); }
+.rpp-resumen-abonado { color: var(--accent-violet); }
+.rpp-resumen-saldo { color: #fb923c; font-size: var(--text-md); }
+.rpp-resumen-row--dest { padding-top: 0.25rem; }
+
+.rpp-form { display: flex; flex-direction: column; gap: 0.85rem; }
+.rpp-field { display: flex; flex-direction: column; gap: 0.25rem; }
+.rpp-label { font-size: var(--text-xs); font-weight: 600; color: var(--text-secondary); }
+
+.rpp-toggle { display: flex; gap: 0.5rem; }
+.rpp-toggle-btn {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.35rem;
+  padding: 0.55rem; border: 1px solid var(--border-glass); border-radius: var(--radius-sm);
+  background: var(--bg-glass); color: var(--text-muted); font-size: var(--text-xs);
+  font-weight: 600; cursor: pointer; font-family: inherit; transition: all var(--transition-fast);
+}
+.rpp-toggle-btn:hover { border-color: var(--border-glass-hover); color: var(--text-secondary); }
+.rpp-toggle-btn--active { border-color: var(--accent-gold); background: var(--accent-gold-subtle); color: var(--accent-gold); }
+
+.rpp-input-wrap { display: flex; align-items: center; gap: 0.6rem; background: var(--bg-glass); border: 1px solid var(--border-glass); border-radius: var(--radius-sm); padding: 0 0.85rem; transition: all var(--transition-fast); }
+.rpp-input-wrap:focus-within { border-color: var(--accent-violet); box-shadow: 0 0 0 3px var(--accent-violet-subtle); }
+.rpp-input-wrap i { font-size: 1rem; color: var(--text-muted); flex-shrink: 0; }
+.rpp-input-wrap--err { border-color: #e74c3c !important; }
+.rpp-input-sign { font-weight: 600; color: var(--text-muted); font-size: var(--text-sm); }
+.rpp-input { flex: 1; padding: 0.55rem 0; font-size: var(--text-sm); font-family: inherit; color: var(--text-primary); background: transparent; border: none; outline: none; }
+.rpp-input::placeholder { color: var(--text-muted); font-size: var(--text-xs); }
+.rpp-err { font-size: 0.72rem; color: #f87171; margin: 0.15rem 0 0; }
+.rpp-hint { font-size: 0.72rem; color: var(--text-muted); margin: 0.15rem 0 0; }
+
+.rpp-metodos { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+.rpp-metodo-btn {
+  display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border-glass); border-radius: var(--radius-sm);
+  background: var(--bg-glass); cursor: pointer; font-family: inherit;
+  transition: all var(--transition-fast); position: relative;
+}
+.rpp-metodo-btn:hover { border-color: var(--border-glass-hover); }
+.rpp-metodo-btn--sel { border-color: var(--met-color) !important; background: var(--met-bg) !important; }
+.rpp-metodo-icon { width: 1.6rem; height: 1.6rem; border-radius: var(--radius-xs); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; flex-shrink: 0; }
+.rpp-metodo-label { font-size: var(--text-xs); font-weight: 500; color: var(--text-secondary); flex: 1; }
+.rpp-metodo-check { font-size: 1rem; color: var(--met-color); }
+
+.rpp-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.7rem 1.25rem; font-size: var(--text-sm); font-weight: 600; border-radius: var(--radius-sm); cursor: pointer; flex: 1; font-family: inherit; transition: all var(--transition-base); }
+.rpp-btn--primary { background: var(--accent-gold); color: #1a1a1a; border: none; box-shadow: var(--shadow-gold); }
+.rpp-btn--primary:hover { background: var(--accent-gold-light); transform: translateY(-1px); }
+.rpp-btn--primary:disabled { opacity: 0.4; cursor: not-allowed; }
+.rpp-btn--outline { background: transparent; color: var(--text-secondary); border: 1px solid var(--border-glass); }
+.rpp-btn--outline:hover { background: var(--bg-glass-hover); color: var(--text-primary); }
+
+@media (max-width: 480px) {
+  .rpp-metodos { grid-template-columns: 1fr; }
+  .rpp-toggle { flex-direction: column; }
+}
