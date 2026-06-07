@@ -6,7 +6,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { FiDollarSign, FiPlus, FiCalendar, FiUser, FiCheckCircle } from 'react-icons/fi';
+import { FiDollarSign, FiPlus, FiUser, FiCheckCircle } from 'react-icons/fi';
 import { getPagosByPedido, createPagoPedido } from '../../services/pagosService';
 import { getStoredUser } from '../../../../utils/session';
 import LoadingOverlay from '../../../../components/ui/feedback/LoadingOverlay';
@@ -63,8 +63,6 @@ const Pagos = () => {
     monto: '',
     metodo: '',
     metodo_otro: '',
-    fecha: new Date().toISOString().split('T')[0],
-    notas: '',
   });
 
   // Cálculos
@@ -111,15 +109,18 @@ const Pagos = () => {
       errs.metodo_otro = 'Especifica el método de pago';
     }
 
-    if (!values.fecha) {
-      errs.fecha = 'Selecciona la fecha del pago';
-    }
-
     return errs;
   }, [saldoRestante]);
 
   // ── Handlers ──
   const setField = (name, value) => {
+    // Auto-clamp monto al saldo restante
+    if (name === 'monto' && value) {
+      const num = Number(value);
+      if (num > saldoRestante) {
+        value = String(saldoRestante);
+      }
+    }
     setForm((prev) => ({ ...prev, [name]: value }));
     if (touched[name]) {
       const newForm = { ...form, [name]: value };
@@ -137,7 +138,7 @@ const Pagos = () => {
   const handleSubmit = async () => {
     const newErrors = validate(form);
     setErrors(newErrors);
-    setTouched({ monto: true, metodo: true, metodo_otro: true, fecha: true });
+    setTouched({ monto: true, metodo: true, metodo_otro: true });
 
     if (Object.keys(newErrors).length > 0) return;
 
@@ -158,8 +159,6 @@ const Pagos = () => {
         monto: '',
         metodo: '',
         metodo_otro: '',
-        fecha: new Date().toISOString().split('T')[0],
-        notas: '',
       });
       setErrors({});
       setTouched({});
@@ -318,39 +317,7 @@ const Pagos = () => {
               </div>
             )}
 
-            {/* Fecha */}
-            <div className={styles.formField}>
-              <label className={styles.formLabel}>Fecha del pago</label>
-              <div className={`${styles.inputWrap} ${hasError('fecha') ? styles.inputWrapErr : ''}`}>
-                <FiCalendar className={styles.inputIcon} />
-                <input
-                  type="date"
-                  className={styles.formInput}
-                  value={form.fecha}
-                  onChange={(e) => setField('fecha', e.target.value)}
-                  onBlur={() => handleBlur('fecha')}
-                  disabled={isBlocked}
-                />
-              </div>
-              {hasError('fecha') && <span className={styles.fieldError}>{errors.fecha}</span>}
-            </div>
 
-            {/* Notas */}
-            <div className={`${styles.formField} ${styles.formFieldFull}`}>
-              <label className={styles.formLabel}>Notas (opcional)</label>
-              <div className={styles.inputWrap}>
-                <i className={`ti ti-notes ${styles.inputIcon}`} />
-                <input
-                  type="text"
-                  maxLength="255"
-                  className={styles.formInput}
-                  placeholder="Observaciones del pago..."
-                  value={form.notas}
-                  onChange={(e) => setField('notas', e.target.value)}
-                  disabled={isBlocked}
-                />
-              </div>
-            </div>
 
             {/* Acciones */}
             {!isBlocked && (
@@ -373,8 +340,6 @@ const Pagos = () => {
                       monto: '',
                       metodo: '',
                       metodo_otro: '',
-                      fecha: new Date().toISOString().split('T')[0],
-                      notas: '',
                     });
                     setErrors({});
                     setTouched({});
