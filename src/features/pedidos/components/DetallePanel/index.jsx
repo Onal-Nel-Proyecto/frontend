@@ -204,7 +204,7 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle }) => {
           onClose: () => { setAlert(null); window.location.reload(); },
         });
       } else {
-        setAlert({ type: 'error', title: 'Error', message: resp?.msg || 'Error al guardar' });
+        setAlert({ type: 'error', title: 'Error', message: resp?.msg || 'Error al guardar', onClose: () => setAlert(null) });
       }
     } catch (err) {
       setLoading(false);
