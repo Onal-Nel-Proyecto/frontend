@@ -26,3 +26,64 @@ export const changeEstadoVenta = async (id, estado) => {
   const response = await axiosInstance.patch(VENTAS_ENDPOINTS.CHANGE_STATUS(id), { estado });
   return response.data;
 };
+
+/**
+ * Normaliza la respuesta del backend extrayendo la propiedad `data`
+ * si existe (patrón común: { data: { ... }, message, status }).
+ */
+const normalizarRespuesta = (raw) => {
+  if (!raw) return raw;
+  if (
+    raw.data &&
+    typeof raw.data === 'object' &&
+    !Array.isArray(raw.data) &&
+    (raw.data.resumen || raw.data.topProductos || raw.data.ventasPorDia)
+  ) {
+    return raw.data;
+  }
+  return raw;
+};
+
+// ── REPORTES ──
+
+export const getReporteVentasMensual = async (mes, anio) => {
+  const response = await axiosInstance.get(VENTAS_ENDPOINTS.REPORTE_MENSUAL, {
+    params: { mes, anio },
+  });
+  return normalizarRespuesta(response.data);
+};
+
+export const getReporteVentasPeriodo = async (fechaInicio, fechaFin) => {
+  const response = await axiosInstance.get(VENTAS_ENDPOINTS.REPORTE_PERIODO, {
+    params: { fechaInicio, fechaFin },
+  });
+  return normalizarRespuesta(response.data);
+};
+
+export const exportReporteMensualPDF = async (mes, anio) => {
+  return axiosInstance.get(VENTAS_ENDPOINTS.REPORTE_MENSUAL_PDF, {
+    params: { mes, anio },
+    responseType: 'blob',
+  });
+};
+
+export const exportReportePeriodoPDF = async (fechaInicio, fechaFin) => {
+  return axiosInstance.get(VENTAS_ENDPOINTS.REPORTE_PERIODO_PDF, {
+    params: { fechaInicio, fechaFin },
+    responseType: 'blob',
+  });
+};
+
+export const exportReporteMensualExcel = async (mes, anio) => {
+  return axiosInstance.get(VENTAS_ENDPOINTS.REPORTE_MENSUAL_EXCEL, {
+    params: { mes, anio },
+    responseType: 'blob',
+  });
+};
+
+export const exportReportePeriodoExcel = async (fechaInicio, fechaFin) => {
+  return axiosInstance.get(VENTAS_ENDPOINTS.REPORTE_PERIODO_EXCEL, {
+    params: { fechaInicio, fechaFin },
+    responseType: 'blob',
+  });
+};

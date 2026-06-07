@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import NewClientPanel   from '../page/RegisterClient'
 import ContactTable     from '../components/table/ContactTable'
 import { useClientes }  from '../hooks/useClientes'
@@ -6,8 +7,16 @@ import ViewClientModal   from '../components/ui/feedback/ViewClientModal/ViewCli
 import './ClientDirectory.css'
 
 const ClientDirectory = () => {
+  const location = useLocation();
   const [showRegister, setShowRegister] = useState(false)
   const [clienteEditando, setClienteEditando] = useState(null)
+
+  useEffect(() => {
+    if (location.state?.openForm) {
+      setShowRegister(true);
+      window.history.replaceState(null, '');
+    }
+  }, []);
   const [clienteViendo, setClienteViendo] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const {

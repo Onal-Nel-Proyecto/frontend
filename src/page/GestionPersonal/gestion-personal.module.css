@@ -38,3 +38,39 @@
   .title { font-size: var(--text-xl); }
   .card { padding: 2rem; }
 }
+
+@media (max-width: 480px) {
+  .page {
+    gap: 1.25rem;
+  }
+
+  .title {
+    font-size: 1.4rem;
+  }
+
+  .card {
+    padding: 1.25rem;
+    border-radius: 1.25rem;
+  }
+
+  .iconWrapper {
+    width: 2.75rem;
+    height: 2.75rem;
+    font-size: 1.3rem;
+    margin-bottom: 0.85rem;
+    border-radius: 0.85rem;
+  }
+
+  .cardTitle {
+    font-size: 1.15rem;
+  }
+
+  .cardDescription {
+    font-size: 0.85rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .grid {
+    gap: 1rem;
+  }
+}

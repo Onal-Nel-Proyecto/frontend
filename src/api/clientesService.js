@@ -57,3 +57,11 @@ export const changeStatus = async (id, estado) => {
   });
   return response.data; // { status, msg }
 };
+
+/** GET /clientes?search= — buscar clientes por nombre/apellido */
+export const searchClientes = async (search, limite = 10) => {
+  const response = await axiosInstance.get(CLIENTES_ENDPOINTS.GET_ALL, {
+    params: { search, limite },
+  });
+  return response.data; // { meta: {...}, data: [...] }
+};

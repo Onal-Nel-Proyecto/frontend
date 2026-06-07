@@ -140,13 +140,13 @@
 
 /* ── Visibility ── */
 
-@media (max-width: 1024px) {
+@media (max-width: 1023px) {
   .navDesktop {
     display: none;
   }
 }
 
-@media (min-width: 1025px) {
+@media (min-width: 1024px) {
   .navMobile {
     display: none;
   }

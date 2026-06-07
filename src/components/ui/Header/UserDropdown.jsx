@@ -2,37 +2,21 @@
 // UserDropdown — Menú contextual del usuario
 // Aparece al hacer clic en el icono FiUser del Header.
 // Muestra: avatar, nombre completo, rol del usuario y botón
-// "Cerrar sesión". Maneja logout limpio (cookies + sessionStorage).
+// "Cerrar sesión". Maneja logout limpio (cookies + AuthContext).
 // ================================================================
 
 import { useState, useRef, useEffect } from 'react';
-import { FiLogOut, FiUser } from 'react-icons/fi';
+import { FiLogOut, FiUser, FiHelpCircle } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import Card from '../../common/Card';
-import { logoutUser } from '../../../features/auth/services/authService';
+import { useAuthContext } from '../../../context/AuthContext';
 import styles from './userDropdown.module.css';
 
 const UserDropdown = () => {
   const [open, setOpen] = useState(false);
-  const [user, setUser] = useState(null);
   const ref = useRef(null);
   const navigate = useNavigate();
-
-  // Leer usuario desde sessionStorage y escuchar actualizaciones
-  const syncUser = () => {
-    try {
-      const raw = sessionStorage.getItem("user");
-      setUser(raw ? JSON.parse(raw) : null);
-    } catch {
-      setUser(null);
-    }
-  };
-
-  useEffect(() => {
-    syncUser();
-    window.addEventListener("userUpdate", syncUser);
-    return () => window.removeEventListener("userUpdate", syncUser);
-  }, []);
+  const { user, logout } = useAuthContext();
 
   // Cerrar menú al hacer clic fuera del componente
   useEffect(() => {
@@ -46,15 +30,9 @@ const UserDropdown = () => {
     return () => document.removeEventListener("mousedown", handleClick);
   }, [open]);
 
-  // Cerrar sesión: llama al backend, limpia sessionStorage y redirige
+  // Cerrar sesión: usa AuthContext (backend invalida cookie + limpia estado local)
   const handleLogout = async () => {
-    try {
-      await logoutUser();          // limpia cookies en el backend
-    } catch {
-      /* incluso si falla el backend, limpiamos sesión local */
-    }
-    sessionStorage.removeItem("user");
-    window.dispatchEvent(new Event("userUpdate"));
+    await logout();
     navigate("/login");
   };
 
@@ -88,6 +66,12 @@ const UserDropdown = () => {
                   </p>
                 </div>
               </div>
+
+              {/* Ayuda (solo móvil) */}
+              <button className={styles.helpBtn} title="Ayuda / Help">
+                <FiHelpCircle />
+                Ayuda / Help
+              </button>
 
               {/* Botón de cerrar sesión */}
               <button className={styles.logoutBtn} onClick={handleLogout}>

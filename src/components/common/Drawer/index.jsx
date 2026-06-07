@@ -6,9 +6,11 @@
 import { useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { FiX } from 'react-icons/fi';
+import { useFocusTrap } from '../../../hooks/useFocusTrap';
 import styles from './drawer.module.css';
 
 const Drawer = ({ isOpen, onClose, title, subtitle, icon, children, footer }) => {
+  const drawerRef = useFocusTrap(isOpen);
   const handleKeyDown = useCallback((e) => {
     if (e.key === 'Escape') onClose();
   }, [onClose]);
@@ -32,7 +34,7 @@ const Drawer = ({ isOpen, onClose, title, subtitle, icon, children, footer }) =>
 
   return createPortal(
     <div className={styles.overlay} onClick={handleOverlay}>
-      <div className={styles.drawer}>
+      <div className={styles.drawer} ref={drawerRef}>
         {/* Header */}
         <div className={styles.header}>
           <div className={styles.headerLeft}>
@@ -42,7 +44,7 @@ const Drawer = ({ isOpen, onClose, title, subtitle, icon, children, footer }) =>
               {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
             </div>
           </div>
-          <button className={styles.closeBtn} onClick={onClose} aria-label="Cerrar">
+          <button className={styles.closeBtn} onClick={onClose} aria-label="Cerrar" autoFocus>
             <FiX />
           </button>
         </div>

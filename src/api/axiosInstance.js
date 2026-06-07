@@ -56,6 +56,9 @@ axiosInstance.interceptors.response.use(
     // ❌ Si la petición que falló es el propio refresh, no reintentar
     if (originalRequest.url === AUTH_ENDPOINTS.REFRESH) {
       clearSession();
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
       return Promise.reject(error);
     }
 
@@ -94,8 +97,21 @@ axiosInstance.interceptors.response.use(
 
         clearSession();
 
+        // Redirigir al login solo si no estamos ya ahí (evita bucle infinito)
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
+
         return Promise.reject(refreshError);
       }
+    }
+
+    // Error de red (sin conexión / backend caído)
+    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNABORTED' || !error.response) {
+      window.dispatchEvent(new Event('connectionError'));
+    } else if (error.response?.status < 500) {
+      // Si el backend responde normalmente, recovery implícito
+      window.dispatchEvent(new Event('connectionRecover'));
     }
 
     // Acceso denegado (sin permisos)
