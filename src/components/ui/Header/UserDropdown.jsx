@@ -6,10 +6,11 @@
 // ================================================================
 
 import { useState, useRef, useEffect } from 'react';
-import { FiLogOut, FiUser, FiHelpCircle } from 'react-icons/fi';
+import { FiLogOut, FiUser, FiHelpCircle, FiSun, FiMoon } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import Card from '../../common/Card';
 import { useAuthContext } from '../../../context/AuthContext';
+import { useTheme } from '../../../context/ThemeContext';
 import styles from './userDropdown.module.css';
 
 const UserDropdown = () => {
@@ -17,6 +18,7 @@ const UserDropdown = () => {
   const ref = useRef(null);
   const navigate = useNavigate();
   const { user, logout } = useAuthContext();
+  const { theme, toggleTheme } = useTheme();
 
   // Cerrar menú al hacer clic fuera del componente
   useEffect(() => {
@@ -66,6 +68,12 @@ const UserDropdown = () => {
                   </p>
                 </div>
               </div>
+
+              {/* Tema oscuro/claro (solo móvil) */}
+              <button className={styles.themeBtn} onClick={toggleTheme} title={theme === 'light' ? 'Modo oscuro' : 'Modo claro'}>
+                {theme === 'light' ? <FiMoon /> : <FiSun />}
+                {theme === 'light' ? 'Modo oscuro' : 'Modo claro'}
+              </button>
 
               {/* Ayuda (solo móvil) */}
               <button className={styles.helpBtn} title="Ayuda / Help">

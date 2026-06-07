@@ -2,57 +2,366 @@
    DetallePanel — Dark theme
    ═══════════════════════════════════════════ */
 
-.viewContent { display: flex; flex-direction: column; gap: 1.25rem; }
-.viewId { font-size: var(--text-sm); font-weight: 600; color: var(--text-primary); padding: 0.4rem 0.75rem; background: var(--bg-glass); border: 1px solid var(--border-glass); border-radius: var(--radius-xs); display: inline-block; align-self: flex-start; }
-.viewSection { display: flex; flex-direction: column; gap: 0.5rem; }
-.viewSectionTitle { font-size: var(--text-xs); font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; margin: 0; }
-.viewGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
-.viewItem { display: flex; flex-direction: column; gap: 0.15rem; }
-.viewLabel { font-size: 0.7rem; color: var(--text-muted); }
-.viewValue { font-size: var(--text-sm); font-weight: 600; color: var(--text-primary); }
-.viewObs { font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.5; margin: 0; }
-.medidasGrid { display: flex; flex-direction: column; gap: 0.4rem; }
-.medidaItem { display: flex; align-items: center; justify-content: space-between; padding: 0.4rem 0.65rem; background: var(--bg-glass); border: 1px solid var(--border-glass); border-radius: var(--radius-xs); }
-.medidaNombre { font-size: var(--text-sm); color: var(--text-secondary); }
-.medidaValor { font-size: var(--text-sm); font-weight: 600; color: var(--text-primary); }
+/* ───────────────────────────────────────
+   VISTA (read-only)
+   ─────────────────────────────────────── */
 
-.btnEdit { width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.6rem 1rem; border: none; border-radius: var(--radius-xs); background: var(--accent-gold); color: #1a1a1a; font-size: var(--text-sm); font-weight: 600; cursor: pointer; transition: all var(--transition-base); box-shadow: var(--shadow-gold); }
-.btnEdit:hover { background: var(--accent-gold-light); transform: translateY(-1px); box-shadow: var(--shadow-gold-lg); }
-
-/* Form */
-.form { display: flex; flex-direction: column; gap: 1.25rem; }
-.formSection { display: flex; flex-direction: column; gap: 0.5rem; }
-.formSectionTitle { font-size: var(--text-xs); font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; margin: 0; }
-.field { display: flex; flex-direction: column; gap: 0.25rem; flex: 1; }
-.fieldRow { display: flex; gap: 0.75rem; }
-.label { font-size: var(--text-xs); font-weight: 600; color: var(--text-secondary); }
-.inputWrap { position: relative; }
-
-.input, .select, .textarea {
-  width: 100%; padding: 0.55rem 0.75rem;
-  border: 1px solid var(--border-glass); border-radius: var(--radius-xs);
-  background: var(--bg-glass); font-size: var(--text-sm);
-  color: var(--text-primary); font-family: inherit;
-  transition: all var(--transition-fast);
+.viewContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
 }
-.select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b6975' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; cursor: pointer; }
-.select option { background: var(--bg-surface); color: var(--text-primary); }
-.textarea { resize: vertical; min-height: 50px; }
-.input:focus, .select:focus, .textarea:focus { outline: none; border-color: var(--accent-violet); background: var(--bg-glass-active); box-shadow: 0 0 0 3px var(--accent-violet-subtle); }
-.inputError { border-color: #dc2626 !important; background: rgba(239,68,68,0.06) !important; }
-.fieldError { font-size: 0.72rem; color: #f87171; }
-.inputSuffix { position: absolute; right: 10px; font-size: var(--text-xs); color: var(--text-muted); pointer-events: none; }
 
-.medidaRow { display: flex; gap: 0.5rem; align-items: center; }
-.medidaRow .select { flex: 1; }
-.medidaInputWrap { position: relative; flex: 0 0 100px; }
-.medidaInputWrap .input { padding-right: 2.2rem; }
-.btnRemove { width: 2rem; height: 2rem; border: none; border-radius: var(--radius-full); background: transparent; color: var(--text-muted); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.9rem; flex-shrink: 0; transition: all var(--transition-fast); }
-.btnRemove:hover { color: #f87171; background: rgba(239,68,68,0.1); }
-.btnAddMedida { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.45rem 0.85rem; border: 1.5px dashed var(--border-glass); border-radius: var(--radius-xs); background: transparent; color: var(--text-muted); font-size: var(--text-xs); font-weight: 500; cursor: pointer; transition: all var(--transition-fast); align-self: flex-start; }
-.btnAddMedida:hover { border-color: var(--accent-violet); color: var(--accent-violet); }
+.viewId {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+  padding: 0.4rem 0.75rem;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-xs);
+  display: inline-block;
+  align-self: flex-start;
+}
 
-.btnOutline { flex: 1; padding: 0.6rem 1rem; border: 1px solid var(--border-glass); border-radius: var(--radius-xs); background: transparent; color: var(--text-secondary); font-size: var(--text-sm); font-weight: 600; cursor: pointer; transition: all var(--transition-fast); }
-.btnOutline:hover { background: var(--bg-glass-hover); color: var(--text-primary); }
-.btnSave { flex: 1; padding: 0.6rem 1rem; border: none; border-radius: var(--radius-xs); background: var(--accent-gold); color: #1a1a1a; font-size: var(--text-sm); font-weight: 600; cursor: pointer; transition: all var(--transition-base); box-shadow: var(--shadow-gold); }
-.btnSave:hover { background: var(--accent-gold-light); transform: translateY(-1px); box-shadow: var(--shadow-gold-lg); }
+.viewSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.viewSectionTitle {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0;
+}
+
+.viewGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.viewItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.viewLabel {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.viewValue {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.viewObs {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.medidasGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.medidaItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 0.65rem;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-xs);
+}
+
+.medidaNombre {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.medidaValor {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* ── Botón editar (vista) ── */
+
+.btnEdit {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: var(--radius-xs);
+  background: #695B58;
+  color: #f5f0ef;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.btnEdit:hover {
+  background: #5a4d4a;
+  transform: translateY(-1px);
+}
+
+/* ───────────────────────────────────────
+   FORMULARIO (crear / editar)
+   ─────────────────────────────────────── */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.formSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.formSectionTitle {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.fieldRow {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border: 0.5px solid var(--border-glass);
+  border-radius: var(--radius-xs);
+  background: var(--bg-elevated);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  transition: border-color 0.2s ease;
+  font-family: inherit;
+}
+
+.select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  cursor: pointer;
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 50px;
+  max-height: 70px;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: none;
+  border-color: var(--text-muted);
+  background: var(--bg-elevated);
+}
+
+.inputError {
+  border-color: #dc2626;
+  background: rgba(220, 38, 38, 0.08);
+}
+
+.fieldError {
+  font-size: 0.72rem;
+  color: #dc2626;
+}
+
+.inputSuffix {
+  position: absolute;
+  right: 10px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+/* ── Medidas ── */
+
+.medidaRow {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.medidaRow .select {
+  flex: 1;
+}
+
+.medidaInputWrap {
+  position: relative;
+  flex: 0 0 100px;
+}
+
+.medidaInputWrap .input {
+  padding-right: 2.2rem;
+}
+
+.btnRemove {
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.btnRemove:hover {
+  color: #dc2626;
+  background: rgba(220, 38, 38, 0.08);
+}
+
+.btnAddMedida {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.85rem;
+  border: 1.5px dashed var(--border-glass);
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+  align-self: flex-start;
+}
+
+.btnAddMedida:hover {
+  border-color: var(--border-glass-hover);
+  color: var(--text-secondary);
+}
+
+/* ── Botones footer ── */
+
+.btnOutline {
+  flex: 1;
+  padding: 0.6rem 1rem;
+  border: 0.5px solid var(--border-glass);
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btnOutline:hover {
+  background: var(--bg-glass);
+}
+
+.btnSave {
+  flex: 1;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: var(--radius-xs);
+  background: #695B58;
+  color: #f5f0ef;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.btnSave:hover {
+  background: #5a4d4a;
+  transform: translateY(-1px);
+}
+
+/* ── Botón "Usar plantilla" ── */
+
+.productoNombreRow {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.productoNombreRow .input {
+  flex: 1;
+}
+
+.templateBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.55rem 0.75rem;
+  border: 0.5px solid var(--border-glass);
+  border-radius: var(--radius-xs);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.templateBtn:hover {
+  background: #695B58;
+  color: #fff;
+  border-color: #695B58;
+}
+
+.templateBtn svg {
+  font-size: 0.9rem;
+}
+
+/* ── Contenedor del buscador de productos ── */
+
+.templateSearchWrap {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem;
+  margin-top: 0.25rem;
+}
