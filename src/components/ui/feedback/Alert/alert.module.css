@@ -10,7 +10,7 @@
   justify-content: center;
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(6px);
-  z-index: 999;
+  z-index: 10000;
   padding: 1rem;
   animation: alertFadeIn 0.2s var(--ease-out);
 }
