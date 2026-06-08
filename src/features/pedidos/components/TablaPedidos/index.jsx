@@ -224,6 +224,34 @@ const TablaPedidos = () => {
                 <option value="modificaciones">Modificaciones</option>
               </select>
 
+              <label className={styles.filterLabel}>Tipo de prenda</label>
+              <select
+                className={styles.filterInput}
+                value={filtros.tipo_prenda}
+                onChange={(e) => setFiltros((prev) => ({ ...prev, tipo_prenda: e.target.value }))}
+              >
+                <option value="">Todos</option>
+                <option value="CAMISA">Camisa</option>
+                <option value="CAMISETA">Camiseta</option>
+                <option value="POLO">Polo</option>
+                <option value="PANTALON">Pantalón</option>
+                <option value="JEAN">Jean</option>
+                <option value="BERMUDA">Bermuda</option>
+                <option value="SHORT">Short</option>
+                <option value="FALDA">Falda</option>
+                <option value="VESTIDO">Vestido</option>
+                <option value="CHAQUETA">Chaqueta</option>
+                <option value="BUSO">Buso</option>
+                <option value="SUDADERA">Sudadera</option>
+                <option value="HOODIE">Hoodie</option>
+                <option value="OVEROL">Overol</option>
+                <option value="DELANTAL">Delantal</option>
+                <option value="UNIFORME">Uniforme</option>
+                <option value="DOTACION">Dotación</option>
+                <option value="GORRA">Gorra</option>
+                <option value="OTRO">Otro</option>
+              </select>
+
               <label className={styles.filterLabel}>Estado del pedido</label>
               <select
                 className={styles.filterInput}
@@ -276,7 +304,7 @@ const TablaPedidos = () => {
               <button
                 className={styles.filterClearBtn}
                 onClick={() => {
-                  setFiltros({ fecha_desde: '', fecha_hasta: '', tipo_pedido: '', estado_pago: '', fecha_entrega_desde: '', fecha_entrega_hasta: '' });
+                  setFiltros({ fecha_desde: '', fecha_hasta: '', tipo_pedido: '', tipo_prenda: '', estado_pago: '', fecha_entrega_desde: '', fecha_entrega_hasta: '' });
                   setFiltrosActivos(null);
                   setPagAct(1);
                   setShowFiltros(false);

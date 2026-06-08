@@ -12,7 +12,7 @@ import { getPedidos } from "../services/pedidosService";
 import { useCancelPedido } from "./useCancelPedido";
 
 const FILTER_KEYS = [
-  "fecha_desde", "fecha_hasta", "tipo_pedido", "estado_pago",
+  "fecha_desde", "fecha_hasta", "tipo_pedido", "tipo_prenda", "estado_pago",
   "estado", "fecha_entrega_desde", "fecha_entrega_hasta",
 ];
 
@@ -101,6 +101,7 @@ export const usePedidosTable = () => {
     fecha_desde: searchParams.get("fecha_desde") || "",
     fecha_hasta: searchParams.get("fecha_hasta") || "",
     tipo_pedido: searchParams.get("tipo_pedido") || "",
+    tipo_prenda: searchParams.get("tipo_prenda") || "",
     estado_pago: searchParams.get("estado_pago") || "",
     estado: searchParams.get("estado") || "",
     fecha_entrega_desde: searchParams.get("fecha_entrega_desde") || "",
