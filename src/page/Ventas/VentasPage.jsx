@@ -5,6 +5,7 @@ import { useVentas } from '../../hooks/useVentas'
 import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 import RegistrarPago from './RegistrarPago'
 import VentaForm from './VentaForm'
+import { downloadFacturaPdf } from '../../api/ventasService'
 import './VentasPage.css'
 
 // ── Los datos se cargan desde useVentas (API con fallback local) ──
@@ -25,90 +26,10 @@ const ProgressBar = ({ current, total }) => {
   )
 }
 
-// ── Generar factura (imprimible) ─────────────
-const generarFactura = (venta) => {
-  const hoy = new Date().toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' })
-  const saldo = Math.max(0, venta.total - venta.abonado)
-
-  const facturaHTML = `
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Factura — ${venta.pedido_id}</title>
-  <style>
-    @page { margin: 15mm; }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #fff; color: #1a1a1a; line-height: 1.5;
-      padding: 2rem;
-    }
-    .wrap { max-width: 800px; margin: 0 auto; }
-    .hdr { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 2px solid #C9A23D; }
-    .logo h1 { font-size: 1.8rem; font-weight: 800; color: #1a1a1a; letter-spacing: -0.03em; }
-    .logo p { font-size: 0.8rem; color: #666; }
-    .info { text-align: right; }
-    .info h2 { font-size: 1.4rem; color: #C9A23D; margin-bottom: 4px; }
-    .info p { font-size: 0.8rem; color: #666; }
-    .cli { margin-bottom: 1.5rem; padding: 1rem 1.25rem; background: #f8f6fc; border-radius: 12px; }
-    .cli h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: #999; margin-bottom: 6px; }
-    .cli p { font-size: 0.95rem; color: #1a1a1a; font-weight: 500; }
-    table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
-    thead th { text-align: left; padding: 0.7rem 0.5rem; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: #999; border-bottom: 1px solid #eee; }
-    tbody td { padding: 0.7rem 0.5rem; font-size: 0.85rem; border-bottom: 1px solid #f0f0f0; }
-    .tr { border-top: 2px solid #C9A23D; font-weight: 700; }
-    .tr td { padding-top: 1rem; }
-    .r { text-align: right; }
-    .c { text-align: center; }
-    .ft { margin-top: 2.5rem; text-align: center; font-size: 0.75rem; color: #999; border-top: 1px solid #eee; padding-top: 1.5rem; }
-    .resumen { display: flex; justify-content: flex-end; gap: 2rem; margin-top: 1rem; font-size: 0.9rem; }
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <div class="hdr">
-      <div class="logo"><h1>ona&nel</h1><p>Atelier de Moda</p></div>
-      <div class="info">
-        <h2>FACTURA</h2>
-        <p>N° ${venta.pedido_id}</p>
-        <p>Fecha: ${hoy}</p>
-      </div>
-    </div>
-    <div class="cli">
-      <h3>Cliente</h3>
-      <p>${venta.cliente}</p>
-    </div>
-    <table>
-      <thead><tr><th>Descripción</th><th class="c">Cant.</th><th class="r">Precio Unit.</th><th class="r">Subtotal</th></tr></thead>
-      <tbody>
-        <tr>
-          <td>${venta.descripcion || 'Producto'}</td>
-          <td class="c">1</td>
-          <td class="r">${fmt(venta.total)}</td>
-          <td class="r">${fmt(venta.total)}</td>
-        </tr>
-      </tbody>
-    </table>
-    <div class="resumen">
-      <div><strong>Total:</strong> ${fmt(venta.total)}</div>
-      <div><strong>Abonado:</strong> ${fmt(venta.abonado)}</div>
-      <div><strong>${saldo > 0 ? 'Saldo pendiente:' : 'Estado:'}</strong> ${saldo > 0 ? fmt(saldo) : '✓ Pagado'}</div>
-    </div>
-    <div class="ft">
-      <p>ona&nel Atelier — Gracias por su preferencia</p>
-      <p style="margin-top:4px">Factura generada el ${hoy}</p>
-    </div>
-  </div>
-  <script>window.onload=function(){window.print()}<\/script>
-</body>
-</html>`
-
-  const win = window.open('', '_blank')
-  if (win) {
-    win.document.write(facturaHTML)
-    win.document.close()
-  }
+// ── Descargar factura PDF desde el backend ──
+const handleDownloadFactura = (venta) => {
+  const id = venta.pedido_id || venta.id
+  downloadFacturaPdf(id)
 }
 
 const VentasPage = () => {
@@ -307,7 +228,7 @@ const VentasPage = () => {
                 <td>
                   <button
                     className="vtas-btn-factura"
-                    onClick={(e) => { e.stopPropagation(); generarFactura(v) }}
+                    onClick={(e) => { e.stopPropagation(); handleDownloadFactura(v) }}
                     title="Generar factura"
                   >
                     <FiFileText size={14} />

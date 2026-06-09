@@ -4,6 +4,8 @@ import NewClientPanel   from '../page/RegisterClient'
 import ContactTable     from '../components/table/ContactTable'
 import { useClientes }  from '../hooks/useClientes'
 import ViewClientModal   from '../components/ui/feedback/ViewClientModal/ViewClientModal'
+import Alert from '../components/ui/feedback/Alert'
+import { changeStatus } from '../api/clientesService'
 import './ClientDirectory.css'
 
 const ClientDirectory = () => {
@@ -19,6 +21,7 @@ const ClientDirectory = () => {
   }, []);
   const [clienteViendo, setClienteViendo] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [alert, setAlert] = useState(null)
   const {
     clientes,
     meta,
@@ -63,6 +66,17 @@ const ClientDirectory = () => {
   const handleDeleteCliente = (cliente) => {
     if (window.confirm(`¿Eliminar a "${cliente.name}"?`)) {
       deleteCliente(cliente.id)
+    }
+  }
+
+  // ── REACTIVAR ───────────────────────────
+  const handleReactivateCliente = async (cliente) => {
+    try {
+      await changeStatus(cliente.id, 'activo')
+      setAlert({ type: 'success', title: 'Cliente reactivado', message: `${cliente.name} ahora está activo.`, onClose: () => setAlert(null) })
+      loadClientes()
+    } catch (err) {
+      setAlert({ type: 'error', title: 'Error', message: err?.response?.data?.message || 'No se pudo reactivar el cliente', onClose: () => setAlert(null) })
     }
   }
 
@@ -137,6 +151,7 @@ const ClientDirectory = () => {
           onView={handleViewCliente}
           onEdit={handleEditCliente}
           onDelete={handleDeleteCliente}
+          onReactivate={handleReactivateCliente}
           totalClientes={filteredClientes.length}
         />
       </div>
@@ -159,6 +174,7 @@ const ClientDirectory = () => {
         />
       )}
 
+      {alert && <Alert type={alert.type} title={alert.title} message={alert.message} onClose={alert.onClose} />}
     </div>
   )
 }

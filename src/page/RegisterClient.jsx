@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
+import Alert from '../../components/ui/feedback/Alert'
 import './RegisterClient.css'
 
 const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
@@ -13,6 +14,7 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
   const [guardando, setGuardando] = useState(false)
+  const [alert, setAlert] = useState(null)
   const [errorForm, setErrorForm] = useState(null)
 
   const SOLO_LETRAS = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/
@@ -28,26 +30,26 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
     else if (nom.length > 60) errs.nombres = 'Máximo 60 caracteres'
     else if (!SOLO_LETRAS.test(nom)) errs.nombres = 'Solo letras, sin números'
 
+    // Apellidos opcional
     const ape = form.apellidos.trim()
-    if (!ape) errs.apellidos = 'Los apellidos son obligatorios'
-    else if (ape.length < 2) errs.apellidos = 'Mínimo 2 caracteres'
-    else if (ape.length > 60) errs.apellidos = 'Máximo 60 caracteres'
-    else if (!SOLO_LETRAS.test(ape)) errs.apellidos = 'Solo letras, sin números'
+    if (ape && ape.length < 2) errs.apellidos = 'Mínimo 2 caracteres'
+    else if (ape && ape.length > 60) errs.apellidos = 'Máximo 60 caracteres'
+    else if (ape && !SOLO_LETRAS.test(ape)) errs.apellidos = 'Solo letras, sin números'
 
+    // Correo opcional
     const email = form.correo.trim()
-    if (!email) errs.correo = 'El correo es obligatorio'
-    else if (email.length > 60) errs.correo = 'Máximo 60 caracteres'
-    else if (!EMAIL_RE.test(email)) errs.correo = 'Correo electrónico inválido'
+    if (email && email.length > 60) errs.correo = 'Máximo 60 caracteres'
+    else if (email && !EMAIL_RE.test(email)) errs.correo = 'Correo electrónico inválido'
 
+    // Teléfono opcional
     const tel = form.telefono.trim()
-    if (!tel) errs.telefono = 'El teléfono es obligatorio'
-    else if (tel.length > 20) errs.telefono = 'Máximo 20 caracteres'
-    else if (!TELEFONO_RE.test(tel)) errs.telefono = 'Solo números, +, - y espacios'
+    if (tel && tel.length > 20) errs.telefono = 'Máximo 20 caracteres'
+    else if (tel && !TELEFONO_RE.test(tel)) errs.telefono = 'Solo números, +, - y espacios'
 
+    // Dirección opcional
     const dir = form.direccion.trim()
-    if (!dir) errs.direccion = 'La dirección es obligatoria'
-    else if (dir.length < 5) errs.direccion = 'Mínimo 5 caracteres'
-    else if (dir.length > 60) errs.direccion = 'Máximo 60 caracteres'
+    if (dir && dir.length < 5) errs.direccion = 'Mínimo 5 caracteres'
+    else if (dir && dir.length > 60) errs.direccion = 'Máximo 60 caracteres'
 
     return errs
   }
@@ -105,7 +107,7 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
 
     if (result.ok) {
       setForm({ nombres: '', apellidos: '', correo: '', telefono: '', direccion: '' })
-      onClose()
+      setAlert({ type: 'success', title: clienteEdit ? 'Cliente actualizado' : 'Cliente registrado', message: `Los datos de ${form.nombres.trim()} se guardaron correctamente.`, onClose: () => { setAlert(null); onClose() } })
     } else {
       setErrorForm(result.error || 'Error al guardar el cliente')
     }
@@ -117,6 +119,8 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
   }
 
   if (!isOpen) return null
+
+  const handleCloseAlert = () => setAlert(null)
 
   return createPortal(
     <div className="ncp-overlay" onClick={handleOverlayClick}>
@@ -158,6 +162,7 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
                   placeholder="María Elena"
                   value={form.nombres} onChange={handleChange} required
                 />
+              <span style={{fontSize:'0.65rem', color:'var(--text-muted)', marginLeft:'auto'}}>Obligatorio</span>
               </div>
               {errors.nombres && touched.nombres && <p className="ncp-field-err">{errors.nombres}</p>}
             </div>
@@ -169,8 +174,9 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
                   id="apellidos" name="apellidos" type="text" maxLength="60"
                   className="ncp-input"
                   placeholder="Rossi García"
-                  value={form.apellidos} onChange={handleChange} required
+                  value={form.apellidos} onChange={handleChange}
                 />
+              <span style={{fontSize:'0.65rem', color:'var(--text-muted)', marginLeft:'auto'}}>Opcional</span>
               </div>
               {errors.apellidos && touched.apellidos && <p className="ncp-field-err">{errors.apellidos}</p>}
             </div>
@@ -186,8 +192,9 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
                   id="correo" name="correo" type="email" maxLength="60"
                   className="ncp-input"
                   placeholder="ejemplo@onaandnel.com"
-                  value={form.correo} onChange={handleChange} required
+                  value={form.correo} onChange={handleChange}
                 />
+              <span style={{fontSize:'0.65rem', color:'var(--text-muted)', marginLeft:'auto'}}>Opcional</span>
               </div>
               {errors.correo && touched.correo && <p className="ncp-field-err">{errors.correo}</p>}
             </div>
@@ -203,8 +210,9 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
                   id="telefono" name="telefono" type="tel" maxLength="20"
                   className="ncp-input"
                   placeholder="+57 300 123 4567"
-                  value={form.telefono} onChange={handleChange} required
+                  value={form.telefono} onChange={handleChange}
                 />
+              <span style={{fontSize:'0.65rem', color:'var(--text-muted)', marginLeft:'auto'}}>Opcional</span>
               </div>
               {errors.telefono && touched.telefono && <p className="ncp-field-err">{errors.telefono}</p>}
             </div>
@@ -216,8 +224,9 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
                   id="direccion" name="direccion" type="text" maxLength="60"
                   className="ncp-input"
                   placeholder="Calle, número, ciudad"
-                  value={form.direccion} onChange={handleChange} required
+                  value={form.direccion} onChange={handleChange}
                 />
+              <span style={{fontSize:'0.65rem', color:'var(--text-muted)', marginLeft:'auto'}}>Opcional</span>
               </div>
               {errors.direccion && touched.direccion && <p className="ncp-field-err">{errors.direccion}</p>}
             </div>
@@ -264,6 +273,8 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
         </div>
 
       </div>
+
+      {alert && <Alert type={alert.type} title={alert.title} message={alert.message} onClose={alert.onClose || handleCloseAlert} />}
     </div>,
     document.body
   )

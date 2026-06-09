@@ -1,15 +1,13 @@
 import { useState, useEffect } from 'react'
 import { FiDollarSign } from 'react-icons/fi'
 import Drawer from '../../../../components/common/Drawer'
+import { createPagoPedido } from '../services/pagosService'
 import './RegistrarPagoPedido.css'
 
 const METODOS = [
   { id: 'efectivo', icono: 'ti ti-cash', label: 'Efectivo', color: '#2e7d32', bg: '#e8f5e9' },
   { id: 'transferencia', icono: 'ti ti-building-bank', label: 'Transferencia', color: '#7c3aed', bg: '#ede9fe' },
   { id: 'tarjeta', icono: 'ti ti-credit-card', label: 'Tarjeta', color: '#2563eb', bg: '#dbeafe' },
-  { id: 'nequi', icono: 'ti ti-device-mobile', label: 'Nequi', color: '#d946ef', bg: '#fce7f3' },
-  { id: 'daviplata', icono: 'ti ti-device-mobile-vibration', label: 'Daviplata', color: '#059669', bg: '#d1fae5' },
-  { id: 'otro', icono: 'ti ti-circle-dashed', label: 'Otro', color: '#6b7280', bg: '#f3f4f6' },
 ]
 
 const validate = (form, saldoRestante) => {
@@ -22,24 +20,22 @@ const validate = (form, saldoRestante) => {
 
   if (!form.metodo) errs.metodo = 'Selecciona un método de pago'
 
-  if (form.metodo === 'otro' && !form.metodo_otro.trim()) errs.metodo_otro = 'Especifica el método de pago'
-
   return errs
 }
 
 const RegistrarPagoPedido = ({ isOpen, onClose, pedido }) => {
   const saldoRestante = (pedido?.total || 0) - (pedido?.abonado || 0)
+  const ventaId = pedido?.venta_id || null
 
   const [form, setForm] = useState({
     tipoPago: 'completo',
     monto: '',
     metodo: null,
-    metodo_otro: '',
-
   })
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
   const [guardando, setGuardando] = useState(false)
+  const [successMsg, setSuccessMsg] = useState('')
 
   useEffect(() => {
     if (form.tipoPago === 'completo') {
@@ -50,7 +46,6 @@ const RegistrarPagoPedido = ({ isOpen, onClose, pedido }) => {
   }, [form.tipoPago, saldoRestante])
 
   const setField = (name, value) => {
-    // Auto-clamp monto al saldo restante
     if (name === 'monto' && value) {
       const num = Number(value)
       if (num > saldoRestante) {
@@ -71,23 +66,29 @@ const RegistrarPagoPedido = ({ isOpen, onClose, pedido }) => {
     setErrors((prev) => ({ ...prev, [name]: newErrors[name] || undefined }))
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const newErrors = validate(form, saldoRestante)
     setErrors(newErrors)
-    setTouched({ tipoPago: true, monto: true, metodo: true, metodo_otro: true })
+    setTouched({ tipoPago: true, monto: true, metodo: true })
     if (Object.keys(newErrors).length > 0) return
+
     setGuardando(true)
-    setTimeout(() => {
-      console.log('Pago de pedido registrado:', {
-        pedido: pedido.pedido_id,
-        tipo: form.tipoPago,
+    setSuccessMsg('')
+    try {
+      await createPagoPedido(pedido.pedido_id, {
         monto: Number(form.monto),
         metodo: form.metodo,
-        metodo_otro: form.metodo_otro,
+        venta_id: ventaId,
       })
+      setSuccessMsg('Pago registrado correctamente')
+      setTimeout(() => {
+        setGuardando(false)
+        onClose()
+      }, 1000)
+    } catch {
+      setErrors({ general: 'Error al registrar el pago. Intenta de nuevo.' })
       setGuardando(false)
-      onClose()
-    }, 1000)
+    }
   }
 
   const fmt = (val) =>
@@ -102,7 +103,6 @@ const RegistrarPagoPedido = ({ isOpen, onClose, pedido }) => {
       tipoPago: 'completo',
       monto: '',
       metodo: null,
-      metodo_otro: '',
     })
     setErrors({})
     setTouched({})
@@ -203,21 +203,14 @@ const RegistrarPagoPedido = ({ isOpen, onClose, pedido }) => {
           {hasError('metodo') && <p className="rpp-err">{errors.metodo}</p>}
         </div>
 
-        {form.metodo === 'otro' && (
-          <div className="rpp-field">
-            <label className="rpp-label">Especifica el método</label>
-            <div className={`rpp-input-wrap ${hasError('metodo_otro') ? 'rpp-input-wrap--err' : ''}`}>
-              <i className="ti ti-edit" />
-              <input type="text" maxLength="50" className="rpp-input"
-                placeholder="Ej: Mercado Pago, Cripto..." value={form.metodo_otro}
-                onChange={(e) => setField('metodo_otro', e.target.value)}
-                onBlur={() => handleBlur('metodo_otro')} />
-            </div>
-            {hasError('metodo_otro') && <p className="rpp-err">{errors.metodo_otro}</p>}
+        {successMsg && (
+          <div className="rpp-success">
+            <i className="ti ti-circle-check" /> {successMsg}
           </div>
         )}
-
-
+        {errors.general && (
+          <div className="rpp-err" style={{ textAlign: 'center' }}>{errors.general}</div>
+        )}
       </div>
     </Drawer>
   )

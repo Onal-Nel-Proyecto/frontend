@@ -18,9 +18,6 @@ const METODOS_PAGO = [
   { id: 'efectivo',     label: 'Efectivo',     icono: 'ti ti-cash' },
   { id: 'transferencia',label: 'Transferencia',icono: 'ti ti-building-bank' },
   { id: 'tarjeta',      label: 'Tarjeta',      icono: 'ti ti-credit-card' },
-  { id: 'nequi',        label: 'Nequi',        icono: 'ti ti-device-mobile' },
-  { id: 'daviplata',    label: 'Daviplata',    icono: 'ti ti-device-mobile-vibration' },
-  { id: 'otro',         label: 'Otro',         icono: 'ti ti-circle-dashed' },
 ];
 
 const fmtCOP = (val) =>
@@ -30,9 +27,6 @@ const methodClassMap = {
   efectivo:      styles.methodEfectivo,
   transferencia: styles.methodTransferencia,
   tarjeta:       styles.methodTarjeta,
-  nequi:         styles.methodNequi,
-  daviplata:     styles.methodDaviplata,
-  otro:          styles.methodOtro,
 };
 
 // ── Componente principal ────────────────────────────────
@@ -44,6 +38,7 @@ const Pagos = () => {
   // Datos del pedido
   const totalGeneral = Number(pedido.total_general) || 0;
   const detalles = pedido.detalles_pedido || [];
+  const ventaId = pedido.venta_id || null;
 
   // Calcular total desde detalles si total_general no está disponible
   const totalCalculado = totalGeneral > 0
@@ -62,7 +57,6 @@ const Pagos = () => {
   const [form, setForm] = useState({
     monto: '',
     metodo: '',
-    metodo_otro: '',
   });
 
   // Cálculos
@@ -75,14 +69,14 @@ const Pagos = () => {
   const loadPagos = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await getPagosByPedido(pedido.pedido_id);
-      setPagos(data);
+      const data = await getPagosByPedido(pedido.pedido_id, ventaId);
+      setPagos(Array.isArray(data) ? data : []);
     } catch {
       // silencio
     } finally {
       setLoading(false);
     }
-  }, [pedido.pedido_id]);
+  }, [pedido.pedido_id, ventaId]);
 
   useEffect(() => {
     loadPagos();
@@ -103,10 +97,6 @@ const Pagos = () => {
 
     if (!values.metodo) {
       errs.metodo = 'Selecciona un método de pago';
-    }
-
-    if (values.metodo === 'otro' && !values.metodo_otro.trim()) {
-      errs.metodo_otro = 'Especifica el método de pago';
     }
 
     return errs;
@@ -138,27 +128,22 @@ const Pagos = () => {
   const handleSubmit = async () => {
     const newErrors = validate(form);
     setErrors(newErrors);
-    setTouched({ monto: true, metodo: true, metodo_otro: true });
+    setTouched({ monto: true, metodo: true });
 
     if (Object.keys(newErrors).length > 0) return;
 
     setSaving(true);
     setSuccessMsg('');
     try {
-      const nombreUsuario = user
-        ? `${user.nombres || ''} ${user.apellidos || ''}`.trim() || 'Admin'
-        : 'Admin';
-
       await createPagoPedido(pedido.pedido_id, {
         ...form,
-        usuario: nombreUsuario,
+        venta_id: ventaId,
       });
 
       setSuccessMsg('Pago registrado correctamente');
       setForm({
         monto: '',
         metodo: '',
-        metodo_otro: '',
       });
       setErrors({});
       setTouched({});
@@ -296,29 +281,6 @@ const Pagos = () => {
               {hasError('metodo') && <span className={styles.fieldError}>{errors.metodo}</span>}
             </div>
 
-            {/* Otro método (solo si seleccionó "otro") */}
-            {form.metodo === 'otro' && (
-              <div className={styles.formField}>
-                <label className={styles.formLabel}>Especifica el método</label>
-                <div className={`${styles.inputWrap} ${hasError('metodo_otro') ? styles.inputWrapErr : ''}`}>
-                  <i className={`ti ti-edit ${styles.inputIcon}`} />
-                  <input
-                    type="text"
-                    maxLength="50"
-                    className={styles.formInput}
-                    placeholder="Ej: Mercado Pago, Cripto, etc."
-                    value={form.metodo_otro}
-                    onChange={(e) => setField('metodo_otro', e.target.value)}
-                    onBlur={() => handleBlur('metodo_otro')}
-                    disabled={isBlocked}
-                  />
-                </div>
-                {hasError('metodo_otro') && <span className={styles.fieldError}>{errors.metodo_otro}</span>}
-              </div>
-            )}
-
-
-
             {/* Acciones */}
             {!isBlocked && (
               <div className={styles.formActions}>
@@ -339,7 +301,6 @@ const Pagos = () => {
                     setForm({
                       monto: '',
                       metodo: '',
-                      metodo_otro: '',
                     });
                     setErrors({});
                     setTouched({});
@@ -385,11 +346,9 @@ const Pagos = () => {
                   .sort((a, b) => new Date(b.created_at || b.fecha) - new Date(a.created_at || a.fecha))
                   .map((pago) => {
                     const metodo = METODOS_PAGO.find((m) => m.id === pago.metodo);
-                    const labelMetodo = pago.metodo === 'otro'
-                      ? (pago.metodo_otro || 'Otro')
-                      : (metodo?.label || pago.metodo);
+                    const labelMetodo = metodo?.label || pago.metodo;
                     return (
-                      <tr key={pago.pago_id}>
+                      <tr key={pago.pago_id || pago.id}>
                         <td className={styles.cellFecha}>{pago.fecha}</td>
                         <td className={styles.cellMetodo}>
                           <span className={`${styles.methodBadge} ${methodClassMap[pago.metodo] || styles.methodOtro}`}>

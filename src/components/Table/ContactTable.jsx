@@ -8,7 +8,7 @@ import './ContactTable.css'
 //   clients → array de objetos:
 //     { id, name, category, phone, address, lastOrder }
 
-const ContactTable = ({ clients = [], onView, onEdit, onDelete, totalClientes }) => {
+const ContactTable = ({ clients = [], onView, onEdit, onDelete, onReactivate, totalClientes }) => {
   return (
     <div className="contact-table-wrap">
       <table className="contact-table">
@@ -63,6 +63,16 @@ const ContactTable = ({ clients = [], onView, onEdit, onDelete, totalClientes })
                   >
                     <i className="ti ti-edit" />
                   </button>
+                  {client.category === 'Inactivo' && (
+                    <button
+                      className="action-btn action-btn--reactivate"
+                      aria-label="Reactivar"
+                      onClick={() => onReactivate?.(client)}
+                      title="Reactivar cliente"
+                    >
+                      <i className="ti ti-refresh" />
+                    </button>
+                  )}
                   <button
                     className="action-btn action-btn--danger"
                     aria-label="Eliminar"

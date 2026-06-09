@@ -87,3 +87,10 @@ export const exportReportePeriodoExcel = async (fechaInicio, fechaFin) => {
     responseType: 'blob',
   });
 };
+
+/** GET /ventas/:id/factura/pdf — descargar factura en PDF */
+export const downloadFacturaPdf = async (id) => {
+  const baseURL = import.meta.env.VITE_API_URL;
+  const url = `${baseURL}${VENTAS_ENDPOINTS.FACTURA_PDF(id)}`;
+  window.open(url, '_blank');
+};

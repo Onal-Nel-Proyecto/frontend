@@ -89,6 +89,10 @@
   background: rgba(239, 68, 68, 0.15);
   color: #f87171;
 }
+.action-btn--reactivate:hover {
+  background: rgba(46, 125, 50, 0.15);
+  color: #4caf50;
+}
 
 .table-footer {
   padding: 12px 16px;

@@ -36,6 +36,7 @@
 .rpp-input::placeholder { color: var(--text-muted); font-size: var(--text-xs); }
 .rpp-err { font-size: 0.72rem; color: #f87171; margin: 0.15rem 0 0; }
 .rpp-hint { font-size: 0.72rem; color: var(--text-muted); margin: 0.15rem 0 0; }
+.rpp-success { display: flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.6rem; background: var(--accent-emerald-subtle); color: var(--accent-emerald); border-radius: var(--radius-sm); font-size: var(--text-xs); font-weight: 500; }
 
 .rpp-metodos { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
 .rpp-metodo-btn {

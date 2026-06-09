@@ -7,19 +7,19 @@ import './InventarioPage.css'
 
 // ── Datos iniciales ─────────────────────────
 const INITIAL_MATERIALS = [
-  { id: 1, name: 'Seda Natural China', ref: 'SNC-001', category: 'Telas de Seda', desc: '5.5 mm, 12 mm, 120 g/m²', stock: 340, minStock: 50, status: 'disponible' },
-  { id: 2, name: 'Lino Belga Crudo', ref: 'LBC-004', category: 'Linos', desc: '220 g/m², 150 cm ancho', stock: 12, minStock: 30, status: 'disponible' },
-  { id: 3, name: 'Terciopelo de Seda Italiano', ref: 'TSI-009', category: 'Terciopelos', desc: '320 g/m², 140 cm ancho', stock: 0, minStock: 20, status: 'agotado' },
-  { id: 4, name: 'Tinte Natural Índigo', ref: 'TNI-012', category: 'Tintes y Acabados', desc: 'Polvo concentrado, 500 g', stock: 89, minStock: 15, status: 'disponible' },
-  { id: 5, name: 'Seda Orgánica Tussar', ref: 'SOT-007', category: 'Telas de Seda', desc: '6 mm, 15 mm, 110 g/m²', stock: 28, minStock: 25, status: 'disponible' },
+  { id: 1, name: 'Seda Natural China', ref: 'SNC-001', tipo_material: 'Tela', unidad_medida: 'mts', desc: '5.5 mm, 12 mm, 120 g/m²', stock: 340, minStock: 50, status: 'disponible' },
+  { id: 2, name: 'Lino Belga Crudo', ref: 'LBC-004', tipo_material: 'Tela', unidad_medida: 'mts', desc: '220 g/m², 150 cm ancho', stock: 12, minStock: 30, status: 'disponible' },
+  { id: 3, name: 'Terciopelo de Seda Italiano', ref: 'TSI-009', tipo_material: 'Tela', unidad_medida: 'mts', desc: '320 g/m², 140 cm ancho', stock: 0, minStock: 20, status: 'agotado' },
+  { id: 4, name: 'Tinte Natural Índigo', ref: 'TNI-012', tipo_material: 'Tinte', unidad_medida: 'kg', desc: 'Polvo concentrado, 500 g', stock: 89, minStock: 15, status: 'disponible' },
+  { id: 5, name: 'Seda Orgánica Tussar', ref: 'SOT-007', tipo_material: 'Tela', unidad_medida: 'mts', desc: '6 mm, 15 mm, 110 g/m²', stock: 28, minStock: 25, status: 'disponible' },
 ]
 
 const INITIAL_PRODUCTOS = [
-  { id: 1, name: 'Vestido de Noche Seda', ref: 'VNS-001', category: 'Vestidos', tipo: 'Vestido', genero: 'Femenino', talla: 'M', price: 320000, stock: 8, minStock: 3, status: 'disponible' },
-  { id: 2, name: 'Blazer Lino Clásico', ref: 'BLC-004', category: 'Chaquetas', tipo: 'Blazer', genero: 'Masculino', talla: 'L', price: 245000, stock: 2, minStock: 4, status: 'disponible' },
-  { id: 3, name: 'Corbata Terciopelo Italia', ref: 'CTI-009', category: 'Accesorios', tipo: 'Corbata', genero: 'Masculino', talla: 'Única', price: 85000, stock: 0, minStock: 6, status: 'agotado' },
-  { id: 4, name: 'Pañuelo Seda Tussar', ref: 'PST-007', category: 'Accesorios', tipo: 'Pañuelo', genero: 'Femenino', talla: 'Única', price: 120000, stock: 15, minStock: 5, status: 'disponible' },
-  { id: 5, name: 'Vestido de Día Lino', ref: 'VDL-012', category: 'Vestidos', tipo: 'Vestido', genero: 'Femenino', talla: 'S', price: 195000, stock: 4, minStock: 3, status: 'disponible' },
+  { id: 1, name: 'Vestido de Noche Seda', ref: 'VNS-001', descripcion: 'Vestido largo de seda natural con escote en V', tipo_prenda: 'Vestido', genero: 'Femenino', talla: 'M', price: 320000, stock: 8, minStock: 3, status: 'disponible' },
+  { id: 2, name: 'Blazer Lino Clásico', ref: 'BLC-004', descripcion: 'Blazer estructurado en lino 100%', tipo_prenda: 'Blazer', genero: 'Masculino', talla: 'L', price: 245000, stock: 2, minStock: 4, status: 'disponible' },
+  { id: 3, name: 'Corbata Terciopelo Italia', ref: 'CTI-009', descripcion: 'Corbata de terciopelo bordada a mano', tipo_prenda: 'Corbata', genero: 'Masculino', talla: 'Única', price: 85000, stock: 0, minStock: 6, status: 'agotado' },
+  { id: 4, name: 'Pañuelo Seda Tussar', ref: 'PST-007', descripcion: 'Pañuelo cuadrado de seda Tussar', tipo_prenda: 'Pañuelo', genero: 'Femenino', talla: 'Única', price: 120000, stock: 15, minStock: 5, status: 'disponible' },
+  { id: 5, name: 'Vestido de Día Lino', ref: 'VDL-012', descripcion: 'Vestido casual de lino con cinturón', tipo_prenda: 'Vestido', genero: 'Femenino', talla: 'S', price: 195000, stock: 4, minStock: 3, status: 'disponible' },
 ]
 
 // TABS ahora están en NavTabs del header
@@ -105,16 +105,18 @@ const TablaSection = ({ items, tipo, columns, renderRow, statConfig, filters, on
       {/* ══ FILTROS ══ */}
       <div className="inv-filters">
         <div className="inv-filters__left">
-          <div className="inv-filter-group">
-            <i className="ti ti-category" />
-            <select className="inv-select" value={filters.category}
-              onChange={(e) => onFiltersChange({ ...filters, category: e.target.value })}>
-              <option value="">Categoría: Todos</option>
-              {filters.categoryOptions?.map((opt) => (
-                <option key={opt} value={opt}>{opt}</option>
-              ))}
-            </select>
-          </div>
+          {filters.categoryOptions?.length > 0 && (
+            <div className="inv-filter-group">
+              <i className="ti ti-category" />
+              <select className="inv-select" value={filters.category}
+                onChange={(e) => onFiltersChange({ ...filters, category: e.target.value })}>
+                <option value="">Categoría: Todos</option>
+                {filters.categoryOptions?.map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+            </div>
+          )}
           <div className="inv-filter-group">
             <i className="ti ti-filter" />
             <select className="inv-select" value={filters.status}
@@ -200,8 +202,8 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
   } = useAbastecimiento()
 
   // ── Filtros ──
-  const [matFilters, setMatFilters] = useState({ category: '', status: '', search: '', categoryOptions: ['Telas de Seda', 'Linos', 'Terciopelos', 'Tintes y Acabados'] })
-  const [prodFilters, setProdFilters] = useState({ category: '', status: '', search: '', categoryOptions: ['Vestidos', 'Chaquetas', 'Accesorios'] })
+  const [matFilters, setMatFilters] = useState({ category: '', status: '', search: '', categoryOptions: [] })
+  const [prodFilters, setProdFilters] = useState({ category: '', status: '', search: '', categoryOptions: [] })
   const [absFilters, setAbsFilters] = useState({ category: '', status: '', search: '', categoryOptions: [] })
 
   // ══ Handlers Materiales ══
@@ -312,7 +314,8 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
           <p className="inv-material-ref">{m.ref}</p>
         </div>
       </td>
-      <td><span className="inv-cat-tag">{m.category}</span></td>
+      <td><span className="inv-cat-tag">{m.tipo_material || '—'}</span></td>
+      <td className="inv-cell-specs">{m.unidad_medida || '—'}</td>
       <td className="inv-cell-specs">{m.desc}</td>
       <td><StockBar current={m.stock} min={m.minStock} /></td>
       <td>
@@ -330,7 +333,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
     </>
   )
 
-  const matColumns = ['MATERIAL', 'CATEGORÍA', 'DESCRIPCIÓN', 'STOCK', 'ESTADO', '']
+  const matColumns = ['MATERIAL', 'TIPO', 'UNIDAD', 'DESCRIPCIÓN', 'STOCK', 'ESTADO', '']
 
   // ── Config Productos ──
   const prodStats = (items) => {
@@ -351,8 +354,9 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
           <p className="inv-material-ref">{p.ref}</p>
         </div>
       </td>
-      <td><span className="inv-cat-tag">{p.category}</span></td>
-      <td className="inv-cell-specs">{p.tipo} · {p.genero} · {p.talla}</td>
+      <td className="inv-cell-specs">{p.descripcion || '—'}</td>
+      <td><span className="inv-cat-tag">{p.tipo_prenda || '—'}</span></td>
+      <td className="inv-cell-specs">{p.genero} · {p.talla}</td>
       <td className="inv-cell-price">{fmt(p.price)}</td>
       <td><StockBar current={p.stock} min={p.minStock} /></td>
       <td>
@@ -370,7 +374,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
     </>
   )
 
-  const prodColumns = ['PRODUCTO', 'CATEGORÍA', 'TIPO · GÉNERO · TALLA', 'PRECIO', 'STOCK', 'ESTADO', '']
+  const prodColumns = ['PRODUCTO', 'DESCRIPCIÓN', 'TIPO PRENDA', 'GÉNERO · TALLA', 'PRECIO', 'STOCK', 'ESTADO', '']
 
   // ── Config Abastecimiento ──
   const fmtAbs = (val) =>

@@ -28,4 +28,7 @@ export const VENTAS_ENDPOINTS = {
 
   /** GET /ventas/reportes/periodo/excel?fechaInicio=&fechaFin= */
   REPORTE_PERIODO_EXCEL: "/ventas/reportes/periodo/excel",
+
+  /** GET /ventas/:id/factura/pdf — descargar factura en PDF */
+  FACTURA_PDF: (id) => `/ventas/${id}/factura/pdf`,
 };
