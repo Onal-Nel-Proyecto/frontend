@@ -2,7 +2,7 @@
 // DetallePedido — Sub-página de detalle del pedido (index)
 // ================================================================
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import {
   FiPlus, FiUpload, FiEye, FiTrash2, FiImage, FiPackage,
@@ -10,7 +10,7 @@ import {
 } from 'react-icons/fi';
 import Alert from '../../../../components/ui/feedback/Alert';
 import LoadingOverlay from '../../../../components/ui/feedback/LoadingOverlay';
-import { deleteDetalle } from '../../services/pedidosService';
+import { deleteDetalle, uploadFotoPedido, deleteFotoPedido } from '../../services/pedidosService';
 import styles from '../../pages/PedidoSeleccionado/pedido_seleccionado.module.css';
 
 const DetallePedido = () => {
@@ -24,59 +24,147 @@ const DetallePedido = () => {
   const [images, setImages] = useState([]);
   const [viewerImage, setViewerImage] = useState(null);
   const fileInputRef = useRef(null);
+  const API_URL = import.meta.env.VITE_API_URL || '';
+  console.log(`${API_URL}${pedido.fotos_pedido[0]?.foto_url}`)
+  // Cargar fotos existentes del pedido desde la API
+  useEffect(() => {
+    if (pedido.fotos_pedido?.length > 0) {
+      setImages(pedido.fotos_pedido.map((f) => ({
+        id: f.foto_id,
+        foto_id: f.foto_id,
+        preview: `${API_URL}${f.foto_url}`,
+        name: f.foto_url.split('/').pop() || `foto-${f.foto_id}`,
+        isExisting: true,
+      })));
+    } else {
+      setImages([]);
+    }
+  }, [pedido?.pedido_id]);
 
-  const handleFileSelect = useCallback((e) => {
+  const handleFileSelect = useCallback(async (e) => {
     const MAX_SIZE_MB = 5;
     const VALID_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'];
 
     const files = Array.from(e.target.files);
-    const validFiles = [];
-    const errors = [];
+    let subidas = 0;
+    let errores = [];
 
     for (const file of files) {
-      // Validar tipo MIME real
+      // Validar tipo MIME
       if (!VALID_TYPES.includes(file.type)) {
-        errors.push(`"${file.name}": formato no soportado (use JPG, PNG, WebP o GIF)`);
+        errores.push(`"${file.name}": formato no soportado (use JPG, PNG, WebP o GIF)`);
         continue;
       }
       // Validar tamaño máximo
       if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-        errors.push(`"${file.name}": supera el límite de ${MAX_SIZE_MB}MB`);
+        errores.push(`"${file.name}": supera el límite de ${MAX_SIZE_MB}MB`);
         continue;
       }
-      validFiles.push(file);
+
+      try {
+        const formData = new FormData();
+        formData.append('foto', file);
+        const resp = await uploadFotoPedido(pedido.pedido_id, formData);
+        if (resp?.status) {
+          subidas++;
+        } else {
+          errores.push(`"${file.name}": el servidor rechazó la subida`);
+        }
+      } catch (err) {
+        errores.push(`"${file.name}": ${err?.response?.data?.error || 'error de conexión'}`);
+      }
     }
 
-    if (errors.length > 0) {
-      alert(errors.join('\n'));
+    // Mostrar resultado con el Alert del sistema
+    if (subidas > 0) {
+      setResultAlert({
+        type: 'success',
+        title: `Foto${subidas > 1 ? 's' : ''} subida${subidas > 1 ? 's' : ''}`,
+        message: `${subidas} foto${subidas > 1 ? 's' : ''} subida${subidas > 1 ? 's' : ''} correctamente`,
+        onClose: () => { setResultAlert(null); window.location.reload(); },
+      });
+    }
+    if (errores.length > 0) {
+      setResultAlert({
+        type: 'error',
+        title: `Error al subir ${errores.length > 1 ? 'fotos' : 'foto'}`,
+        message: errores.join(' • '),
+        onClose: () => setResultAlert(null),
+      });
     }
 
-    const newImages = validFiles.map((file) => ({
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      file,
-      preview: URL.createObjectURL(file),
-      name: file.name,
-    }));
-    setImages((prev) => [...prev, ...newImages]);
     e.target.value = '';
-  }, []);
+  }, [pedido.pedido_id]);
 
-  const handleDeleteImage = useCallback((id) => {
-    setImages((prev) => {
-      const img = prev.find((i) => i.id === id);
-      if (img) URL.revokeObjectURL(img.preview);
-      return prev.filter((i) => i.id !== id);
-    });
+  const handleDeleteImage = useCallback(async (id, fotoId) => {
+    if (fotoId) {
+      // Es una foto existente del backend → eliminar vía API
+      try {
+        const resp = await deleteFotoPedido(pedido.pedido_id, fotoId);
+        if (resp?.status) {
+          // Mostrar éxito y recargar al cerrar
+          setResultAlert({
+            type: 'success',
+            title: 'Foto eliminada',
+            message: 'La foto se eliminó correctamente',
+            onClose: () => { setResultAlert(null); window.location.reload(); },
+          });
+        } else {
+          setResultAlert({
+            type: 'error',
+            title: 'Error',
+            message: resp?.msg || 'No se pudo eliminar la foto',
+            onClose: () => setResultAlert(null),
+          });
+          return;
+        }
+      } catch (err) {
+        setResultAlert({
+          type: 'error',
+          title: 'Error',
+          message: err?.response?.data?.error || 'Error de conexión al eliminar la foto',
+          onClose: () => setResultAlert(null),
+        });
+        return;
+      }
+    } else {
+      // Imagen local (no subida aún) — solo limpiar preview
+      setImages((prev) => {
+        const img = prev.find((i) => i.id === id);
+        if (img) URL.revokeObjectURL(img.preview);
+        return prev.filter((i) => i.id !== id);
+      });
+    }
     if (viewerImage?.id === id) setViewerImage(null);
-  }, [viewerImage]);
+  }, [viewerImage, pedido.pedido_id]);
 
-  const handleDownloadImage = useCallback((image) => {
-    const link = document.createElement('a');
-    link.href = image.preview;
-    link.download = image.name;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownloadImage = useCallback(async (image) => {
+    if (image.preview.startsWith('blob:')) {
+      // Imagen local (preview) — descarga directa
+      const link = document.createElement('a');
+      link.href = image.preview;
+      link.download = image.name;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } else {
+      // Imagen del servidor — fetch como blob para evitar redirección
+      try {
+        const response = await fetch(image.preview);
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = image.name;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      } catch {
+        // Fallback: abrir en nueva pestaña
+        window.open(image.preview, '_blank');
+      }
+    }
   }, []);
 
   const handleDelete = async () => {
@@ -264,7 +352,7 @@ const DetallePedido = () => {
                 />
                 <button
                   className={styles.imageThumbDelete}
-                  onClick={() => handleDeleteImage(img.id)}
+                  onClick={() => handleDeleteImage(img.id, img.foto_id)}
                   title="Eliminar imagen"
                 >
                   <FiTrash2 />
@@ -303,7 +391,7 @@ const DetallePedido = () => {
               </button>
               <button
                 className={`${styles.viewerBtn} ${styles.viewerBtnDanger}`}
-                onClick={() => handleDeleteImage(viewerImage.id)}
+                onClick={() => handleDeleteImage(viewerImage.id, viewerImage.foto_id)}
                 title="Eliminar imagen"
               >
                 <FiTrash2 />

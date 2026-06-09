@@ -129,7 +129,6 @@ const chartData = pedidosEstado
 
   })
   .filter(Boolean);
-  console.log(chartData)
   const chartTotal = chartData.reduce((s, d) => s + d.value, 0);
 
   return (

@@ -72,8 +72,6 @@ const Sidebar = ({ isOpen, onClose }) => {
 const SidebarItem = ({ item, onClose }) => {
   const loc = useLocation();
   const isActive = loc.pathname === item.activePath || loc.pathname.startsWith(item.activePath + '/');
-  console.log(`val 1: ${loc.pathname === item.activePath}`)
-  console.log("val 2: " + loc.pathname.startsWith(item.activePath + '/'))
   return (
     <NavLink
       to={item.path}

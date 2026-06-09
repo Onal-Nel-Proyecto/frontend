@@ -17,15 +17,9 @@ import Alert from '../../../../components/ui/feedback/Alert';
 import LoadingOverlay from '../../../../components/ui/feedback/LoadingOverlay';
 import ProductoSearch from '../ProductoSearch';
 import { createDetalle, updateDetalle } from '../../services/pedidosService';
+import { getCategorias } from '../../../../services/categoriaService';
+import { getMedidas } from '../../../../services/medidasService';
 import styles from './DetallePanel.module.css';
-
-const medidasDisponibles = [
-  { medida_id: 1, nombre: 'Pecho' },
-  { medida_id: 2, nombre: 'Cintura' },
-  { medida_id: 3, nombre: 'Cadera' },
-  { medida_id: 4, nombre: 'Largo de manga' },
-  { medida_id: 5, nombre: 'Largo total' },
-];
 
 const DetallePanel = ({ isOpen, onClose, modo, detalle, pedidoEstado }) => {
   const { id: pedidoId } = useParams();
@@ -45,6 +39,28 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle, pedidoEstado }) => {
 
   const [showProductoSearch, setShowProductoSearch] = useState(false);
   const [templateAlert, setTemplateAlert] = useState(null);
+  const [categorias, setCategorias] = useState([]);
+  const [medidasList, setMedidasList] = useState([]);
+
+  // ─── Cargar catálogos del backend al abrir el drawer ───
+  useEffect(() => {
+    if (isOpen && (isCreate || editMode)) {
+      const fetchCatalogos = async () => {
+        try {
+          const [catRes, medRes] = await Promise.all([
+            getCategorias(),
+            getMedidas(),
+          ]);
+          setCategorias(Array.isArray(catRes.data) ? catRes.data : []);
+          setMedidasList(Array.isArray(medRes.data) ? medRes.data : []);
+        } catch {
+          setCategorias([]);
+          setMedidasList([]);
+        }
+      };
+      fetchCatalogos();
+    }
+  }, [isOpen, isCreate, editMode]);
 
   const [form, setForm] = useState({
     producto_nombre: detalle?.producto?.nombre || '',
@@ -86,14 +102,13 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle, pedidoEstado }) => {
     setForm((prev) => ({
       ...prev,
       producto_nombre: producto.nombre || '',
-      producto_precio: producto.precio || '',
-      producto_categoria_id: producto.categoria_id || '',
-      tipo_prenda: producto.tipo_prenda || '',
+      producto_precio: producto.precioUnitario || producto.precio || '',
+      producto_categoria_id: producto.categoria_id ?? producto.categoria ?? producto.categoria?.id ?? '',
+      tipo_prenda: producto.tipoPrenda || producto.tipo_prenda || '',
       genero: producto.genero || '',
       producto_talla: producto.talla || '',
       // Las medidas NO se copian, son parte del pedido no del producto
     }));
-
     setTemplateAlert({
       type: 'success',
       title: 'Plantilla cargada',
@@ -407,13 +422,9 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle, pedidoEstado }) => {
                   onChange={handleChange}
                 >
                   <option value="">Seleccionar…</option>
-                  <option value="1">Camisas</option>
-                  <option value="2">Pantalones</option>
-                  <option value="3">Vestidos</option>
-                  <option value="4">Chaquetas / Busos</option>
-                  <option value="5">Faldas</option>
-                  <option value="6">Uniformes</option>
-                  <option value="7">Otros</option>
+                  {categorias.map((cat) => (
+                    <option key={cat.id} value={cat.id}>{cat.nombre}</option>
+                  ))}
                 </select>
               </div>
               <div className={styles.field}>
@@ -505,8 +516,8 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle, pedidoEstado }) => {
                   onChange={(e) => handleMedidaChange(i, 'medida_id', e.target.value)}
                 >
                   <option value="">Seleccionar…</option>
-                  {medidasDisponibles.map((md) => (
-                    <option key={md.medida_id} value={md.medida_id}>{md.nombre}</option>
+                  {medidasList.map((md) => (
+                    <option key={md.id} value={md.id}>{md.nombre}</option>
                   ))}
                 </select>
                 <div className={styles.medidaInputWrap}>

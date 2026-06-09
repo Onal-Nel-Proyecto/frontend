@@ -119,3 +119,17 @@ export const deleteDetalle = async (pedidoId, detalleId) => {
   const res = await axiosInstance.delete(`${BASE}/${pedidoId}/detalles/${detalleId}`);
   return res.data;
 };
+
+/** Subir foto(s) a un pedido */
+export const uploadFotoPedido = async (pedidoId, formData) => {
+  const res = await axiosInstance.post(`${BASE}/${pedidoId}/fotos`, formData, {
+    headers: { 'Content-Type': undefined },
+  });
+  return res.data;
+};
+
+/** Eliminar foto de un pedido */
+export const deleteFotoPedido = async (pedidoId, fotoId) => {
+  const res = await axiosInstance.delete(`${BASE}/${pedidoId}/fotos/${fotoId}`);
+  return res.data;
+};
