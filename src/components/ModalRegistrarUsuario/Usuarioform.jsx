@@ -29,6 +29,7 @@ const UsuarioForm = ({
   onClose,
   usuario,
   onSuccess,
+  usuarios,
 }) => {
 
   const isEdit = !!usuario;
@@ -44,6 +45,7 @@ const UsuarioForm = ({
   usuTel: usuario?.telefono || '',
   usuCor: usuario?.correo || '',
   usuPassHash: '',
+  usuPassHashConfirm: '',
   usuRol: usuario?.rol || 'USUARIO',
   usuSupFk: '',
   usuEst: usuario?.estado === 1 ? 'Activo' : 'Bloqueado',
@@ -65,6 +67,7 @@ const UsuarioForm = ({
       usuTel: usuario.telefono || '',
       usuCor: usuario.correo || '',
       usuPassHash: '',
+      usuPassHashConfirm: '',
       usuRol: usuario.rol || 'USUARIO',
       usuSupFk: '',
       usuEst: usuario.estado === 1
@@ -81,6 +84,7 @@ const UsuarioForm = ({
       usuTel: '',
       usuCor: '',
       usuPassHash: '',
+      usuPassHashConfirm: '',
       usuRol: 'USUARIO',
       usuSupFk: '',
       usuEst: 'Activo',
@@ -96,7 +100,7 @@ const UsuarioForm = ({
    const handleChange = (e) => {
     const { name, value } = e.target;
     let newValue = value;
-    if (name === 'usuId')    newValue = value.replace(/\D/g, '');
+    if (name === 'usuId')  newValue = value.replace(/\D/g, '').slice(0, 12);
     if (name === 'usuTel')   newValue = value.replace(/\D/g, '');
     if (name === 'usuSupFk') newValue = value.replace(/\D/g, '');
     if (name === 'usuNom')   newValue = value.replace(/[0-9]/g, '');
@@ -116,15 +120,20 @@ const UsuarioForm = ({
     // ID
     if (!form.usuId.trim()) {
 
-      newErrors.usuId =
-        'La identificación es requerida';
+  newErrors.usuId =
+    'La identificación es requerida';
 
-    } else if (!/^\d+$/.test(form.usuId)) {
+} else if (!/^\d+$/.test(form.usuId)) {
 
-      newErrors.usuId =
-        'Solo se permiten números';
+  newErrors.usuId =
+    'Solo se permiten números';
 
-    }
+} else if (form.usuId.length > 12) {
+
+  newErrors.usuId =
+    'La identificación no puede tener más de 12 dígitos';
+
+}
 
     // Nombre
     if (!form.usuNom.trim()) {
@@ -137,10 +146,10 @@ const UsuarioForm = ({
   newErrors.usuNom =
     'El nombre no puede contener números';
 
-} else if (form.usuNom.length < 2) {
+} else if (form.usuNom.length > 200) {
 
   newErrors.usuNom =
-    'El nombre es muy corto';
+    'El nombre es muy largo';
 
 }
 
@@ -155,25 +164,30 @@ const UsuarioForm = ({
   newErrors.usuApe =
     'El apellido no puede contener números';
 
-} else if (form.usuApe.length < 2) {
+} else if (form.usuApe.length > 200) {
 
   newErrors.usuApe =
-    'El apellido es muy corto';
+    'El apellido es muy largo';
 
 }
 
     // Correo
-    if (!form.usuCor.trim()) {
+  if (!form.usuCor.trim()) {
 
-      newErrors.usuCor =
-        'El correo es requerido';
+  newErrors.usuCor =
+    'El correo es requerido';
 
-    } else if (
+} else if (
       !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.usuCor)
     ) {
 
       newErrors.usuCor =
         'Correo inválido';
+
+    } else if (form.usuCor.length > 254) {
+
+      newErrors.usuCor =
+    'El correo no puede superar los 254 caracteres';
 
     }
 
@@ -193,8 +207,45 @@ const UsuarioForm = ({
 
     }
 
+    // Confirmación de contraseña
+    if (!isEdit && form.usuPassHash && !form.usuPassHashConfirm.trim()) {
+
+      newErrors.usuPassHashConfirm =
+        'La confirmación es requerida';
+
+    } else if (
+      !isEdit &&
+      form.usuPassHash &&
+      form.usuPassHashConfirm &&
+      form.usuPassHash !== form.usuPassHashConfirm
+    ) {
+
+      newErrors.usuPassHashConfirm =
+        'Las contraseñas no coinciden';
+
+    }
+
+    // Teléfono
+      if (!form.usuTel.trim()) {
+
+        newErrors.usuTel =
+          'El teléfono es requerido';
+
+      } else if (!/^\d+$/.test(form.usuTel)) {
+
+        newErrors.usuTel =
+          'Solo se permiten números';
+
+      } else if (form.usuTel.length !== 10) {
+
+        newErrors.usuTel =
+          'Debe contener 10 dígitos';
+
+      }
+
     return newErrors;
   };
+  
 
   // ─────────────────────────────────────────
   // Submit
@@ -376,6 +427,7 @@ const UsuarioForm = ({
               <input
                 type="text"
                 name="usuId"
+                maxLength={12}
                 className={`${styles.input} ${
                   errors.usuId
                     ? styles.inputError
@@ -411,6 +463,7 @@ const UsuarioForm = ({
 
               <input
                 name="usuNom"
+                maxLength={200}
                 className={`${styles.input} ${
                   errors.usuNom
                     ? styles.inputError
@@ -445,6 +498,7 @@ const UsuarioForm = ({
 
               <input
                 name="usuApe"
+                maxLength={200}
                 className={`${styles.input} ${
                   errors.usuApe
                     ? styles.inputError
@@ -480,6 +534,7 @@ const UsuarioForm = ({
               <input
                 type="text"
                 name="usuTel"
+                maxLength={10}
                 className={`${styles.input} ${
                   errors.usuTel
                     ? styles.inputError
@@ -515,6 +570,7 @@ const UsuarioForm = ({
               <input
                 type="email"
                 name="usuCor"
+                maxLength={254}
                 className={`${styles.input} ${
                   errors.usuCor
                     ? styles.inputError
@@ -570,6 +626,43 @@ const UsuarioForm = ({
 
           </div>
 
+          {/* CONFIRMAR CONTRASEÑA */}
+
+          {!isEdit && form.usuPassHash && (
+            <div className={styles.field}>
+
+              <label className={styles.label}>
+                Confirmar contraseña *
+              </label>
+
+              <div className={styles.inputWrap}>
+
+                <FiLock className={styles.inputIcon} />
+
+                <input
+                  type="password"
+                  name="usuPassHashConfirm"
+                  className={`${styles.input} ${
+                    errors.usuPassHashConfirm
+                      ? styles.inputError
+                      : ''
+                  }`}
+                  placeholder="Repetir contraseña"
+                  value={form.usuPassHashConfirm}
+                  onChange={handleChange}
+                />
+
+              </div>
+
+              {errors.usuPassHashConfirm && (
+                <span className={styles.fieldError}>
+                  {errors.usuPassHashConfirm}
+                </span>
+              )}
+
+            </div>
+          )}
+
           {/* CONFIG */}
 
           <p className={styles.sectionTitle}>
@@ -620,14 +713,25 @@ const UsuarioForm = ({
 
               <FiUsers className={styles.inputIcon} />
 
-              <input
-                type="text"
+              <select
                 name="usuSupFk"
-                className={styles.input}
-                placeholder="ID supervisor"
+                className={styles.select}
                 value={form.usuSupFk}
                 onChange={handleChange}
-              />
+              >
+                <option value="">
+                  Seleccione supervisor
+                </option>
+
+                {usuarios.map((u) => (
+                  <option
+                    key={u.id}
+                    value={u.id}
+                  >
+                    {u.nombres} {u.apellidos}
+                  </option>
+                ))}
+              </select>
 
             </div>
 

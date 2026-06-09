@@ -15,6 +15,7 @@ import Produccion from "../features/pedidos/components/Produccion";
 import Pagos from "../features/pedidos/components/Pagos";
 import Config from "../page/Config";
 import InConstruction from "../components/ui/feedback/InConstruction/InConstruction";
+import GestionProveedores from "../page/GestionProveedores";
 
 const AppRoutes = () => {
   return (
@@ -69,6 +70,10 @@ const AppRoutes = () => {
             path="/gestion-clientes"
             element={<InConstruction title="Clientes" />}
           />
+        <Route
+          path="/gestion-proveedores"
+          element={<GestionProveedores />}
+         />
         </Route>
 
         {/* RUTAS SOLO ADMIN */}

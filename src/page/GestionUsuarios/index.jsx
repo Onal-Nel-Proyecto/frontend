@@ -141,18 +141,6 @@ const GestionUsuarios = () => {
             Gestión de Usuarios
           </h2>
 
-        <p className={styles.subtitle}>
-          Sesión iniciada como
-
-          <strong className={styles.userName}>
-            {user.nombres} {user.apellidos}
-          </strong>
-
-          <span className={styles.roleBadge}>
-            {user.rol}
-          </span>
-        </p>
-
         </div>
 
         <button
@@ -204,6 +192,7 @@ const GestionUsuarios = () => {
            onClose={closeForm}
            usuario={usuarioSeleccionado}
            onSuccess={loadUsuarios}
+           usuarios={users}
         />
 
     </div>

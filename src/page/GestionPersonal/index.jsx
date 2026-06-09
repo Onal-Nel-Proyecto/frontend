@@ -11,6 +11,7 @@ import {
   FiUserCheck,
   FiArrowRight
 } from 'react-icons/fi';
+import { FaHandshakeAngle } from "react-icons/fa6";
 import { useNavigate } from 'react-router-dom';
 
 import styles from './gestion-personal.module.css';
@@ -36,6 +37,12 @@ const GestionPersonal = () => {
       icon: <FiUsers />,
       path: '/gestion-clientes',
       iconClass: styles.blueIcon
+    },
+    {
+      title: 'Gestionar Proveedores',
+      icon: <FaHandshakeAngle />,
+      path: '/gestion-proveedores',
+      iconClass: styles.orangeIcon
     },
   ];
 

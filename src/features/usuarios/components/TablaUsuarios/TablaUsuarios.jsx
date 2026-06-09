@@ -13,6 +13,7 @@ import {
 } from 'react-icons/fi';
 
 import styles from './TablaUsuarios.module.css';
+import UsuarioFiltroDrawer from '../filtrodrawer/UsuarioFiltroDrawer';
 
 // ─── Menú de acciones ─────────────────────────────────────
 
@@ -110,19 +111,52 @@ const TablaUsuarios = ({
 }) => {
 
   const [search, setSearch] = useState('');
+  
+  const [isFilterOpen, setIsFilterOpen] =
+    useState(false);
+
+  const [filters, setFilters] =
+    useState({
+      estado: '',
+      rol: '',
+      correo: '',
+    });
+
+  const activeFilters =
+    Object.values(filters)
+      .filter(Boolean)
+      .length;
 
   // ─── Filtro ────────────────────────────────────────────
 
   const filtered = usuarios.filter((u) => {
-
     const term = search.toLowerCase();
 
-    return (
-     String(u.id ?? '').toLowerCase().includes(term) ||
+    const matchesSearch =
+      String(u.id ?? '').toLowerCase().includes(term) ||
       `${u.nombres} ${u.apellidos}`.toLowerCase().includes(term) ||
       u.correo?.toLowerCase().includes(term) ||
-      u.rol?.toLowerCase().includes(term)
-    );
+      u.rol?.toLowerCase().includes(term);
+
+    if (!matchesSearch) return false;
+
+    // Estado filter: 'Activo' means estado === 1
+    if (filters.estado) {
+      if (filters.estado === 'Activo' && u.estado !== 1) return false;
+      if (filters.estado === 'Inactivo' && u.estado === 1) return false;
+    }
+
+    // Rol filter (case-insensitive exact match)
+    if (filters.rol) {
+      if ((u.rol || '').toLowerCase() !== filters.rol.toLowerCase()) return false;
+    }
+
+    // Correo filter (contains)
+    if (filters.correo) {
+      if (!u.correo?.toLowerCase().includes(filters.correo.toLowerCase())) return false;
+    }
+
+    return true;
   });
 
   return (
@@ -145,10 +179,34 @@ const TablaUsuarios = ({
               setSearch(e.target.value)
             }
           />
-          <FiFilter className={styles.filterIcon} />
+
 
         </div>
+        <button
+          className={`
+            ${styles.filterButton}
+            ${
+              activeFilters > 0
+                ? styles.filterActive
+                : ''
+            }
+          `}
+          onClick={() =>
+            setIsFilterOpen(true)
+          }
+        >
+          <FiFilter />
 
+          <span>Filtrar</span>
+
+          {activeFilters > 0 && (
+            <span
+              className={styles.filterCount}
+            >
+              {activeFilters}
+            </span>
+          )}
+        </button>
       </div>
 
       {/* Tabla */}
@@ -313,7 +371,14 @@ const TablaUsuarios = ({
         </div>
 
       </div>
-
+        <UsuarioFiltroDrawer
+          isOpen={isFilterOpen}
+          onClose={() =>
+            setIsFilterOpen(false)
+          }
+          filters={filters}
+          setFilters={setFilters}
+        />
     </div>
   );
 };
