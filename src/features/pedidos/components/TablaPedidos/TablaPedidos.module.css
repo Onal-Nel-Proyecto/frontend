@@ -29,6 +29,8 @@
 .cellDesc { color: var(--text-secondary); min-width: 160px; }
 .cellQty { white-space: nowrap; }
 .cellDelivery { white-space: nowrap; }
+.cellPrice { white-space: nowrap; color: var(--accent-gold); font-weight: 600; }
+.cellTipo { color: var(--text-secondary); font-size: var(--text-xs); text-transform: capitalize; }
 .delayedText { color: #f87171; font-weight: 600; }
 .diasAmarillo { color: #fbbf24 !important; font-weight: 700; }
 .diasRojo { color: #f87171 !important; font-weight: 700; }
@@ -302,6 +304,8 @@
 .mobileHeader { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
 .mobileClient { font-weight: 600; color: var(--text-primary); font-size: var(--text-sm); }
 .mobileDesc { color: var(--text-secondary); font-size: var(--text-xs); }
+.mobileTipo { color: var(--text-muted); font-size: var(--text-xs); text-transform: capitalize; margin-top: 0.1rem; }
+.mobilePrice { color: var(--accent-gold); font-weight: 600; font-size: var(--text-sm); margin-top: 0.2rem; }
 .mobileFooter { display: flex; align-items: center; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted); margin-top: 0.25rem; }
 
 @media (max-width: 768px) {

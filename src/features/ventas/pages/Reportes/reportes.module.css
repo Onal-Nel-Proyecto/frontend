@@ -60,7 +60,7 @@
 .filterLabel {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #666;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.03em;
 }
@@ -68,26 +68,26 @@
 .filterSelect,
 .filterInput {
   padding: 0.55rem 0.8rem;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-glass);
   border-radius: 0.75rem;
-  background: #fafafa;
+  background: var(--bg-glass);
   font-size: 0.85rem;
-  color: #333;
+  color: var(--text-primary);
   font-family: inherit;
   outline: none;
-  transition: border-color 0.2s ease, background 0.2s ease;
+  transition: border-color 0.2s var(--ease-out), background 0.2s var(--ease-out);
   min-width: 140px;
 }
 
 .filterSelect:focus,
 .filterInput:focus {
-  border-color: #333;
-  background: #fff;
+  border-color: var(--accent-violet);
+  background: var(--bg-elevated);
 }
 
 .filterSelect:hover,
 .filterInput:hover {
-  border-color: #ccc;
+  border-color: var(--border-glass-hover);
 }
 
 .btnGenerar {
@@ -97,18 +97,18 @@
   padding: 0.55rem 1.25rem;
   border: none;
   border-radius: 0.75rem;
-  background: #5a4d4a;
-  color: #fff;
+  background: var(--accent-gold);
+  color: var(--text-inverse);
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition: background 0.2s var(--ease-out), transform 0.2s var(--ease-out);
   white-space: nowrap;
   min-height: 40px;
 }
 
 .btnGenerar:hover {
-  background: #4a3f3d;
+  background: var(--accent-gold-light);
   transform: translateY(-1px);
 }
 
@@ -147,23 +147,23 @@
 }
 
 .statIconBlue {
-  background: #dbeafe;
-  color: #2563eb;
+  background: var(--accent-blue-subtle);
+  color: var(--accent-blue);
 }
 
 .statIconGreen {
-  background: #dcfce7;
-  color: #16a34a;
+  background: var(--accent-emerald-subtle);
+  color: var(--accent-emerald);
 }
 
 .statIconAmber {
-  background: #fef3c7;
-  color: #d97706;
+  background: var(--accent-amber-subtle);
+  color: var(--accent-amber);
 }
 
 .statIconPurple {
-  background: #ede9fe;
-  color: #7c3aed;
+  background: var(--accent-violet-subtle);
+  color: var(--accent-violet);
 }
 
 .statBody {
@@ -174,7 +174,7 @@
 .statValue {
   font-size: 1.35rem;
   font-weight: 800;
-  color: #1a1a1a;
+  color: var(--text-primary);
   line-height: 1.2;
   overflow-wrap: break-word;
   word-break: break-word;
@@ -183,7 +183,7 @@
 .statLabel {
   font-size: 0.75rem;
   font-weight: 500;
-  color: var(--text-soft);
+  color: var(--text-muted);
   margin-top: 0.1rem;
 }
 
@@ -203,7 +203,7 @@
 .sectionTitle {
   font-size: 1.05rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--text-primary);
   margin: 0;
 }
 
@@ -221,7 +221,7 @@
   gap: 0.5rem;
   height: 220px;
   padding: 1.2rem 0.5rem 0;
-  border-bottom: 2px solid #e5e7eb;
+  border-bottom: 2px solid var(--border-glass);
 }
 
 .barWrapper {
@@ -254,14 +254,14 @@
   transform: translateX(-50%);
   font-size: 0.55rem;
   font-weight: 700;
-  color: #555;
+  color: var(--text-secondary);
   white-space: nowrap;
   pointer-events: none;
 }
 
 .barLabel {
   font-size: 0.65rem;
-  color: #888;
+  color: var(--text-muted);
   font-weight: 500;
   text-align: center;
   white-space: nowrap;
@@ -288,7 +288,7 @@
 
 .tableWrapper::-webkit-scrollbar { height: 6px; }
 .tableWrapper::-webkit-scrollbar-track { background: transparent; }
-.tableWrapper::-webkit-scrollbar-thumb { background: #d0d0d0; border-radius: 999px; }
+.tableWrapper::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 999px; }
 
 .table {
   width: 100%;
@@ -301,13 +301,13 @@
 .table thead th {
   text-align: left;
   padding: 0.65rem 0.5rem;
-  background: #f7f7f7;
-  color: #888;
+  background: var(--bg-glass);
+  color: var(--text-muted);
   font-weight: 600;
   font-size: 0.68rem;
   letter-spacing: 0.02em;
   white-space: nowrap;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border-glass);
 }
 
 .table thead th:nth-child(1) { width: 50%; }
@@ -316,8 +316,8 @@
 
 .table tbody td {
   padding: 0.65rem 0.5rem;
-  border-bottom: 1px solid #f0f0f0;
-  color: #444;
+  border-bottom: 1px solid var(--border-glass);
+  color: var(--text-secondary);
   vertical-align: middle;
   overflow-wrap: break-word;
   word-break: break-word;
@@ -325,7 +325,7 @@
 
 .table tbody tr:last-child td { border-bottom: none; }
 
-.tableRow:hover { background: #fafafa; }
+.tableRow:hover { background: var(--bg-glass-hover); }
 
 .cellCurrency {
   font-weight: 600;
@@ -356,32 +356,32 @@
   align-items: center;
   gap: 0.45rem;
   padding: 0.6rem 1.15rem;
-  border: 1px solid #333;
+  border: 1px solid var(--border-glass);
   border-radius: 0.75rem;
-  background: #fff;
-  color: #333;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+  transition: background 0.2s var(--ease-out), border-color 0.2s var(--ease-out), opacity 0.2s var(--ease-out);
   white-space: nowrap;
 }
 
 .exportBtn:hover:not(:disabled) {
-  border-color: #555;
-  background: #f5f5f5;
+  border-color: var(--border-glass-hover);
+  background: var(--bg-glass-hover);
 }
 
 .exportBtn:disabled {
-  border-color: #e0e0e0;
-  color: #999;
+  border-color: var(--border-glass);
+  color: var(--text-muted);
   cursor: not-allowed;
   opacity: 0.6;
 }
 
 .exportBtn:disabled:hover {
-  border-color: #e0e0e0;
-  background: #fff;
+  border-color: var(--border-glass);
+  background: var(--bg-elevated);
 }
 
 /* ═══════════════════════════════════════════════════════════════

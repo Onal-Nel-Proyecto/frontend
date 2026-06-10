@@ -24,6 +24,7 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
     cliente_id: pedido?.cliente?.cliente_id || '',
     descripcion: pedido?.descripcion || '',
     observacion: pedido?.observacion || '',
+    tipo_pedido: pedido?.tipo_pedido || '',
     fecha_entrega_estimada: pedido?.fecha_entrega_estimada || pedido?.fecha_estimada_entrega || pedido?.fecha_estimada || '',
     recordatorio_activo: !!pedido?.recordatorio,
     recordatorio: pedido?.recordatorio || 3,
@@ -147,6 +148,7 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
       cliente_id: form.cliente_id,
       descripcion: form.descripcion || null,
       observacion: form.observacion || null,
+      tipo_pedido: form.tipo_pedido || null,
       [isEdit ? 'fecha_estimada_entrega' : 'fecha_estimada']: fechaEntrega,
       recordatorio: form.recordatorio_activo ? form.recordatorio : null,
     };
@@ -266,6 +268,21 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
                 maxLength={300}
               />
             </div>
+          </div>
+
+          <div className={styles.field}>
+            <label className={styles.label}>Tipo de pedido</label>
+            <select
+              name="tipo_pedido"
+              className={styles.select}
+              value={form.tipo_pedido}
+              onChange={handleChange}
+            >
+              <option value="">Seleccionar tipo…</option>
+              <option value="personalizado">Personalizado</option>
+              <option value="retoques">Retoques</option>
+              <option value="modificaciones">Modificaciones</option>
+            </select>
           </div>
 
           <div className={styles.field}>

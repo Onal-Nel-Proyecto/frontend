@@ -164,9 +164,11 @@ const ReportesVentas = () => {
       // Mostrar como "dia/mes" → ej. "01/07"
       label = `${pad(item.dia)}/${pad(mes)}`;
     } else if (item.fecha) {
-      // Período: el backend retorna { fecha: "2026-05-01", totalDia: … }
-      // Mostrar fecha completa → ej. "01/05/2026"
-      const [y, m, d] = item.fecha.split('-');
+      // Período: el backend retorna { fecha: "2026-06-07T05:00:00.000Z", totalDia: … }
+      // o { fecha: "2026-06-07", totalDia: … }
+      // Extraer solo la parte de fecha antes de T
+      const datePart = item.fecha.split('T')[0];
+      const [y, m, d] = datePart.split('-');
       label = `${pad(d)}/${pad(m)}/${y}`;
     } else {
       label = '';

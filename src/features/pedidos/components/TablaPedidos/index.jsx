@@ -13,8 +13,9 @@ import {
   FiXCircle,
   FiChevronLeft,
   FiChevronRight,
-  FiX
+  FiX,
 } from 'react-icons/fi';
+import { formatCurrency } from '../../../../utils/format';
 import Alert from '../../../../components/ui/feedback/Alert';
 import LoadingOverlay from '../../../../components/ui/feedback/LoadingOverlay';
 import { usePedidosTable } from '../../hooks/usePedidosTable';
@@ -315,6 +316,8 @@ const TablaPedidos = () => {
               <th>ID</th>
               <th>CLIENTE</th>
               <th>DESCRIPCIÓN</th>
+              <th>TIPO</th>
+              <th>PRECIO TOTAL</th>
               <th>FECHA ENTREGA</th>
               <th>ESTADO DE PAGO</th>
               <th>ESTADO</th>
@@ -323,9 +326,9 @@ const TablaPedidos = () => {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={6} className={styles.loadingText}>Cargando pedidos…</td></tr>
+              <tr><td colSpan={8} className={styles.loadingText}>Cargando pedidos…</td></tr>
             ) : filtered.length === 0 ? (
-              <tr><td colSpan={6} className={styles.loadingText}>No se encontraron pedidos</td></tr>
+              <tr><td colSpan={8} className={styles.loadingText}>No se encontraron pedidos</td></tr>
             ) : (
               filtered.map((row) => {
                 const st = statusMap[row.estado?.toUpperCase()] || {};
@@ -341,6 +344,8 @@ const TablaPedidos = () => {
                     <td className={styles.cellId}>{row.id}</td>
                     <td className={styles.cellClient}>{row.cliente_nombres}</td>
                     <td className={styles.cellDesc}>{row.descripcion || '—'}</td>
+                    <td className={styles.cellTipo}>{row.tipo_pedido ? row.tipo_pedido.charAt(0).toUpperCase() + row.tipo_pedido.slice(1) : '—'}</td>
+                    <td className={styles.cellPrice}>{formatCurrency(row.precio_total)}</td>
                     <td className={`${styles.cellDelivery} ${diasClass ? styles[diasClass] : ''}`}>{fecha}</td>
                     <td className={styles.cellDesc}>{row.estado_pago || '—'}</td>
                     <td><span className={`${styles.badge} ${styles[st.className] || ''}`}>{st.label || row.estado}</span></td>
@@ -383,6 +388,8 @@ const TablaPedidos = () => {
                   </div>
                   <p className={styles.mobileClient}>{row.cliente_nombres}</p>
                   <p className={styles.mobileDesc}>{row.descripcion || '—'}</p>
+                  <p className={styles.mobileTipo}>{row.tipo_pedido ? row.tipo_pedido.charAt(0).toUpperCase() + row.tipo_pedido.slice(1) : '—'}</p>
+                  <p className={styles.mobilePrice}>{formatCurrency(row.precio_total)}</p>
                   <div className={styles.mobileFooter}>
                     <span className={diasClass ? styles[diasClass] : ''}>{fecha}</span>
                     <span className={styles.estadoPagoMobile}>{row.estado_pago || '—'}</span>
