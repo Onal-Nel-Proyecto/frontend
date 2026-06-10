@@ -30,6 +30,7 @@
   box-shadow: var(--shadow-xl);
   animation: ncpSlideIn 0.35s var(--ease-out) both;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 @keyframes ncpSlideIn {
@@ -115,22 +116,32 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .ncp-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.85rem;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .ncp-group {
   display: flex;
   flex-direction: column;
   gap: 5px;
+  min-width: 0;
+  overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .ncp-group--full {
   grid-column: span 2;
+  width: 100%;
 }
 
 .ncp-label {
@@ -150,6 +161,9 @@
   border-radius: var(--radius-xs);
   padding: 0 0.8rem;
   transition: all var(--transition-fast);
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .ncp-input-wrap:focus-within {
@@ -178,6 +192,7 @@
 
 .ncp-input {
   flex: 1;
+  min-width: 0;
   padding: 0.6rem 0;
   font-size: var(--text-sm);
   font-family: inherit;
@@ -185,6 +200,8 @@
   background: transparent;
   border: none;
   outline: none;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .ncp-input--error {
