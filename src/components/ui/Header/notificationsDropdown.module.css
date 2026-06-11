@@ -27,7 +27,7 @@
 
 .trigger:hover,
 .triggerActive {
-  background: rgba(255, 255, 255, 0.6);
+  background: var(--bg-glass-hover);
 }
 
 /* ─── Badge de contador sobre la campana ─── */
@@ -58,10 +58,10 @@
   top: calc(100% + 0.6rem);
   width: 400px;
   max-height: 520px;
-  background: rgba(255, 255, 255, 0.96);
+  background: var(--bg-elevated);
   backdrop-filter: blur(16px);
   border-radius: 1.25rem;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-xl);
   z-index: 60;
   display: flex;
   flex-direction: column;
@@ -74,7 +74,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.25rem 0.75rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid var(--border-glass);
   flex-shrink: 0;
 }
 
@@ -87,7 +87,7 @@
 .headerCount {
   font-size: 0.75rem;
   color: var(--text-soft);
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--bg-glass);
   padding: 0.2rem 0.55rem;
   border-radius: 999px;
 }
@@ -98,7 +98,7 @@
   height: 2rem;
   border: none;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--bg-glass);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -111,7 +111,7 @@
 }
 
 .closeBtn:hover {
-  background: rgba(0, 0, 0, 0.1);
+  background: var(--bg-glass-hover);
 }
 
 /* ─── Lista de alertas (scroll) ─── */
@@ -146,8 +146,8 @@
 }
 
 .card:hover {
-  border-color: rgba(0, 0, 0, 0.08);
-  background: rgba(255, 255, 255, 0.7);
+  border-color: var(--border-glass-hover);
+  background: var(--bg-glass-hover);
 }
 
 /* ─── Icono del módulo ─── */
@@ -220,8 +220,8 @@
   padding: 0.3rem 0.65rem;
   border: none;
   border-radius: 0.5rem;
-  background: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
+  background: var(--accent-violet-subtle);
+  color: var(--accent-violet);
   font-size: 0.7rem;
   font-weight: 600;
   cursor: pointer;
@@ -230,7 +230,7 @@
 }
 
 .infoBtn:hover {
-  background: rgba(59, 130, 246, 0.2);
+  background: var(--accent-violet-glow);
 }
 
 /* Botón de redirección */
@@ -239,8 +239,8 @@
   height: 1.8rem;
   border: none;
   border-radius: 0.45rem;
-  background: rgba(16, 185, 129, 0.1);
-  color: #10b981;
+  background: var(--accent-emerald-subtle);
+  color: var(--accent-emerald);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -250,7 +250,8 @@
 }
 
 .redirectBtn:hover {
-  background: rgba(16, 185, 129, 0.22);
+  background: var(--accent-emerald-subtle);
+  opacity: 0.85;
 }
 
 /* Tooltip del botón redirect */
@@ -271,8 +272,9 @@
   transform: translateX(-50%) translateY(-2px);
   padding: 0.3rem 0.6rem;
   border-radius: 0.4rem;
-  background: rgba(30, 30, 30, 0.95);
-  color: #fff;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-glass);
+  color: var(--text-primary);
   font-size: 0.68rem;
   white-space: nowrap;
   opacity: 0;
@@ -308,7 +310,7 @@
 /* ─── Botón "Ver más" ─── */
 .verMasWrapper {
   padding: 0.75rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  border-top: 1px solid var(--border-glass);
   flex-shrink: 0;
 }
 
@@ -318,7 +320,7 @@
   border: none;
   border-radius: 0.75rem;
   background: transparent;
-  color: #3b82f6;
+  color: var(--accent-violet);
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
@@ -327,7 +329,7 @@
 }
 
 .verMasBtn:hover {
-  background: rgba(59, 130, 246, 0.08);
+  background: var(--accent-violet-subtle);
 }
 
 .verMasBtn:disabled {
@@ -378,7 +380,7 @@
   max-height: none !important;
   border-radius: 0 !important;
   z-index: 100 !important;
-  background: rgba(255, 255, 255, 0.98) !important;
+  background: var(--bg-elevated) !important;
 }
 
 /* ─── RESPONSIVE: estilos adaptativos para mobile/tablet ─── */

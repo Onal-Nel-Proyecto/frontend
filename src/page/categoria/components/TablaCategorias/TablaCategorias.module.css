@@ -3,10 +3,11 @@
    ═══════════════════════════════════════════ */
 
 .card {
-  background: #ffffff;
+  background: var(--bg-glass);
   border-radius: 24px;
   padding: 1.75rem 1.75rem 0;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--border-glass);
+  box-shadow: var(--shadow-sm);
 }
 
 /* ── Header ── */
@@ -33,13 +34,19 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: #f3f3f3;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glass);
   border-radius: 999px;
   padding: 0.45rem 1rem;
+  transition: border-color var(--transition-fast);
+}
+
+.searchBox:focus-within {
+  border-color: var(--accent-violet);
 }
 
 .searchIcon {
-  color: #999;
+  color: var(--text-muted);
   font-size: 0.9rem;
   flex-shrink: 0;
 }
@@ -49,12 +56,12 @@
   background: transparent;
   outline: none;
   font-size: 0.82rem;
-  color: #333;
+  color: var(--text-primary);
   min-width: 160px;
 }
 
 .searchInput::placeholder {
-  color: #aaa;
+  color: var(--text-muted);
 }
 
 /* ── Select de estado ── */
@@ -62,10 +69,10 @@
 .statusSelect {
   font-size: 0.82rem;
   padding: 0.45rem 1rem;
-  border: 0.5px solid #e0e0e0;
+  border: 1px solid var(--border-glass);
   border-radius: 999px;
-  background: #f3f3f3;
-  color: #555;
+  background: var(--bg-glass);
+  color: var(--text-secondary);
   cursor: pointer;
   outline: none;
   appearance: none;
@@ -73,17 +80,23 @@
   background-repeat: no-repeat;
   background-position: right 10px center;
   padding-right: 2rem;
-  transition: border-color 0.2s ease, background 0.2s ease;
+  transition: all var(--transition-fast);
   min-width: 140px;
 }
 
 .statusSelect:hover {
-  background-color: #e8e8e8;
+  background: var(--bg-glass-hover);
+  border-color: var(--border-glass-hover);
 }
 
 .statusSelect:focus {
-  border-color: #999;
-  background-color: #fff;
+  border-color: var(--accent-violet);
+  background: var(--bg-glass-active);
+}
+
+.statusSelect option {
+  background: var(--bg-surface);
+  color: var(--text-primary);
 }
 
 /* ── Tabla ── */
@@ -102,12 +115,12 @@
 }
 
 .tableWrapper::-webkit-scrollbar-thumb {
-  background: #d0d0d0;
+  background: var(--border-glass);
   border-radius: 999px;
 }
 
 .tableWrapper::-webkit-scrollbar-thumb:hover {
-  background: #bbb;
+  background: var(--border-glass-hover);
 }
 
 .table {
@@ -119,8 +132,8 @@
 .table thead th {
   text-align: left;
   padding: 0.85rem 0.75rem;
-  background: #f7f7f7;
-  color: #888;
+  background: var(--bg-glass);
+  color: var(--text-muted);
   font-weight: 600;
   font-size: 0.72rem;
   letter-spacing: 0.03em;
@@ -129,8 +142,8 @@
 
 .table tbody td {
   padding: 0.9rem 0.75rem;
-  border-bottom: 1px solid #f0f0f0;
-  color: #444;
+  border-bottom: 1px solid var(--border-glass);
+  color: var(--text-secondary);
   vertical-align: middle;
 }
 
@@ -139,26 +152,26 @@
 }
 
 .table tbody tr:hover {
-  background: #fafafa;
-  transition: background 0.15s ease;
+  background: var(--bg-glass-hover);
+  transition: background var(--transition-fast);
 }
 
 /* ── Celdas ── */
 
 .cellId {
   font-weight: 700;
-  color: #222;
+  color: var(--text-primary);
   white-space: nowrap;
 }
 
 .cellName {
-  color: #333;
+  color: var(--text-primary);
   min-width: 140px;
   font-weight: 500;
 }
 
 .cellDesc {
-  color: #555;
+  color: var(--text-secondary);
   min-width: 160px;
 }
 
@@ -182,13 +195,13 @@
 }
 
 .active {
-  background: #dcfce7;
-  color: #16a34a;
+  background: var(--accent-emerald-subtle);
+  color: var(--accent-emerald);
 }
 
 .inactive {
-  background: #fee2e2;
-  color: #dc2626;
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
 }
 
 /* ── Botón acciones ── */
@@ -196,7 +209,7 @@
 .actionBtn {
   border: none;
   background: transparent;
-  color: #aaa;
+  color: var(--text-muted);
   cursor: pointer;
   padding: 0.25rem;
   border-radius: 999px;
@@ -204,12 +217,12 @@
   align-items: center;
   justify-content: center;
   font-size: 1.1rem;
-  transition: color 0.2s ease, background 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .actionBtn:hover {
-  color: #555;
-  background: #f0f0f0;
+  color: var(--text-secondary);
+  background: var(--bg-glass-hover);
 }
 
 .actionsWrapper {
@@ -219,9 +232,10 @@
 
 .actionsMenuPortal {
   min-width: 150px;
-  background: #fff;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-glass);
   border-radius: 12px;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow-lg);
   padding: 0.35rem;
   display: flex;
   flex-direction: column;
@@ -237,13 +251,14 @@
   border-radius: 8px;
   background: transparent;
   font-size: 0.82rem;
-  color: #444;
+  color: var(--text-secondary);
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: all var(--transition-fast);
 }
 
 .actionItem:hover {
-  background: #f5f5f5;
+  background: var(--bg-glass-hover);
+  color: var(--text-primary);
 }
 
 .actionItem svg {
@@ -257,7 +272,7 @@
   display: flex;
   justify-content: flex-end;
   padding: 0.9rem 1rem;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--border-glass);
   margin-top: 0.5rem;
 }
 
@@ -266,23 +281,23 @@
   align-items: center;
   gap: 0.35rem;
   font-size: 0.82rem;
-  color: #888;
+  color: var(--text-muted);
 }
 
 .pageArrow {
   font-size: 1rem;
-  color: #999;
+  color: var(--text-muted);
   cursor: pointer;
   padding: 0.25rem;
   border-radius: 999px;
-  transition: background 0.2s ease;
+  transition: all var(--transition-fast);
   display: inline-flex;
   align-items: center;
 }
 
 .pageArrow:hover {
-  background: #f0f0f0;
-  color: #555;
+  background: var(--bg-glass-hover);
+  color: var(--text-secondary);
 }
 
 .pageArrowDisabled {
@@ -292,7 +307,7 @@
 
 .pageArrowDisabled:hover {
   background: transparent;
-  color: #999;
+  color: var(--text-muted);
 }
 
 .pagination span:not(.pageEllipsis) {
@@ -303,16 +318,16 @@
   justify-content: center;
   border-radius: 999px;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .pagination span:hover {
-  background: #f0f0f0;
+  background: var(--bg-glass-hover);
 }
 
 .pageActive {
-  background: #333 !important;
-  color: #fff;
+  background: var(--accent-gold) !important;
+  color: #1a1a1a;
   font-weight: 600;
 }
 
@@ -320,7 +335,7 @@
   min-width: 1.2rem;
   text-align: center;
   font-size: 0.85rem;
-  color: #bbb;
+  color: var(--text-muted);
   letter-spacing: 0.1em;
   user-select: none;
 }
@@ -334,19 +349,19 @@
 }
 
 .mobileCard {
-  background: #fafafa;
+  background: var(--bg-glass);
   border-radius: 16px;
   padding: 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  border: 1px solid #f0f0f0;
+  border: 1px solid var(--border-glass);
   cursor: default;
-  transition: border-color 0.2s ease;
+  transition: border-color var(--transition-fast);
 }
 
 .mobileCard:active {
-  border-color: #e0e0e0;
+  border-color: var(--border-glass-hover);
 }
 
 .mobileHeader {
@@ -358,13 +373,13 @@
 
 .mobileName {
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   font-size: 0.9rem;
   margin: 0.2rem 0 0;
 }
 
 .mobileDesc {
-  color: #666;
+  color: var(--text-secondary);
   font-size: 0.8rem;
   margin: 0;
   line-height: 1.4;
@@ -375,7 +390,7 @@
   gap: 0.5rem;
   margin-top: 0.5rem;
   padding-top: 0.5rem;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--border-glass);
 }
 
 .mobileActionBtn {
@@ -385,16 +400,17 @@
   padding: 0.35rem 0.75rem;
   border: none;
   border-radius: 8px;
-  background: #f0f0f0;
-  color: #555;
+  background: var(--bg-glass);
+  color: var(--text-secondary);
   font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .mobileActionBtn:hover {
-  background: #e4e4e4;
+  background: var(--bg-glass-hover);
+  color: var(--text-primary);
 }
 
 .mobileActionBtn svg {

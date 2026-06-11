@@ -18,18 +18,18 @@
 }
 
 .prodItem {
-  background: #fafafa;
+  background: var(--bg-glass);
   border-radius: 0.75rem;
   padding: 0.75rem;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-  border: 1px solid #f0f0f0;
+  border: 1px solid var(--border-glass);
   transition: border-color 0.2s ease;
 }
 
 .prodItem:hover {
-  border-color: #e0e0e0;
+  border-color: var(--border-glass-hover);
 }
 
 .prodHeader {
@@ -42,18 +42,18 @@
 .prodId {
   font-weight: 700;
   font-size: 0.82rem;
-  color: #222;
+  color: var(--text-primary);
 }
 
 .prodClient {
   font-size: 0.82rem;
   font-weight: 600;
-  color: #444;
+  color: var(--text-secondary);
 }
 
 .prodInfo {
   font-size: 0.72rem;
-  color: #888;
+  color: var(--text-muted);
 }
 
 .prodOverdue,
@@ -77,18 +77,18 @@
 }
 
 .badgeSmall.pending {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--accent-amber-subtle);
+  color: var(--accent-amber);
 }
 
 .badgeSmall.inProcess {
-  background: #dbeafe;
-  color: #1e40af;
+  background: var(--accent-violet-subtle);
+  color: var(--accent-violet);
 }
 
 .badgeSmall.delivered {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--accent-emerald-subtle);
+  color: var(--accent-emerald);
 }
 
 
@@ -112,7 +112,7 @@
 
 .tableWrapper::-webkit-scrollbar { height: 6px; }
 .tableWrapper::-webkit-scrollbar-track { background: transparent; }
-.tableWrapper::-webkit-scrollbar-thumb { background: #d0d0d0; border-radius: 999px; }
+.tableWrapper::-webkit-scrollbar-thumb { background: var(--border-glass); border-radius: 999px; }
 
 .table {
   width: 100%;
@@ -123,29 +123,29 @@
 .table thead th {
   text-align: left;
   padding: 0.65rem 0.5rem;
-  background: #f7f7f7;
-  color: #888;
+  background: var(--bg-glass);
+  color: var(--text-muted);
   font-weight: 600;
   font-size: 0.68rem;
   letter-spacing: 0.02em;
   white-space: nowrap;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border-glass);
 }
 
 .table tbody td {
   padding: 0.65rem 0.5rem;
-  border-bottom: 1px solid #f0f0f0;
-  color: #444;
+  border-bottom: 1px solid var(--border-glass);
+  color: var(--text-secondary);
   vertical-align: middle;
 }
 
 .table tbody tr:last-child td { border-bottom: none; }
 
-.tableRow:hover { background: #fafafa; }
+.tableRow:hover { background: var(--bg-glass-hover); }
 
 .cellId {
   font-weight: 700;
-  color: #222;
+  color: var(--text-primary);
   white-space: nowrap;
   width: 1%;
 }
@@ -175,23 +175,23 @@
 }
 
 .badge.pending {
-  background: #fef3c7;
-  color: #78350f;
+  background: var(--accent-amber-subtle);
+  color: var(--accent-amber);
 }
 
 .badge.inProcess {
-  background: #dbeafe;
-  color: #1e40af;
+  background: var(--accent-violet-subtle);
+  color: var(--accent-violet);
 }
 
 .badge.delivered {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--accent-emerald-subtle);
+  color: var(--accent-emerald);
 }
 
 .badge.cancelled {
-  background: #fee2e2;
-  color: #7f1d1d;
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
 }
 
 .actionBtn {
@@ -203,15 +203,15 @@
   border: none;
   border-radius: 999px;
   background: transparent;
-  color: #999;
+  color: var(--text-muted);
   cursor: pointer;
   font-size: 0.95rem;
   transition: color 0.2s ease, background 0.2s ease;
 }
 
 .actionBtn:hover {
-  color: #555;
-  background: #f0f0f0;
+  color: var(--text-secondary);
+  background: var(--bg-glass-hover);
 }
 
 .mobileList {
@@ -225,14 +225,14 @@
   flex-direction: column;
   gap: 0.4rem;
   padding: 0.85rem;
-  background: #fafafa;
+  background: var(--bg-glass);
   border-radius: 0.75rem;
-  border: 1px solid #f0f0f0;
+  border: 1px solid var(--border-glass);
   cursor: pointer;
   transition: border-color 0.2s ease;
 }
 
-.mobileCard:active { border-color: #e0e0e0; }
+.mobileCard:active { border-color: var(--border-glass-hover); }
 
 .mobileHeader {
   display: flex;
@@ -243,7 +243,7 @@
 
 .mobileClient {
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
   font-size: 0.85rem;
 }
 
@@ -251,7 +251,7 @@
   display: flex;
   gap: 0.75rem;
   font-size: 0.75rem;
-  color: #888;
+  color: var(--text-muted);
   flex-wrap: wrap;
 }
 
@@ -261,7 +261,7 @@
   font-weight: 600;
   color: var(--text-soft);
   padding: 0.5rem 0;
-  border-top: 1px dashed #e0e0e0;
+  border-top: 1px dashed var(--border-glass);
   margin-top: 0.25rem;
 }
 
@@ -308,13 +308,13 @@
 }
 
 .modal {
-  background: #fff;
+  background: var(--bg-elevated);
   border-radius: 1.25rem;
   width: 100%;
   max-width: 420px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-xl);
   animation: slideUp 0.2s ease;
 }
 
@@ -328,18 +328,18 @@
   height: 2rem;
   border: none;
   border-radius: 999px;
-  background: #f3f3f3;
+  background: var(--bg-glass);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #666;
+  color: var(--text-muted);
   font-size: 1rem;
   cursor: pointer;
   transition: background 0.2s ease;
   flex-shrink: 0;
 }
 
-.modalClose:hover { background: #e8e8e8; }
+.modalClose:hover { background: var(--bg-glass-hover); }
 
 .modalHeader {
   padding: 1.5rem 1.5rem 0.75rem;
@@ -359,7 +359,7 @@
 .modalTitle {
   font-size: 1.2rem;
   font-weight: 800;
-  color: #1a1a1a;
+  color: var(--text-primary);
   margin: 0;
 }
 
@@ -379,7 +379,7 @@
 .modalLabel {
   font-size: 0.7rem;
   font-weight: 600;
-  color: #999;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -387,7 +387,7 @@
 .modalValue {
   font-size: 0.92rem;
   font-weight: 600;
-  color: #333;
+  color: var(--text-secondary);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -395,20 +395,20 @@
    ═══════════════════════════════════════════════════════════════ */
 
 .overflowItem {
-  background: #fafafa;
+  background: var(--bg-glass);
   border-radius: 0.75rem;
   padding: 0.75rem;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  border: 1px solid #f0f0f0;
+  border: 1px solid var(--border-glass);
   cursor: pointer;
   transition: border-color 0.2s ease, background 0.2s ease;
 }
 
 .overflowItem:hover {
-  border-color: #d0d0d0;
-  background: #f5f5f5;
+  border-color: var(--border-glass-hover);
+  background: var(--bg-glass-hover);
 }
 
 .overflowItemHeader {
@@ -421,12 +421,12 @@
 .overflowItemClient {
   font-size: 0.82rem;
   font-weight: 600;
-  color: #444;
+  color: var(--text-secondary);
 }
 
 .overflowItemDesc {
   font-size: 0.72rem;
-  color: #888;
+  color: var(--text-muted);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -442,8 +442,8 @@
   padding: 0.65rem 1rem;
   border: none;
   border-radius: 0.75rem;
-  background: #1a1a1a;
-  color: #fff;
+  background: var(--accent-gold);
+  color: #1a1a1a;
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
@@ -453,7 +453,7 @@
 }
 
 .modalBtn:hover {
-  background: #333;
+  background: var(--accent-gold-light);
 }
 
 .viewAllBtn {
@@ -463,10 +463,10 @@
   gap: 0.4rem;
   width: 100%;
   padding: 0.7rem 1rem;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-glass);
   border-radius: 0.75rem;
   background: transparent;
-  color: #666;
+  color: var(--text-secondary);
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
@@ -474,9 +474,9 @@
 }
 
 .viewAllBtn:hover {
-  background: #f5f5f5;
-  color: #333;
-  border-color: #ccc;
+  background: var(--bg-glass-hover);
+  color: var(--text-primary);
+  border-color: var(--border-glass-hover);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -559,7 +559,7 @@
 .errorTitle {
   font-size: 1.2rem;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--text-primary);
   margin: 0;
 }
 
@@ -578,8 +578,8 @@
   padding: 0.6rem 1.25rem;
   border: none;
   border-radius: 0.75rem;
-  background: #333;
-  color: #fff;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
   font-size: 0.88rem;
   font-weight: 600;
   cursor: pointer;
@@ -588,5 +588,5 @@
 }
 
 .retryBtn:hover {
-  background: #555;
+  background: var(--bg-glass-hover);
 }

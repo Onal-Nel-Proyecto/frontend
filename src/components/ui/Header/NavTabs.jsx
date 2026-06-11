@@ -14,6 +14,8 @@ import {
   FiGrid,
   FiHardDrive,
   FiPackage,
+  FiDollarSign,
+  FiBarChart2,
 } from 'react-icons/fi';
 import { TfiRulerPencil } from "react-icons/tfi";
 import { isAdmin } from '../../../utils/session.js';
@@ -34,6 +36,13 @@ const modules = [
       { label: 'Materiales',     to: '/inventario/materiales',     icon: <FiPackage /> },
       { label: 'Productos',      to: '/inventario/productos',      icon: <FiShoppingBag /> },
       { label: 'Abastecimiento', to: '/inventario/abastecimiento', icon: <FiTruck /> },
+    ],
+  },
+  {
+    path: '/ventas',
+    tabs: [
+      { label: 'Ventas',   to: '/ventas', icon: <FiDollarSign />, matchPattern: /^\/ventas\/(?!reportes).+/ },
+      { label: 'Reportes', to: '/ventas/reportes', icon: <FiBarChart2 />, adminOnly: true },
     ],
   },
 ];

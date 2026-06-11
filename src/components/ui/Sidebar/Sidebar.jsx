@@ -24,11 +24,11 @@ const Sidebar = ({ isOpen, onClose }) => {
 
   // Ítems del menú principal (visibles para todos los roles)
   const menuItems = [
-    { name: 'Dashboard', icon: <FiHome />, path: '/dashboard' },
-    { name: 'Pedidos', icon: <FiShoppingBag />, path: '/pedidos/dash' },
-    { name: 'Inventario', icon: <FiArchive />, path: '/inventario' },
-    { name: 'Ventas', icon: <FiShoppingBag />, path: '/ventas' },
-    { name: 'Gestión Personal', icon: <FiUsers />, path: '/gestion-personal' },
+    { name: 'Dashboard', icon: <FiHome />, path: '/dashboard', activePath: "/dashboard" },
+    { name: 'Pedidos', icon: <FiShoppingBag />, path: '/pedidos/dash', activePath: "/pedidos" },
+    { name: 'Inventario', icon: <FiArchive />, path: '/inventario/materiales', activePath: "/inventario" },
+    { name: 'Ventas', icon: <FiShoppingBag />, path: '/ventas', activePath: "/ventas" },
+    { name: 'Gestión Personal', icon: <FiUsers />, path: '/gestion-personal', activePath: "/gestion-personal" },
   ];
 
   return (
@@ -57,7 +57,7 @@ const Sidebar = ({ isOpen, onClose }) => {
           {isAdmin && (
             <div className={styles.footer}>
               <SidebarItem
-                item={{ name: 'Configuración', icon: <FiSettings />, path: '/config' }}
+                item={{ name: 'Configuración', icon: <FiSettings />, path: '/config', activePath: '/config' }}
                 onClose={onClose}
               />
             </div>
@@ -71,14 +71,13 @@ const Sidebar = ({ isOpen, onClose }) => {
 // Componente interno para cada ítem del menú
 const SidebarItem = ({ item, onClose }) => {
   const loc = useLocation();
-  const isActive = loc.pathname === item.path || loc.pathname.startsWith(item.path + '/');
+  const isActive = loc.pathname === item.activePath || loc.pathname.startsWith(item.activePath + '/');
   return (
     <NavLink
       to={item.path}
       onClick={onClose}
-      className={({ isActive: active }) =>
-        `${styles.navItem} ${active ? styles.active : styles.inactive}`
-      }
+      className={`${styles.navItem} ${isActive ? styles.active : styles.inactive
+        }`}
       aria-current={isActive ? 'page' : undefined}
     >
       <span className={styles.icon}>{item.icon}</span>

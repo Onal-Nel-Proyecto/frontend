@@ -2,7 +2,7 @@
 // PedidoForm — Drawer para crear / editar un pedido
 // ================================================================
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiShoppingBag } from 'react-icons/fi';
 
@@ -14,6 +14,7 @@ import ClienteSearch from '../ClienteSearch';
 import NewClientPanel from '../../../../page/RegisterClient';
 import { createPedido, updatePedido } from '../../services/pedidosService';
 import { createCliente } from '../../../../api/clientesService';
+import { getServerDate } from '../../../../utils/serverDate';
 import styles from './PedidoForm.module.css';
 
 const PedidoForm = ({ isOpen, onClose, pedido }) => {
@@ -24,6 +25,7 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
     cliente_id: pedido?.cliente?.cliente_id || '',
     descripcion: pedido?.descripcion || '',
     observacion: pedido?.observacion || '',
+    tipo_pedido: pedido?.tipo_pedido || '',
     fecha_entrega_estimada: pedido?.fecha_entrega_estimada || pedido?.fecha_estimada_entrega || pedido?.fecha_estimada || '',
     recordatorio_activo: !!pedido?.recordatorio,
     recordatorio: pedido?.recordatorio || 3,
@@ -147,6 +149,7 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
       cliente_id: form.cliente_id,
       descripcion: form.descripcion || null,
       observacion: form.observacion || null,
+      tipo_pedido: form.tipo_pedido || null,
       [isEdit ? 'fecha_estimada_entrega' : 'fecha_estimada']: fechaEntrega,
       recordatorio: form.recordatorio_activo ? form.recordatorio : null,
     };
@@ -200,13 +203,15 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
     }
   };
 
-  const today = new Date();
+  const [minDate, setMinDate] = useState(() => {
+    const local = new Date();
+    local.setMinutes(local.getMinutes() - local.getTimezoneOffset());
+    return local.toISOString().split('T')[0];
+  });
 
-  today.setMinutes(
-    today.getMinutes() - today.getTimezoneOffset()
-  );
-
-  const minDate = today.toISOString().split('T')[0];
+  useEffect(() => {
+    getServerDate().then(setMinDate);
+  }, [isOpen]);
 
   return (
     <>
@@ -266,6 +271,21 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
                 maxLength={300}
               />
             </div>
+          </div>
+
+          <div className={styles.field}>
+            <label className={styles.label}>Tipo de pedido</label>
+            <select
+              name="tipo_pedido"
+              className={styles.select}
+              value={form.tipo_pedido}
+              onChange={handleChange}
+            >
+              <option value="">Seleccionar tipo…</option>
+              <option value="personalizado">Personalizado</option>
+              <option value="retoques">Retoques</option>
+              <option value="modificaciones">Modificaciones</option>
+            </select>
           </div>
 
           <div className={styles.field}>

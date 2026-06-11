@@ -6,12 +6,13 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { FiSearch, FiX, FiPackage } from 'react-icons/fi';
-import { buscarProductosMock } from '../../../../data/productosMock';
+import { getProductos } from '../../../../services/productoService';
 import styles from './ProductoSearch.module.css';
 
 const ProductoSearch = ({ onSelect, onClose }) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [highlightIdx, setHighlightIdx] = useState(-1);
 
   const wrapperRef = useRef(null);
@@ -24,13 +25,21 @@ const ProductoSearch = ({ onSelect, onClose }) => {
   }, []);
 
   // ─── Búsqueda con debounce ───
-  const fetchResults = useCallback((searchTerm) => {
+  const fetchResults = useCallback(async (searchTerm) => {
     if (!searchTerm.trim()) {
       setResults([]);
       return;
     }
-    const data = buscarProductosMock(searchTerm.trim());
-    setResults(data);
+    setLoading(true);
+    try {
+      const res = await getProductos({ nombre: searchTerm.trim() });
+      const items = Array.isArray(res.data) ? res.data : [];
+      setResults(items);
+    } catch {
+      setResults([]);
+    } finally {
+      setLoading(false);
+    }
     setHighlightIdx(-1);
   }, []);
 
@@ -134,11 +143,17 @@ const ProductoSearch = ({ onSelect, onClose }) => {
         <FiX />
       </button>
 
-      {results.length > 0 && (
+      {loading && (
+        <div className={styles.dropdown}>
+          <div className={styles.noResults}>Buscando…</div>
+        </div>
+      )}
+
+      {!loading && results.length > 0 && (
         <ul className={styles.dropdown}>
           {results.map((prod, idx) => (
             <li
-              key={prod.producto_id}
+              key={prod.id}
               className={`${styles.option} ${highlightIdx === idx ? styles.optionHighlighted : ''}`}
               onClick={() => selectProducto(prod)}
               onMouseEnter={() => setHighlightIdx(idx)}
@@ -148,17 +163,17 @@ const ProductoSearch = ({ onSelect, onClose }) => {
                 {prod.nombre}
               </span>
               <div className={styles.optionMeta}>
-                <span>{prod.tipo_prenda}</span>
-                <span>Talla: {prod.talla}</span>
-                <span>${Number(prod.precio).toLocaleString()}</span>
-                <span>{prod.genero === 'M' ? 'Hombre' : prod.genero === 'F' ? 'Mujer' : 'Unisex'}</span>
+                <span>{prod.tipoPrenda || ''}</span>
+                <span>{prod.talla ? `Talla: ${prod.talla}` : ''}</span>
+                <span>{prod.precioUnitario ? `$${Number(prod.precioUnitario).toLocaleString()}` : ''}</span>
+                <span>{prod.genero === 'M' ? 'Hombre' : prod.genero === 'F' ? 'Mujer' : prod.genero === 'U' ? 'Unisex' : ''}</span>
               </div>
             </li>
           ))}
         </ul>
       )}
 
-      {query.trim() && results.length === 0 && (
+      {!loading && query.trim() && results.length === 0 && (
         <div className={styles.dropdown}>
           <div className={styles.noResults}>
             No se encontraron productos

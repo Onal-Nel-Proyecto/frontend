@@ -328,7 +328,7 @@
 }
 
 .filterInput::placeholder {
-  color: #aaa;
+  color: var(--text-muted);
 }
 
 /* ─── Footer del panel ─── */
@@ -336,24 +336,25 @@
   display: flex;
   gap: 0.65rem;
   padding: 1.25rem 1.5rem;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--border-glass);
 }
 
 .filterClearBtn {
   flex: 1;
   padding: 0.65rem 1rem;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-glass);
   border-radius: 0.75rem;
-  background: #fff;
-  color: #666;
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .filterClearBtn:hover {
-  background: #f5f5f5;
+  background: var(--bg-glass-hover);
+  color: var(--text-primary);
 }
 
 .filterApplyBtn {
@@ -361,14 +362,14 @@
   padding: 0.65rem 1rem;
   border: none;
   border-radius: 0.75rem;
-  background: #333;
-  color: #fff;
+  background: var(--accent-gold);
+  color: #1a1a1a;
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .filterApplyBtn:hover {
-  background: #555;
+  background: var(--accent-gold-light);
 }

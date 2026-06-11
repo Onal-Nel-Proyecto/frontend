@@ -17,7 +17,7 @@
 .inputIcon {
   position: absolute;
   left: 12px;
-  color: #aaa;
+  color: var(--text-muted);
   font-size: 0.95rem;
   pointer-events: none;
   z-index: 1;
@@ -26,30 +26,30 @@
 .input {
   width: 100%;
   padding: 0.6rem 0.85rem 0.6rem 2.2rem;
-  border: 0.5px solid #e8e5e0;
+  border: 0.5px solid var(--border-glass);
   border-radius: 10px;
-  background: #fcfcfc;
+  background: var(--bg-elevated);
   font-size: 0.85rem;
-  color: #1a1a1a;
+  color: var(--text-primary);
   transition: border-color 0.2s ease, border-radius 0.2s ease;
   font-family: inherit;
 }
 
 .input:focus {
   outline: none;
-  border-color: #bbb;
-  background: #fff;
+  border-color: var(--border-glass-hover);
+  background: var(--bg-elevated);
 }
 
 .inputOpen {
   border-radius: 10px 10px 0 0;
-  border-color: #bbb;
-  background: #fff;
+  border-color: var(--border-glass-hover);
+  background: var(--bg-elevated);
 }
 
 .inputError {
   border-color: #dc2626;
-  background: #fef2f2;
+  background: rgba(220, 38, 38, 0.06);
 }
 
 .inputError:focus {
@@ -62,8 +62,8 @@
   right: 12px;
   width: 16px;
   height: 16px;
-  border: 2px solid #e8e5e0;
-  border-top-color: #695B58;
+  border: 2px solid var(--border-glass);
+  border-top-color: var(--accent-gold);
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
 }
@@ -80,11 +80,11 @@
   right: 0;
   max-height: 220px;
   overflow-y: auto;
-  background: #fff;
-  border: 0.5px solid #bbb;
+  background: var(--bg-elevated);
+  border: 0.5px solid var(--border-glass);
   border-top: none;
   border-radius: 0 0 10px 10px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  box-shadow: var(--shadow-lg);
   z-index: 100;
   list-style: none;
   margin: 0;
@@ -94,7 +94,7 @@
 .option {
   padding: 0.55rem 0.85rem 0.55rem 2.2rem;
   font-size: 0.82rem;
-  color: #333;
+  color: var(--text-secondary);
   cursor: pointer;
   transition: background 0.15s ease;
   display: flex;
@@ -104,32 +104,32 @@
 
 .option:hover,
 .optionHighlighted {
-  background: #f5f3ef;
+  background: var(--bg-glass-hover);
 }
 
 .optionId {
   font-size: 0.72rem;
-  color: #aaa;
+  color: var(--text-muted);
   font-family: monospace;
   margin-left: 0.5rem;
   flex-shrink: 0;
 }
 
 .defaultOption {
-  border-top: 1px solid #eee;
-  color: #999;
+  border-top: 1px solid var(--border-glass);
+  color: var(--text-muted);
   font-style: italic;
 }
 
 .defaultOption .optionId {
-  color: #ccc;
+  color: var(--text-muted);
 }
 
 .noResults {
   padding: 0.75rem 0.85rem;
   text-align: center;
   font-size: 0.8rem;
-  color: #aaa;
+  color: var(--text-muted);
 }
 
 /* ── Botón agregar cliente ── */
@@ -139,19 +139,19 @@
   justify-content: center;
   width: 36px;
   height: 36px;
-  border: 0.5px solid #e8e5e0;
+  border: 0.5px solid var(--border-glass);
   border-radius: 10px;
-  background: #fcfcfc;
-  color: #695B58;
+  background: var(--bg-elevated);
+  color: var(--accent-gold);
   font-size: 1.1rem;
   cursor: pointer;
-  transition: background 0.2s ease, color 0.2s ease;
+  transition: all var(--transition-fast);
   flex-shrink: 0;
 }
 
 .addBtn:hover {
-  background: #695B58;
-  color: #fff;
+  background: var(--accent-gold);
+  color: #1a1a1a;
 }
 
 /* ── Error ── */

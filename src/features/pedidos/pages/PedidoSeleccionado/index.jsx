@@ -228,6 +228,7 @@ const PedidoSeleccionado = () => {
         onClose={() => setDetallePanel({ open: false, modo: 'view', detalle: null })}
         modo={detallePanel.modo}
         detalle={detallePanel.detalle}
+        pedidoEstado={pedido.estado}
       />
 
       {/* Alerta cancelar pedido */}
