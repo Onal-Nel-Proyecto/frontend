@@ -117,7 +117,7 @@
 .slider {
   position: absolute;
   inset: 0;
-  background: var(--border-glass);
+  background: var(--bg-glass-active);
   border-radius: 999px;
   transition: background 0.25s ease;
 }

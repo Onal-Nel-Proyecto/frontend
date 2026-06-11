@@ -12,6 +12,7 @@
 //   />
 // ================================================================
 
+import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FiCheckCircle,
@@ -31,6 +32,14 @@ const Alert = ({ type = 'success', title, message, children, onConfirm, onCancel
   const isConfirm = type === 'confirm';
   const handleClose = onClose || (() => {});
   const handleCancel = onCancel || (() => {});
+
+  // Bloquear scroll del body mientras la alerta está abierta
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
 
   return (
     <AnimatePresence>

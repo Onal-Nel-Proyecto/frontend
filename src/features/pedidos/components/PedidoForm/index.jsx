@@ -2,7 +2,7 @@
 // PedidoForm — Drawer para crear / editar un pedido
 // ================================================================
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiShoppingBag } from 'react-icons/fi';
 
@@ -14,6 +14,7 @@ import ClienteSearch from '../ClienteSearch';
 import NewClientPanel from '../../../../page/RegisterClient';
 import { createPedido, updatePedido } from '../../services/pedidosService';
 import { createCliente } from '../../../../api/clientesService';
+import { getServerDate } from '../../../../utils/serverDate';
 import styles from './PedidoForm.module.css';
 
 const PedidoForm = ({ isOpen, onClose, pedido }) => {
@@ -202,13 +203,15 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
     }
   };
 
-  const today = new Date();
+  const [minDate, setMinDate] = useState(() => {
+    const local = new Date();
+    local.setMinutes(local.getMinutes() - local.getTimezoneOffset());
+    return local.toISOString().split('T')[0];
+  });
 
-  today.setMinutes(
-    today.getMinutes() - today.getTimezoneOffset()
-  );
-
-  const minDate = today.toISOString().split('T')[0];
+  useEffect(() => {
+    getServerDate().then(setMinDate);
+  }, [isOpen]);
 
   return (
     <>
