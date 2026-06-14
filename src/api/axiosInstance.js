@@ -54,11 +54,9 @@ axiosInstance.interceptors.response.use(
     const originalRequest = error.config;
 
     // ❌ Si la petición que falló es el propio refresh, no reintentar
+    // Limpia sesión y rechaza — React Router redirige via AuthContext/PrivateRoute
     if (originalRequest.url === AUTH_ENDPOINTS.REFRESH) {
       clearSession();
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
-      }
       return Promise.reject(error);
     }
 
@@ -91,16 +89,14 @@ axiosInstance.interceptors.response.use(
 
         return axiosInstance(originalRequest);
       } catch (refreshError) {
-        // Falló el refresh → limpiar sesión
+        // Falló el refresh → limpiar sesión y rechazar
+        // Sin window.location.href: el error llega al catch de la llamada original
+        // (ej: useAbastecimiento carga datos mock), y AuthContext + PrivateRoute
+        // redirigen al login via React Router cuando detecten el cambio.
         processQueue(refreshError);
         isRefreshing = false;
 
         clearSession();
-
-        // Redirigir al login solo si no estamos ya ahí (evita bucle infinito)
-        if (window.location.pathname !== '/login') {
-          window.location.href = '/login';
-        }
 
         return Promise.reject(refreshError);
       }
