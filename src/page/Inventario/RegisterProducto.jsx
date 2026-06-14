@@ -7,23 +7,17 @@ const SOLO_LETRAS = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/
 
 const validate = (form) => {
   const errs = {}
-  
+
   const nom = form.nombre.trim()
   if (!nom) errs.nombre = 'El nombre del producto es obligatorio'
   else if (nom.length < 3) errs.nombre = 'Mínimo 3 caracteres'
   else if (nom.length > 100) errs.nombre = 'Máximo 100 caracteres'
   else if (!SOLO_LETRAS.test(nom)) errs.nombre = 'Solo letras y espacios, sin números'
 
-  const ref = form.referencia.trim()
-  if (!ref) errs.referencia = 'La referencia es obligatoria'
-  else if (ref.length < 3) errs.referencia = 'Mínimo 3 caracteres'
-  else if (ref.length > 30) errs.referencia = 'Máximo 30 caracteres'
-  else if (!/^[A-Z0-9-]+$/i.test(ref)) errs.referencia = 'Solo letras, números y guiones'
-
-  if (!form.tipo_prenda) errs.tipo_prenda = 'Selecciona el tipo de prenda'
+  if (!form.tipoPrenda) errs.tipoPrenda = 'Selecciona el tipo de prenda'
   if (!form.genero) errs.genero = 'Selecciona el género'
 
-  const precioStr = form.precio.trim()
+  const precioStr = form.precio?.toString().trim()
   if (precioStr === '') errs.precio = 'Ingresa un precio válido'
   else if (!/^\d+(\.\d{1,2})?$/.test(precioStr)) errs.precio = 'Solo números (máx 2 decimales)'
   else {
@@ -32,15 +26,10 @@ const validate = (form) => {
     else if (precio > 99999999) errs.precio = 'Precio demasiado alto'
   }
 
-  // Stock es opcional
-  const stockStr = form.stock.trim()
-  if (stockStr !== '') {
-    if (!/^\d+$/.test(stockStr)) errs.stock = 'Solo números enteros'
-    else {
-      const stock = parseInt(stockStr, 10)
-      if (stock < 0) errs.stock = 'No puede ser negativo'
-      else if (stock > 999999) errs.stock = 'Stock demasiado alto'
-    }
+  const umbralStr = form.umbralMinimo?.toString().trim()
+  if (umbralStr !== '' && umbralStr) {
+    if (!/^\d+$/.test(umbralStr)) errs.umbralMinimo = 'Solo números enteros'
+    else if (parseInt(umbralStr, 10) < 0) errs.umbralMinimo = 'No puede ser negativo'
   }
 
   return errs
@@ -51,13 +40,12 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
 
   const [form, setForm] = useState({
     nombre: initialData?.name || '',
-    referencia: initialData?.ref || '',
     descripcion: initialData?.descripcion || '',
-    tipo_prenda: initialData?.tipo_prenda || '',
+    tipoPrenda: initialData?.tipo_prenda || '',
     genero: initialData?.genero || '',
     talla: initialData?.talla || '',
     precio: initialData?.price?.toString() || '',
-    stock: initialData?.stock?.toString() || '',
+    umbralMinimo: initialData?.minStock?.toString() || '',
   })
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
@@ -69,34 +57,31 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
   }
 
   const handleBlur = (e) => {
-    const { name } = e.target
-    setTouched((prev) => ({ ...prev, [name]: true }))
+    setTouched((prev) => ({ ...prev, [e.target.name]: true }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const newErrors = validate(form)
     setErrors(newErrors)
-    setTouched({ nombre: true, referencia: true, descripcion: true, tipo_prenda: true, genero: true, talla: true, precio: true, stock: true })
+    setTouched({ nombre: true, tipoPrenda: true, genero: true, precio: true })
     if (Object.keys(newErrors).length > 0) return
+
     setSaving(true)
-    setTimeout(() => {
-      const stockNum = parseInt(form.stock, 10) || 0
-      const saved = {
+    try {
+      await onSave({
         id: initialData?.id,
-        name: form.nombre.trim(),
-        ref: form.referencia.trim(),
+        nombre: form.nombre.trim(),
         descripcion: form.descripcion.trim(),
-        tipo_prenda: form.tipo_prenda,
+        tipoPrenda: form.tipoPrenda,
         genero: form.genero,
         talla: form.talla.trim(),
-        price: parseFloat(form.precio) || 0,
-        stock: stockNum,
-        status: stockNum === 0 ? 'agotado' : 'disponible',
-      }
-      onSave?.(saved)
+        precio: parseFloat(form.precio) || 0,
+        umbralMinimo: parseInt(form.umbralMinimo, 10) || 0,
+      })
+    } finally {
       setSaving(false)
-    }, 800)
+    }
   }
 
   const hasError = (field) => touched[field] && errors[field]
@@ -132,35 +117,24 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
         </div>
 
         <div className="rp-row">
-          <div className="rp-group">
-            <label className="rp-label" htmlFor="rp-referencia">Referencia</label>
-            <div className={`rp-input-wrap ${hasError('referencia') ? 'rp-input-wrap--err' : ''}`}>
-              <i className="ti ti-barcode" />
-              <input id="rp-referencia" name="referencia" type="text" maxLength="30" className="rp-input"
-                placeholder="Ej: VNS-001" value={form.referencia}
-                onChange={handleChange} onBlur={handleBlur} />
-            </div>
-            {hasError('referencia') && <p className="rp-err">{errors.referencia}</p>}
-          </div>
           <div className="rp-group rp-group--full">
             <label className="rp-label" htmlFor="rp-descripcion">Descripción</label>
-            <div className={`rp-input-wrap ${hasError('descripcion') ? 'rp-input-wrap--err' : ''}`}>
+            <div className="rp-input-wrap">
               <i className="ti ti-list-details" />
               <input id="rp-descripcion" name="descripcion" type="text" maxLength="255" className="rp-input"
                 placeholder="Ej: Vestido largo de seda natural con encaje" value={form.descripcion}
                 onChange={handleChange} onBlur={handleBlur} />
             </div>
-            {hasError('descripcion') && <p className="rp-err">{errors.descripcion}</p>}
           </div>
         </div>
 
         <div className="rp-row">
           <div className="rp-group">
-            <label className="rp-label" htmlFor="rp-tipo_prenda">Tipo de prenda</label>
-            <div className={`rp-input-wrap ${hasError('tipo_prenda') ? 'rp-input-wrap--err' : ''}`}>
+            <label className="rp-label" htmlFor="rp-tipoPrenda">Tipo de prenda</label>
+            <div className={`rp-input-wrap ${hasError('tipoPrenda') ? 'rp-input-wrap--err' : ''}`}>
               <i className="ti ti-tag" />
-              <select id="rp-tipo_prenda" name="tipo_prenda" className="rp-input rp-select"
-                value={form.tipo_prenda} onChange={handleChange} onBlur={handleBlur}>
+              <select id="rp-tipoPrenda" name="tipoPrenda" className="rp-input rp-select"
+                value={form.tipoPrenda} onChange={handleChange} onBlur={handleBlur}>
                 <option value="">Seleccione...</option>
                 <option value="Vestido">Vestido</option>
                 <option value="Blazer">Blazer</option>
@@ -173,7 +147,7 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
                 <option value="Otro">Otro</option>
               </select>
             </div>
-            {hasError('tipo_prenda') && <p className="rp-err">{errors.tipo_prenda}</p>}
+            {hasError('tipoPrenda') && <p className="rp-err">{errors.tipoPrenda}</p>}
           </div>
           <div className="rp-group">
             <label className="rp-label" htmlFor="rp-genero">Género</label>
@@ -194,13 +168,12 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
         <div className="rp-row">
           <div className="rp-group rp-group--full">
             <label className="rp-label" htmlFor="rp-talla">Talla</label>
-            <div className={`rp-input-wrap ${hasError('talla') ? 'rp-input-wrap--err' : ''}`}>
+            <div className="rp-input-wrap">
               <i className="ti ti-ruler" />
               <input id="rp-talla" name="talla" type="text" maxLength="10" className="rp-input"
                 placeholder="Ej: XS, S, M, L, XL, 38, 60, 90" value={form.talla}
                 onChange={handleChange} onBlur={handleBlur} />
             </div>
-            {hasError('talla') && <p className="rp-err">{errors.talla}</p>}
           </div>
         </div>
 
@@ -218,17 +191,14 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
 
         <div className="rp-row">
           <div className="rp-group rp-group--full">
-            <label className="rp-label" htmlFor="rp-stock">Stock inicial <span style={{fontSize:'0.65rem',color:'var(--text-muted)',fontWeight:400}}>(opcional)</span></label>
-            <div className={`rp-input-wrap ${hasError('stock') ? 'rp-input-wrap--err' : ''}`}>
-              <i className="ti ti-stack" />
-              <input id="rp-stock" name="stock" type="number" min="0" className="rp-input"
-                placeholder="0" value={form.stock} onChange={handleChange} onBlur={handleBlur} />
+            <label className="rp-label" htmlFor="rp-umbralMinimo">Stock mínimo <span style={{fontSize:'0.65rem',color:'var(--text-muted)',fontWeight:400}}>(opcional)</span></label>
+            <div className="rp-input-wrap">
+              <i className="ti ti-alert-triangle" />
+              <input id="rp-umbralMinimo" name="umbralMinimo" type="number" min="0" className="rp-input"
+                placeholder="0" value={form.umbralMinimo} onChange={handleChange} onBlur={handleBlur} />
             </div>
-            {hasError('stock') && <p className="rp-err">{errors.stock}</p>}
           </div>
         </div>
-
-
       </form>
     </Drawer>
   )

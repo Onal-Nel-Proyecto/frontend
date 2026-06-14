@@ -1,39 +1,46 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import RegisterMaterial from './RegisterMaterial'
 import RegisterProducto from './RegisterProducto'
 import RegisterAbastecimiento from './RegisterAbastecimiento'
 import { useAbastecimiento } from '../../hooks/useAbastecimiento'
+import { getMateriales, createMaterial, updateMaterial, changeMaterialEstado } from '../../api/materialesService'
+import { getProductos, createProducto, updateProducto, changeProductoEstado } from '../../api/productosApiService'
 import './InventarioPage.css'
-
-// ── Datos iniciales ─────────────────────────
-const INITIAL_MATERIALS = [
-  { id: 1, name: 'Seda Natural China', ref: 'SNC-001', tipo_material: 'Tela', unidad_medida: 'mts', desc: '5.5 mm, 12 mm, 120 g/m²', stock: 340, minStock: 50, status: 'disponible' },
-  { id: 2, name: 'Lino Belga Crudo', ref: 'LBC-004', tipo_material: 'Tela', unidad_medida: 'mts', desc: '220 g/m², 150 cm ancho', stock: 12, minStock: 30, status: 'disponible' },
-  { id: 3, name: 'Terciopelo de Seda Italiano', ref: 'TSI-009', tipo_material: 'Tela', unidad_medida: 'mts', desc: '320 g/m², 140 cm ancho', stock: 0, minStock: 20, status: 'agotado' },
-  { id: 4, name: 'Tinte Natural Índigo', ref: 'TNI-012', tipo_material: 'Tinte', unidad_medida: 'kg', desc: 'Polvo concentrado, 500 g', stock: 89, minStock: 15, status: 'disponible' },
-  { id: 5, name: 'Seda Orgánica Tussar', ref: 'SOT-007', tipo_material: 'Tela', unidad_medida: 'mts', desc: '6 mm, 15 mm, 110 g/m²', stock: 28, minStock: 25, status: 'disponible' },
-]
-
-const INITIAL_PRODUCTOS = [
-  { id: 1, name: 'Vestido de Noche Seda', ref: 'VNS-001', descripcion: 'Vestido largo de seda natural con escote en V', tipo_prenda: 'Vestido', genero: 'Femenino', talla: 'M', price: 320000, stock: 8, minStock: 3, status: 'disponible' },
-  { id: 2, name: 'Blazer Lino Clásico', ref: 'BLC-004', descripcion: 'Blazer estructurado en lino 100%', tipo_prenda: 'Blazer', genero: 'Masculino', talla: 'L', price: 245000, stock: 2, minStock: 4, status: 'disponible' },
-  { id: 3, name: 'Corbata Terciopelo Italia', ref: 'CTI-009', descripcion: 'Corbata de terciopelo bordada a mano', tipo_prenda: 'Corbata', genero: 'Masculino', talla: 'Única', price: 85000, stock: 0, minStock: 6, status: 'agotado' },
-  { id: 4, name: 'Pañuelo Seda Tussar', ref: 'PST-007', descripcion: 'Pañuelo cuadrado de seda Tussar', tipo_prenda: 'Pañuelo', genero: 'Femenino', talla: 'Única', price: 120000, stock: 15, minStock: 5, status: 'disponible' },
-  { id: 5, name: 'Vestido de Día Lino', ref: 'VDL-012', descripcion: 'Vestido casual de lino con cinturón', tipo_prenda: 'Vestido', genero: 'Femenino', talla: 'S', price: 195000, stock: 4, minStock: 3, status: 'disponible' },
-]
-
-// TABS ahora están en NavTabs del header
 
 const fmt = (val) =>
   Number(val || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
 
-// ── Mini barra de stock ──────────────────────
+// ── Mappers API → tabla ──
+const mapperMaterial = (m) => ({
+  id: m.id,
+  name: m.nombre || '—',
+  ref: m.referencia || m.id || '—',
+  tipo_material: m.tipoMaterial || '—',
+  unidad_medida: m.unidadMedida || '—',
+  desc: m.descripcion || '—',
+  stock: Number(m.cantidadDisponible || 0),
+  minStock: Number(m.umbralMinimo || 0),
+  status: (m.estado || '').toLowerCase(),
+})
+
+const mapperProducto = (p) => ({
+  id: p.id,
+  name: p.nombre || '—',
+  ref: p.referencia || p.id || '—',
+  descripcion: p.descripcion || '—',
+  tipo_prenda: p.tipoPrenda || '—',
+  genero: p.genero || '—',
+  talla: p.talla || '—',
+  price: Number(p.precioUnitario || 0),
+  stock: Number(p.stock || 0),
+  minStock: Number(p.umbralMinimo || 0),
+  status: p.estado === 1 ? 'disponible' : p.estado === 2 ? 'agotado' : 'eliminado',
+})
+
+// ── Mini barra de stock ──
 const StockBar = ({ current, min }) => {
   const pct = Math.min((current / Math.max(min, 1)) * 100, 100)
-  const color =
-    current === 0 ? '#e74c3c' :
-    current <= min ? '#e67e22' :
-    '#2e7d32'
+  const color = current === 0 ? '#e74c3c' : current <= min ? '#e67e22' : '#2e7d32'
   return (
     <div className="inv-stockbar-track">
       <div className="inv-stockbar-fill" style={{ width: `${pct}%`, background: color }} />
@@ -44,24 +51,18 @@ const StockBar = ({ current, min }) => {
   )
 }
 
-// ── Hook para debounce ────────────────────
+// ── Hook para debounce ──
 const useDebounce = (value, delay = 300) => {
   const [debounced, setDebounced] = useState(value)
-  const timerRef = useRef(null)
-
-  useCallback(() => {
-    if (timerRef.current) clearTimeout(timerRef.current)
-    timerRef.current = setTimeout(() => setDebounced(value), delay)
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current)
-    }
-  }, [value, delay])()
-
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(value), delay)
+    return () => clearTimeout(t)
+  }, [value, delay])
   return debounced
 }
 
-// ── TablaSection ─────────────────────────────
-const TablaSection = ({ items, tipo, columns, renderRow, statConfig, filters, onFiltersChange }) => {
+// ── TablaSection ──
+const TablaSection = ({ items, loading, tipo, columns, renderRow, statConfig, filters, onFiltersChange }) => {
   const searchDebounced = useDebounce(filters.search, 300)
 
   const filtered = items.filter((item) => {
@@ -79,9 +80,12 @@ const TablaSection = ({ items, tipo, columns, renderRow, statConfig, filters, on
   const [hoveredRow, setHoveredRow] = useState(null)
   const stats = statConfig(items)
 
+  if (loading) {
+    return <div className="inv-loading"><i className="ti ti-loader ti-spin" /> Cargando {tipo}...</div>
+  }
+
   return (
     <>
-      {/* ══ STATS ══ */}
       <div className="inv-stats">
         {stats.map((s, i) => (
           <div className="inv-stat-card" key={i} style={{ '--delay': `${i * 0.08}s` }}>
@@ -102,7 +106,6 @@ const TablaSection = ({ items, tipo, columns, renderRow, statConfig, filters, on
         ))}
       </div>
 
-      {/* ══ FILTROS ══ */}
       <div className="inv-filters">
         <div className="inv-filters__left">
           {filters.categoryOptions?.length > 0 && (
@@ -140,7 +143,6 @@ const TablaSection = ({ items, tipo, columns, renderRow, statConfig, filters, on
         </p>
       </div>
 
-      {/* ══ TABLA ══ */}
       <div className="inv-table-wrap">
         <table className="inv-table">
           <thead>
@@ -148,8 +150,7 @@ const TablaSection = ({ items, tipo, columns, renderRow, statConfig, filters, on
           </thead>
           <tbody>
             {filtered.map((item) => (
-              <tr
-                key={item.id}
+              <tr key={item.id}
                 className={`${item.status === 'agotado' ? 'inv-row--warning' : ''} ${hoveredRow === item.id ? 'inv-row--hover' : ''}`}
                 onMouseEnter={() => setHoveredRow(item.id)}
                 onMouseLeave={() => setHoveredRow(null)}
@@ -173,72 +174,152 @@ const TablaSection = ({ items, tipo, columns, renderRow, statConfig, filters, on
   )
 }
 
-// ── Página principal ─────────────────────────
+// ── Página principal ──
 const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
-  // ── Datos en estado (mutables) ──
-  const [materials, setMaterials] = useState(INITIAL_MATERIALS)
-  const [products, setProducts] = useState(INITIAL_PRODUCTOS)
-  const [nextMatId, setNextMatId] = useState(6)
-  const [nextProdId, setNextProdId] = useState(6)
-
-  // ── Drawers ──
+  const [materials, setMaterials] = useState([])
+  const [products, setProducts] = useState([])
+  const [loadingMat, setLoadingMat] = useState(false)
+  const [loadingProd, setLoadingProd] = useState(false)
   const [showDrawerMat, setShowDrawerMat] = useState(false)
   const [showDrawerProd, setShowDrawerProd] = useState(false)
   const [showDrawerAbs, setShowDrawerAbs] = useState(false)
-
-  // ── Edición ──
   const [editingMaterial, setEditingMaterial] = useState(null)
   const [editingProduct, setEditingProduct] = useState(null)
 
-  // ── Abastecimiento (hook) ──
   const {
     abastecimientos,
     proveedores,
-    meta: absMeta,
     loading: absLoading,
     addAbastecimiento,
     completar: completarAbs,
     cancelar: cancelarAbs,
   } = useAbastecimiento()
 
-  // ── Filtros ──
   const [matFilters, setMatFilters] = useState({ category: '', status: '', search: '', categoryOptions: [] })
   const [prodFilters, setProdFilters] = useState({ category: '', status: '', search: '', categoryOptions: [] })
   const [absFilters, setAbsFilters] = useState({ category: '', status: '', search: '', categoryOptions: [] })
 
-  // ══ Handlers Materiales ══
-  const handleAddMaterial = () => {
-    setEditingMaterial(null)
-    setShowDrawerMat(true)
-  }
-
-  const handleEditMaterial = (item) => {
-    setEditingMaterial(item)
-    setShowDrawerMat(true)
-  }
-
-  const handleDeleteMaterial = (item) => {
-    if (!window.confirm(`¿Eliminar "${item.name}"?\n\nEsta acción no se puede deshacer.`)) return
-    setMaterials((prev) => prev.filter((m) => m.id !== item.id))
-  }
-
-  const handleSaveMaterial = (data) => {
-    if (data.id) {
-      setMaterials((prev) => prev.map((m) => (m.id === data.id ? data : m)))
-    } else {
-      const nuevo = { ...data, id: nextMatId }
-      setMaterials((prev) => [...prev, nuevo])
-      setNextMatId((id) => id + 1)
+  // ── Cargar materiales ──
+  const loadMateriales = useCallback(async () => {
+    setLoadingMat(true)
+    try {
+      const res = await getMateriales({ limite: 100 })
+      const items = Array.isArray(res?.data) ? res.data.map(mapperMaterial) : []
+      setMaterials(items)
+    } catch (err) {
+      console.warn('Error al cargar materiales:', err)
+      setMaterials([])
+    } finally {
+      setLoadingMat(false)
     }
-    setShowDrawerMat(false)
-    setEditingMaterial(null)
+  }, [])
+
+  // ── Cargar productos ──
+  const loadProductos = useCallback(async () => {
+    setLoadingProd(true)
+    try {
+      const res = await getProductos({ limite: 100 })
+      const items = Array.isArray(res?.data) ? res.data.map(mapperProducto) : []
+      setProducts(items)
+    } catch (err) {
+      console.warn('Error al cargar productos:', err)
+      setProducts([])
+    } finally {
+      setLoadingProd(false)
+    }
+  }, [])
+
+  useEffect(() => { loadMateriales() }, [loadMateriales])
+  useEffect(() => { loadProductos() }, [loadProductos])
+
+  // ── Handlers Materiales ──
+  const handleAddMaterial = () => { setEditingMaterial(null); setShowDrawerMat(true) }
+  const handleEditMaterial = (item) => { setEditingMaterial(item); setShowDrawerMat(true) }
+
+  const handleDeleteMaterial = async (item) => {
+    if (!window.confirm(`¿Desactivar "${item.name}"?`)) return
+    try {
+      await changeMaterialEstado(item.id, 3) // DESCONTINUADO
+      await loadMateriales()
+    } catch (err) {
+      alert('Error: ' + (err?.response?.data?.message || err?.message))
+    }
   }
 
-  // ══ Handlers Abastecimiento ══
-  const handleAddAbastecimiento = () => {
-    setShowDrawerAbs(true)
+  const handleSaveMaterial = async (data) => {
+    try {
+      if (data.id) {
+        await updateMaterial(data.id, {
+          nombre: data.nombre,
+          descripcion: data.descripcion,
+          umbralMinimo: data.umbralMinimo || 0,
+          unidadMedida: data.unidadMedida,
+          tipoMaterial: data.tipoMaterial,
+        })
+      } else {
+        await createMaterial({
+          nombre: data.nombre,
+          descripcion: data.descripcion,
+          umbralMinimo: data.umbralMinimo || 0,
+          unidadMedida: data.unidadMedida,
+          tipoMaterial: data.tipoMaterial,
+        })
+      }
+      setShowDrawerMat(false)
+      setEditingMaterial(null)
+      await loadMateriales()
+    } catch (err) {
+      alert('Error: ' + (err?.response?.data?.message || err?.message))
+    }
   }
 
+  // ── Handlers Productos ──
+  const handleAddProduct = () => { setEditingProduct(null); setShowDrawerProd(true) }
+  const handleEditProduct = (item) => { setEditingProduct(item); setShowDrawerProd(true) }
+
+  const handleDeleteProduct = async (item) => {
+    if (!window.confirm(`¿Desactivar "${item.name}"?`)) return
+    try {
+      await changeProductoEstado(item.id, 3)
+      await loadProductos()
+    } catch (err) {
+      alert('Error: ' + (err?.response?.data?.message || err?.message))
+    }
+  }
+
+  const handleSaveProduct = async (data) => {
+    try {
+      if (data.id) {
+        await updateProducto(data.id, {
+          nombre: data.nombre,
+          precioUnitario: data.precio || 0,
+          descripcion: data.descripcion,
+          genero: data.genero,
+          tipoPrenda: data.tipoPrenda,
+          talla: data.talla,
+          umbralMinimo: data.umbralMinimo || 0,
+        })
+      } else {
+        await createProducto({
+          nombre: data.nombre,
+          precioUnitario: data.precio || 0,
+          descripcion: data.descripcion,
+          genero: data.genero,
+          tipoPrenda: data.tipoPrenda,
+          talla: data.talla,
+          umbralMinimo: data.umbralMinimo || 0,
+        })
+      }
+      setShowDrawerProd(false)
+      setEditingProduct(null)
+      await loadProductos()
+    } catch (err) {
+      alert('Error: ' + (err?.response?.data?.message || err?.message))
+    }
+  }
+
+  // ── Handlers Abastecimiento ──
+  const handleAddAbastecimiento = () => setShowDrawerAbs(true)
   const handleSaveAbastecimiento = async (data) => {
     try {
       await addAbastecimiento(data)
@@ -248,51 +329,17 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
       alert('Error al registrar abastecimiento: ' + msg)
     }
   }
-
   const handleCompletarAbastecimiento = async (item) => {
     if (!window.confirm(`¿Completar el abastecimiento #${item.id}?\n\nEsto actualizará el stock de los ítems.`)) return
     try {
       await completarAbs(item.id)
-    } catch (err) {
-      alert('Error: ' + (err?.response?.data?.message || err?.message))
-    }
+      await loadMateriales()
+      await loadProductos()
+    } catch (err) { alert('Error: ' + (err?.response?.data?.message || err?.message)) }
   }
-
   const handleCancelarAbastecimiento = async (item) => {
-    if (!window.confirm(`¿Cancelar el abastecimiento #${item.id}?\n\nNo se afectará el stock.`)) return
-    try {
-      await cancelarAbs(item.id)
-    } catch (err) {
-      alert('Error: ' + (err?.response?.data?.message || err?.message))
-    }
-  }
-
-  // ══ Handlers Productos ══
-  const handleAddProduct = () => {
-    setEditingProduct(null)
-    setShowDrawerProd(true)
-  }
-
-  const handleEditProduct = (item) => {
-    setEditingProduct(item)
-    setShowDrawerProd(true)
-  }
-
-  const handleDeleteProduct = (item) => {
-    if (!window.confirm(`¿Eliminar "${item.name}"?\n\nEsta acción no se puede deshacer.`)) return
-    setProducts((prev) => prev.filter((p) => p.id !== item.id))
-  }
-
-  const handleSaveProduct = (data) => {
-    if (data.id) {
-      setProducts((prev) => prev.map((p) => (p.id === data.id ? data : p)))
-    } else {
-      const nuevo = { ...data, id: nextProdId }
-      setProducts((prev) => [...prev, nuevo])
-      setNextProdId((id) => id + 1)
-    }
-    setShowDrawerProd(false)
-    setEditingProduct(null)
+    if (!window.confirm(`¿Cancelar el abastecimiento #${item.id}?`)) return
+    try { await cancelarAbs(item.id) } catch (err) { alert('Error: ' + (err?.response?.data?.message || err?.message)) }
   }
 
   // ── Config Materiales ──
@@ -316,7 +363,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
       </td>
       <td><span className="inv-cat-tag">{m.tipo_material || '—'}</span></td>
       <td className="inv-cell-specs">{m.unidad_medida || '—'}</td>
-      <td className="inv-cell-specs">{m.desc}</td>
+      <td className="inv-cell-specs">{m.desc || '—'}</td>
       <td><StockBar current={m.stock} min={m.minStock} /></td>
       <td>
         <span className={`inv-badge ${m.status === 'agotado' ? 'inv-badge--empty' : m.status === 'eliminado' ? 'inv-badge--empty' : 'inv-badge--ok'}`}>
@@ -327,7 +374,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
       <td>
         <div className={`inv-actions ${hovered ? 'inv-actions--visible' : ''}`}>
           <button className="inv-action-btn" title="Editar" onClick={() => handleEditMaterial(m)}><i className="ti ti-edit" /></button>
-          <button className="inv-action-btn inv-action-btn--danger" title="Eliminar" onClick={() => handleDeleteMaterial(m)}><i className="ti ti-trash" /></button>
+          <button className="inv-action-btn inv-action-btn--danger" title="Desactivar" onClick={() => handleDeleteMaterial(m)}><i className="ti ti-trash" /></button>
         </div>
       </td>
     </>
@@ -368,7 +415,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
       <td>
         <div className={`inv-actions ${hovered ? 'inv-actions--visible' : ''}`}>
           <button className="inv-action-btn" title="Editar" onClick={() => handleEditProduct(p)}><i className="ti ti-edit" /></button>
-          <button className="inv-action-btn inv-action-btn--danger" title="Eliminar" onClick={() => handleDeleteProduct(p)}><i className="ti ti-trash" /></button>
+          <button className="inv-action-btn inv-action-btn--danger" title="Desactivar" onClick={() => handleDeleteProduct(p)}><i className="ti ti-trash" /></button>
         </div>
       </td>
     </>
@@ -377,9 +424,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
   const prodColumns = ['PRODUCTO', 'DESCRIPCIÓN', 'TIPO PRENDA', 'GÉNERO · TALLA', 'PRECIO', 'STOCK', 'ESTADO', '']
 
   // ── Config Abastecimiento ──
-  const fmtAbs = (val) =>
-    Number(val || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
-
+  const fmtAbs = (val) => Number(val || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
   const absStats = (items) => {
     const pendientes = items.filter((a) => a.estado === 'PENDIENTE').length
     const completados = items.filter((a) => a.estado === 'COMPLETADO').length
@@ -394,14 +439,8 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
 
   const absRenderRow = (a, hovered) => {
     const fecha = a.fecha ? new Date(a.fecha).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'
-    const estadoClass =
-      a.estado === 'COMPLETADO' ? 'inv-badge--ok' :
-      a.estado === 'CANCELADO' ? 'inv-badge--empty' :
-      'inv-badge--warn'
-    const estadoLabel =
-      a.estado === 'COMPLETADO' ? 'Completado' :
-      a.estado === 'CANCELADO' ? 'Cancelado' :
-      'Pendiente'
+    const estadoClass = a.estado === 'COMPLETADO' ? 'inv-badge--ok' : a.estado === 'CANCELADO' ? 'inv-badge--empty' : 'inv-badge--warn'
+    const estadoLabel = a.estado === 'COMPLETADO' ? 'Completado' : a.estado === 'CANCELADO' ? 'Cancelado' : 'Pendiente'
     return (
       <>
         <td>
@@ -410,24 +449,15 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
             <p className="inv-material-ref">{fecha} · {a.totalItems} ítems</p>
           </div>
         </td>
-        <td>
-          <span className={`inv-badge ${estadoClass}`}>
-            <i className={`ti ti-${a.estado === 'COMPLETADO' ? 'circle-check' : a.estado === 'CANCELADO' ? 'x-circle' : 'clock'}`} />
-            {estadoLabel}
-          </span>
-        </td>
+        <td><span className={`inv-badge ${estadoClass}`}><i className={`ti ti-${a.estado === 'COMPLETADO' ? 'circle-check' : a.estado === 'CANCELADO' ? 'x-circle' : 'clock'}`} />{estadoLabel}</span></td>
         <td className="inv-cell-price">{fmtAbs(a.costoTotal)}</td>
         <td className="inv-cell-specs">{a.observacion || '—'}</td>
         <td>
           <div className={`inv-actions ${hovered ? 'inv-actions--visible' : ''}`}>
             {a.estado === 'PENDIENTE' && (
               <>
-                <button className="inv-action-btn inv-action-btn--success" title="Completar" onClick={() => handleCompletarAbastecimiento(a)}>
-                  <i className="ti ti-circle-check" />
-                </button>
-                <button className="inv-action-btn inv-action-btn--danger" title="Cancelar" onClick={() => handleCancelarAbastecimiento(a)}>
-                  <i className="ti ti-x-circle" />
-                </button>
+                <button className="inv-action-btn inv-action-btn--success" title="Completar" onClick={() => handleCompletarAbastecimiento(a)}><i className="ti ti-circle-check" /></button>
+                <button className="inv-action-btn inv-action-btn--danger" title="Cancelar" onClick={() => handleCancelarAbastecimiento(a)}><i className="ti ti-x-circle" /></button>
               </>
             )}
           </div>
@@ -438,42 +468,38 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
 
   const absColumns = ['ABASTECIMIENTO', 'ESTADO', 'COSTO TOTAL', 'OBSERVACIÓN', '']
 
+  const handleAddBtn = () => {
+    if (activeTab === 'materiales') handleAddMaterial()
+    else if (activeTab === 'productos') handleAddProduct()
+    else handleAddAbastecimiento()
+  }
+
   return (
     <div className="inv-content">
-
-      {/* ══ HEADER ══ */}
       <div className="inv-header">
         <div className="inv-header-left">
-          <div className="inv-header-icon">
-            <i className="ti ti-package" />
-          </div>
+          <div className="inv-header-icon"><i className="ti ti-package" /></div>
           <div>
             <h1 className="inv-title">Inventario</h1>
-            <p className="inv-subtitle">
-              Controla tus materiales textiles y productos confeccionados en un solo lugar.
-            </p>
+            <p className="inv-subtitle">Controla tus materiales textiles y productos confeccionados en un solo lugar.</p>
           </div>
         </div>
-        <button className="inv-btn-primary" onClick={() => activeTab === 'materiales' ? handleAddMaterial() : activeTab === 'productos' ? handleAddProduct() : handleAddAbastecimiento()}>
+        <button className="inv-btn-primary" onClick={handleAddBtn}>
           <i className="ti ti-plus" />
           {activeTab === 'materiales' ? 'Añadir Material' : activeTab === 'productos' ? 'Nuevo Producto' : 'Nuevo Abastecimiento'}
         </button>
       </div>
 
-      {/* ══ TABS en NavHeader (arriba) — los links están en la barra del header */}
-
-      {/* ══ CONTENIDO ══ */}
       {activeTab === 'materiales' && (
-        <TablaSection items={materials} tipo="materiales" columns={matColumns} renderRow={matRenderRow} statConfig={matStats} filters={matFilters} onFiltersChange={setMatFilters} />
+        <TablaSection items={materials} loading={loadingMat} tipo="materiales" columns={matColumns} renderRow={matRenderRow} statConfig={matStats} filters={matFilters} onFiltersChange={setMatFilters} />
       )}
       {activeTab === 'productos' && (
-        <TablaSection items={products} tipo="productos" columns={prodColumns} renderRow={prodRenderRow} statConfig={prodStats} filters={prodFilters} onFiltersChange={setProdFilters} />
+        <TablaSection items={products} loading={loadingProd} tipo="productos" columns={prodColumns} renderRow={prodRenderRow} statConfig={prodStats} filters={prodFilters} onFiltersChange={setProdFilters} />
       )}
       {activeTab === 'abastecimiento' && (
-        <TablaSection items={abastecimientos} tipo="abastecimientos" columns={absColumns} renderRow={absRenderRow} statConfig={absStats} filters={absFilters} onFiltersChange={setAbsFilters} />
+        <TablaSection items={abastecimientos} loading={absLoading} tipo="abastecimientos" columns={absColumns} renderRow={absRenderRow} statConfig={absStats} filters={absFilters} onFiltersChange={setAbsFilters} />
       )}
 
-      {/* ══ DRAWERS ══ */}
       {showDrawerMat && (
         <RegisterMaterial
           isOpen={showDrawerMat}

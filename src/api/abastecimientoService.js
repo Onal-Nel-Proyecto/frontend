@@ -33,8 +33,8 @@ export const cancelarAbastecimiento = async (id) => {
   return response.data;
 };
 
-// ── GET /abastecimientos/proveedores — listar proveedores ──
+// ── GET /proveedores — listar proveedores ──
 export const getProveedores = async () => {
-  const response = await axiosInstance.get(ABASTECIMIENTO_ENDPOINTS.PROVEEDORES);
+  const response = await axiosInstance.get("/proveedores");
   return response.data; // array de proveedores
 };
