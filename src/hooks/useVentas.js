@@ -4,77 +4,96 @@ import {
   getVentaById as apiGetVentaById,
   createVenta as apiCreateVenta,
   changeEstadoVenta as apiChangeEstado,
+  deleteVenta as apiDeleteVenta,
 } from "../api/ventasService";
 
-// ── Datos de ejemplo (fallback sin API) ──
-const VENTAS_EJEMPLO = [
-  { id: 1, pedido_id: "PED-001", cliente: "María García López", descripcion: "Vestido de Noche Seda — Talla M", total: 520000, abonado: 520000, metodo: "transferencia", estado: "Pagado", fecha: "2025-01-15", productos: [{ nombre: "Vestido de Noche Seda", cantidad: 1, precio_unitario: 520000 }] },
-  { id: 2, pedido_id: "PED-003", cliente: "Alejandro Martínez Ruiz", descripcion: "Blazer Lino Clásico — Talla L", total: 245000, abonado: 245000, metodo: "tarjeta", estado: "Pagado", fecha: "2025-01-18", productos: [{ nombre: "Blazer Lino Clásico", cantidad: 1, precio_unitario: 245000 }] },
-  { id: 3, pedido_id: "PED-007", cliente: "Carmen Herrera Díaz", descripcion: "Vestido de Día Lino + Pañuelo Seda", total: 315000, abonado: 150000, metodo: "efectivo", estado: "Abono parcial", fecha: "2025-02-01", productos: [{ nombre: "Vestido de Día Lino", cantidad: 1, precio_unitario: 250000 }, { nombre: "Pañuelo Seda", cantidad: 1, precio_unitario: 65000 }] },
-  { id: 4, pedido_id: "PED-012", cliente: "Roberto Sánchez Vega", descripcion: "Corbata Terciopelo Italia x2", total: 170000, abonado: 0, metodo: null, estado: "Pendiente", fecha: "2025-02-05", productos: [{ nombre: "Corbata Terciopelo Italia", cantidad: 2, precio_unitario: 85000 }] },
-  { id: 5, pedido_id: "PED-015", cliente: "Laura Jiménez Torres", descripcion: "Pañuelo Seda Tussar + Vestido Noche", total: 440000, abonado: 200000, metodo: "transferencia", estado: "Abono parcial", fecha: "2025-02-10", productos: [{ nombre: "Pañuelo Seda Tussar", cantidad: 1, precio_unitario: 120000 }, { nombre: "Vestido Noche", cantidad: 1, precio_unitario: 320000 }] },
-];
-
 // ── Mapear venta de API a formato de frontend ──
-// Backend real: { venta_id, cliente_nombres, cliente_apellidos, total_pagado, estado, ... }
+// Backend real devuelve: { venta_id, cliente: { cliente_nombres, cliente_apellidos }, 
+//   pagos: { total_pagado, total_pendiente }, estado, total, fecha_registro, ... }
 const mapearVenta = (item) => {
-  // Concatenar nombres de cliente (backend envía campos planos)
-  const nombreCliente = (item.cliente_nombres)
-    ? `${item.cliente_nombres || ''} ${item.cliente_apellidos || ''}`.trim() || '—'
-    : item.cliente_nombre || (typeof item.cliente === 'string' ? item.cliente : '—');
+  // Cliente: backend lo envía como objeto { cliente_id, cliente_nombres, cliente_apellidos }
+  const cli = item.cliente || {};
+  const nombreCliente = typeof item.cliente === 'object' && item.cliente !== null
+    ? `${cli.cliente_nombres || ''} ${cli.cliente_apellidos || ''}`.trim() || '—'
+    : item.cliente_nombres
+        ? `${item.cliente_nombres || ''} ${item.cliente_apellidos || ''}`.trim() || '—'
+        : typeof item.cliente === 'string'
+            ? item.cliente
+            : '—';
 
-  // Total pagado (backend envía total_pagado como campo plano)
-  const abonado = Number(item.total_pagado ?? item.abonado ?? item.pagado ?? 0);
+  // Total pagado: backend lo envía dentro de item.pagos.total_pagado
+  const abonado = Number(item.pagos?.total_pagado ?? item.total_pagado ?? item.abonado ?? item.pagado ?? 0);
 
-  // Normalizar estado: "PAGADO" → "Pagado", "ABONO_PARCIAL" → "Abono parcial"
+  // Normalizar estado: "PAGADO" → "Pagado", "ADELANTADO" → "Abono parcial", "SIN PAGAR" → "Pendiente"
   const normalizarEstado = (est) => {
     if (!est) return 'Pendiente';
     const map = {
       'PAGADO': 'Pagado',
       'PENDIENTE': 'Pendiente',
+      'SIN PAGAR': 'Pendiente',
       'CANCELADO': 'Cancelado',
       'ANULADO': 'Cancelado',
+      'ADELANTADO': 'Abono parcial',
       'ABONO_PARCIAL': 'Abono parcial',
       'ABONO PARCIAL': 'Abono parcial',
     };
     return map[est.toUpperCase()] || est.charAt(0).toUpperCase() + est.slice(1).toLowerCase();
   };
 
+  // Procesar detalles: backend los envía como { meta, data: [...] }
+  // en GET /ventas/:id; en el listado no vienen.
+  const detallesRaw = item.detalles || item.productos || [];
+  const detallesArr = Array.isArray(detallesRaw)
+    ? detallesRaw
+    : Array.isArray(detallesRaw?.data)
+      ? detallesRaw.data
+      : [];
+
   return {
     id: item.id || item.venta_id,
-    pedido_id: item.pedido_id || `VENT-${item.venta_id || item.id}`,
+    pedido_id: item.pedido_id || null,
     cliente: nombreCliente,
     descripcion: item.descripcion || '',
     total: Number(item.total) || 0,
+    descuento: Number(item.descuento) || 0,
     abonado,
     metodo: item.metodo || item.metodo_pago || null,
     estado: normalizarEstado(item.estado),
     fecha: item.fecha || item.fecha_registro || item.created_at?.split('T')[0] || '—',
-    productos: item.productos || item.detalles || [],
+    productos: detallesArr.map((d) => ({
+      nombre: d.producto?.producto_nombre || d.producto?.nombre || d.nombre || 'Producto',
+      cantidad: d.cantidad || d.cant || 1,
+      precio_unitario: d.precio || d.precio_unitario || 0,
+      subtotal: d.subtotal || (d.cantidad || 1) * (d.precio || 0),
+    })),
   };
 };
 
 export const useVentas = ({ paginaInicial = 1, limiteInicial = 15 } = {}) => {
   const [ventas, setVentas] = useState([]);
   const [meta, setMeta] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [resumen, setResumen] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // ── Cargar ventas ──
-  const loadVentas = useCallback(async (pagina = 1, limite = 15, signal) => {
+  // ── Cargar ventas con filtros ──
+  const loadVentas = useCallback(async ({ pagina = 1, limite = 15, busqueda, estado } = {}, signal) => {
     setLoading(true);
     setError(null);
     try {
-      const respuesta = await apiGetVentas(pagina, limite);
+      const respuesta = await apiGetVentas({ pagina, limite, busqueda, estado });
       if (signal?.aborted) return;
       const items = Array.isArray(respuesta?.data) ? respuesta.data : Array.isArray(respuesta?.ventas) ? respuesta.ventas : Array.isArray(respuesta) ? respuesta : [];
       setVentas(items.map(mapearVenta));
       setMeta(respuesta?.meta ?? null);
+      setResumen(respuesta?.resumen ?? null);
     } catch (err) {
       if (signal?.aborted) return;
-      console.warn("API no disponible, cargando datos de ejemplo:", err?.message);
-      setVentas(VENTAS_EJEMPLO.map(mapearVenta));
-      setMeta({ total: VENTAS_EJEMPLO.length, pagina_actual: 1, paginas_totales: 1, limite });
+      console.error("Error al cargar ventas:", err?.message);
+      setError(err);
+      setVentas([]);
+      setMeta(null);
+      setResumen(null);
     } finally {
       if (!signal?.aborted) setLoading(false);
     }
@@ -86,20 +105,10 @@ export const useVentas = ({ paginaInicial = 1, limiteInicial = 15 } = {}) => {
       const respuesta = await apiGetVentaById(id);
       return mapearVenta(respuesta?.data || respuesta);
     } catch (err) {
-      console.warn("API no disponible, buscando en datos de ejemplo:", err?.message);
-      const encontrada = VENTAS_EJEMPLO.find(
-        (v) => String(v.id) === String(id) || String(v.pedido_id) === String(id)
-      );
-      return encontrada ? mapearVenta(encontrada) : null;
+      console.error("Error al obtener venta:", err?.message);
+      return null;
     }
   }, []);
-
-  // Carga inicial (con AbortController para StrictMode)
-  useEffect(() => {
-    const controller = new AbortController();
-    loadVentas(paginaInicial, limiteInicial, controller.signal);
-    return () => { controller.abort(); };
-  }, [loadVentas, paginaInicial, limiteInicial]);
 
   // ── Agregar venta ──
   const addVenta = useCallback(async (data) => {
@@ -107,7 +116,7 @@ export const useVentas = ({ paginaInicial = 1, limiteInicial = 15 } = {}) => {
     setError(null);
     try {
       await apiCreateVenta(data);
-      await loadVentas(1, meta?.limite || limiteInicial);
+      await loadVentas({ pagina: 1, limite: meta?.limite || limiteInicial });
     } catch (err) {
       console.error("Error al crear venta:", err?.message);
       throw err;
@@ -123,9 +132,25 @@ export const useVentas = ({ paginaInicial = 1, limiteInicial = 15 } = {}) => {
     setError(null);
     try {
       await apiChangeEstado(id, estado);
-      await loadVentas(meta?.pagina_actual || 1, meta?.limite || limiteInicial);
+      await loadVentas({ pagina: meta?.pagina_actual || 1, limite: meta?.limite || limiteInicial });
     } catch (err) {
       console.error("Error al cambiar estado de venta:", err?.message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+    return { ok: true };
+  }, [loadVentas, meta, limiteInicial]);
+
+  // ── Anular venta ──
+  const anularVenta = useCallback(async (id) => {
+    setLoading(true);
+    setError(null);
+    try {
+      await apiDeleteVenta(id);
+      await loadVentas({ pagina: 1, limite: meta?.limite || limiteInicial });
+    } catch (err) {
+      console.error("Error al anular venta:", err?.message);
       throw err;
     } finally {
       setLoading(false);
@@ -136,11 +161,13 @@ export const useVentas = ({ paginaInicial = 1, limiteInicial = 15 } = {}) => {
   return {
     ventas,
     meta,
+    resumen,
     loading,
     error,
     loadVentas,
     getVenta,
     addVenta,
     cambiarEstado,
+    anularVenta,
   };
 };

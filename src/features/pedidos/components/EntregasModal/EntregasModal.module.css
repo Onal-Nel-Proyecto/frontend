@@ -189,6 +189,48 @@
   margin: 0.5rem 0;
 }
 
+/* ─── Estados de pago ─── */
+
+.statusCompletado {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  background: var(--accent-emerald-subtle);
+  color: var(--accent-emerald);
+}
+
+.statusRechazado {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  background: rgba(239, 68, 68, 0.1);
+  color: #f87171;
+}
+
+.statusPendiente {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  background: var(--accent-amber-subtle);
+  color: var(--accent-amber);
+}
+
+.statusAnulado {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  background: rgba(100, 100, 100, 0.12);
+  color: var(--text-muted);
+}
+
 /* ─── Saldo pendiente ─── */
 
 .saldoBox {

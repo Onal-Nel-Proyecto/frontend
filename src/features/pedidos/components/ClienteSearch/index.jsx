@@ -163,7 +163,7 @@ const ClienteSearch = ({ initialNombre = '', onChange, error, onAddCliente }) =>
             if (results.length > 0) setOpen(true);
           }}
           autoComplete="off"
-          maxLength={255}
+          maxLength={300}
         />
         {loading && <span className={styles.spinner} />}
       </div>

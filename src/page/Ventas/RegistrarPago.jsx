@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { FiDollarSign } from 'react-icons/fi'
 import Drawer from '../../components/common/Drawer'
+import Alert from '../../components/ui/feedback/Alert'
+import { createPago } from '../../services/pagosService'
 import './RegistrarPago.css'
 
 const METODOS = [
@@ -20,34 +22,41 @@ const validate = (form, saldoRestante) => {
 
   if (!form.metodo) errs.metodo = 'Selecciona un método de pago'
 
-  if (!form.fecha) errs.fecha = 'Selecciona la fecha del pago'
-
   return errs
 }
 
-const RegistrarPago = ({ isOpen, onClose, venta }) => {
+const RegistrarPago = ({ isOpen, onClose, onSuccess, venta }) => {
   const saldoRestante = venta.total - venta.abonado
 
   const [form, setForm] = useState({
     tipoPago: 'completo',
-    monto: '',
+    monto: String(saldoRestante),
     metodo: null,
-    fecha: new Date().toISOString().split('T')[0],
-    notas: '',
   })
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
   const [guardando, setGuardando] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
+  const [showError, setShowError] = useState(false)
 
   useEffect(() => {
     if (form.tipoPago === 'completo') {
       setForm((prev) => ({ ...prev, monto: String(saldoRestante) }))
-    } else {
+    } else if (!form.monto || form.monto === '0') {
       setForm((prev) => ({ ...prev, monto: '' }))
     }
   }, [form.tipoPago, saldoRestante])
 
   const setField = (name, value) => {
+    if (name === 'monto') {
+      value = value.replace(/\D/g, '')
+      if (value) {
+        const num = Number(value)
+        if (num > saldoRestante) {
+          value = String(saldoRestante)
+        }
+      }
+    }
     setForm((prev) => ({ ...prev, [name]: value }))
     if (touched[name]) {
       const newForm = { ...form, [name]: value }
@@ -62,25 +71,24 @@ const RegistrarPago = ({ isOpen, onClose, venta }) => {
     setErrors((prev) => ({ ...prev, [name]: newErrors[name] || undefined }))
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const newErrors = validate(form, saldoRestante)
     setErrors(newErrors)
-    setTouched({ tipoPago: true, monto: true, metodo: true, fecha: true })
+    setTouched({ tipoPago: true, monto: true, metodo: true })
     if (Object.keys(newErrors).length > 0) return
     setGuardando(true)
-    setTimeout(() => {
-      console.log('Pago registrado:', {
-        pedido: venta.pedido_id,
-        tipo: form.tipoPago,
+    try {
+      await createPago({
+        ventaId: venta.id,
         monto: Number(form.monto),
         metodo: form.metodo,
-        fecha: form.fecha,
-        notas: form.notas,
-        completado: form.tipoPago === 'completo' || (Number(form.monto) + venta.abonado >= venta.total),
       })
       setGuardando(false)
-      onClose()
-    }, 1000)
+      setShowSuccess(true)
+    } catch {
+      setGuardando(false)
+      setShowError(true)
+    }
   }
 
   const fmt = (val) =>
@@ -95,7 +103,7 @@ const RegistrarPago = ({ isOpen, onClose, venta }) => {
       isOpen={isOpen}
       onClose={onClose}
       title="Registrar Pago"
-      subtitle={`Pedido ${venta.pedido_id} — ${venta.cliente}`}
+      subtitle={`Venta ${venta.id} - ${venta.cliente}`}
       icon={<FiDollarSign />}
       footer={
         <>
@@ -156,10 +164,11 @@ const RegistrarPago = ({ isOpen, onClose, venta }) => {
           <label className="rpv-label">{form.tipoPago === 'abono' ? 'Monto a abonar' : 'Monto a cobrar'}</label>
           <div className={`rpv-input-wrap ${hasError('monto') ? 'rpv-input-wrap--err' : ''}`}>
             <span className="rpv-input-sign">$</span>
-            <input type="number" step="1" min="0.01" max={saldoRestante} className="rpv-input"
+            <input type="text" inputMode="numeric" className="rpv-input"
               placeholder="0" value={form.monto}
               onChange={(e) => setField('monto', e.target.value)}
-              onBlur={() => handleBlur('monto')} />
+              onBlur={() => handleBlur('monto')}
+              disabled={form.tipoPago === 'completo'} />
           </div>
           {hasError('monto') && <p className="rpv-err">{errors.monto}</p>}
           {form.tipoPago === 'abono' && form.monto && !errors.monto && (
@@ -190,30 +199,28 @@ const RegistrarPago = ({ isOpen, onClose, venta }) => {
           {hasError('metodo') && <p className="rpv-err">{errors.metodo}</p>}
         </div>
 
-        {/* Fecha */}
-        <div className="rpv-field">
-          <label className="rpv-label" htmlFor="rpv-fecha">Fecha del pago</label>
-          <div className={`rpv-input-wrap ${hasError('fecha') ? 'rpv-input-wrap--err' : ''}`}>
-            <i className="ti ti-calendar" />
-            <input id="rpv-fecha" type="date" className="rpv-input"
-              value={form.fecha}
-              onChange={(e) => setField('fecha', e.target.value)}
-              onBlur={() => handleBlur('fecha')} />
-          </div>
-          {hasError('fecha') && <p className="rpv-err">{errors.fecha}</p>}
-        </div>
-
-        {/* Notas */}
-        <div className="rpv-field">
-          <label className="rpv-label" htmlFor="rpv-notas">Notas (opcional)</label>
-          <div className="rpv-input-wrap">
-            <i className="ti ti-notes" />
-            <input id="rpv-notas" type="text" maxLength="255" className="rpv-input"
-              placeholder="Observaciones del pago..." value={form.notas}
-              onChange={(e) => setField('notas', e.target.value)} />
-          </div>
-        </div>
+        {errors.general && (
+          <p className="rpv-err" style={{ textAlign: 'center', marginTop: '0.5rem' }}>{errors.general}</p>
+        )}
       </div>
+
+      {showSuccess && (
+        <Alert
+          type="success"
+          title="Pago registrado"
+          message={`El pago de ${fmt(Number(form.monto))} se registró correctamente.`}
+          onClose={() => { setShowSuccess(false); if (onSuccess) onSuccess(); onClose(); }}
+        />
+      )}
+
+      {showError && (
+        <Alert
+          type="error"
+          title="Error al registrar"
+          message="No se pudo registrar el pago. Verifica la conexión e intenta de nuevo."
+          onClose={() => setShowError(false)}
+        />
+      )}
     </Drawer>
   )
 }

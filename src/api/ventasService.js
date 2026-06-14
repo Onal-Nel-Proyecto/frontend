@@ -1,11 +1,12 @@
 import axiosInstance from "./axiosInstance";
 import { VENTAS_ENDPOINTS } from "./endpoints/ventasEndpoints";
 
-// ── GET /ventas — lista paginada ──
-export const getVentas = async (pagina = 1, limite = 15) => {
-  const response = await axiosInstance.get(VENTAS_ENDPOINTS.GET_ALL, {
-    params: { pagina, limite },
-  });
+// ── GET /ventas — lista paginada con filtros ──
+export const getVentas = async ({ pagina = 1, limite = 15, busqueda, estado } = {}) => {
+  const params = { pagina, limite };
+  if (busqueda?.trim()) params.cliente = busqueda.trim();
+  if (estado) params.estado = estado;
+  const response = await axiosInstance.get(VENTAS_ENDPOINTS.GET_ALL, { params });
   return response.data;
 };
 
@@ -24,6 +25,12 @@ export const createVenta = async (data) => {
 // ── PATCH /ventas/:id/estado — cambiar estado ──
 export const changeEstadoVenta = async (id, estado) => {
   const response = await axiosInstance.patch(VENTAS_ENDPOINTS.CHANGE_STATUS(id), { estado });
+  return response.data;
+};
+
+// ── DELETE /ventas/:id — anular venta ──
+export const deleteVenta = async (id) => {
+  const response = await axiosInstance.delete(VENTAS_ENDPOINTS.DELETE(id));
   return response.data;
 };
 
@@ -93,4 +100,12 @@ export const downloadFacturaPdf = async (id) => {
   const baseURL = import.meta.env.VITE_API_URL;
   const url = `${baseURL}${VENTAS_ENDPOINTS.FACTURA_PDF(id)}`;
   window.open(url, '_blank');
+};
+
+/** GET /ventas/:id/factura/pdf — retorna el PDF como Blob para descarga controlada */
+export const getFacturaPdfBlob = async (id) => {
+  const response = await axiosInstance.get(VENTAS_ENDPOINTS.FACTURA_PDF(id), {
+    responseType: 'blob',
+  });
+  return response.data;
 };

@@ -5,22 +5,17 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { FiArrowLeft, FiFileText, FiShoppingCart, FiDollarSign } from 'react-icons/fi';
+import { FiArrowLeft, FiShoppingCart, FiDollarSign } from 'react-icons/fi';
 import { useDocumentTitle } from '../../../../hooks/useDocumentTitle';
 import { useVentas } from '../../../../hooks/useVentas';
 import { getStoredUser } from '../../../../utils/session';
+import { getFacturaPdfBlob } from '../../../../api/ventasService';
 import DetalleVenta from '../../components/DetalleVenta';
 import PagosVenta from '../../components/PagosVenta';
 import styles from './venta_seleccionada.module.css';
 
 const fmtCOP = (val) =>
   Number(val || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
-
-const estadoClases = {
-  'Pagado': styles.badgePagado,
-  'Abono parcial': styles.badgeAbono,
-  'Pendiente': styles.badgePendiente,
-};
 
 // ── Factura HTML ──────────────────────────────────────
 const generarFactura = (venta, pagos = []) => {
@@ -85,7 +80,7 @@ const generarFactura = (venta, pagos = []) => {
       </div>
       <div class="factura-info">
         <h2>FACTURA</h2>
-        <p>N° ${venta.pedido_id || venta.id}</p>
+        <p>N° ${venta.id}</p>
         <p>Fecha: ${hoy}</p>
       </div>
     </div>
@@ -184,13 +179,8 @@ const VentaSeleccionada = () => {
     const cargarVenta = async () => {
       setLoadingVenta(true);
       try {
-        // Primero intentar desde location.state (pasado desde VentasPage)
-        if (location.state?.venta) {
-          setVenta(location.state.venta);
-        } else {
-          const data = await getVenta(id);
-          setVenta(data);
-        }
+        const data = await getVenta(id);
+        setVenta(data);
       } catch {
         setVenta(null);
       } finally {
@@ -200,7 +190,27 @@ const VentaSeleccionada = () => {
     cargarVenta();
   }, [id, location.state, getVenta]);
 
+  const [loadingFactura, setLoadingFactura] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleDescargarFactura = async () => {
+    setLoadingFactura(true);
+    try {
+      const blob = await getFacturaPdfBlob(venta.id);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Factura_${venta.id}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch {
+      console.error('Error al descargar factura');
+    } finally {
+      setLoadingFactura(false);
+    }
+  };
 
   const handlePagoRegistrado = () => {
     setRefreshKey((k) => k + 1);
@@ -239,54 +249,8 @@ const VentaSeleccionada = () => {
     );
   }
 
-  const estKey = venta.estado?.toUpperCase()?.replace(/\s+/g, '_') || 'PENDIENTE';
-  const badgeClass = estadoClases[venta.estado] || styles.badgePendiente;
-
   return (
     <div className={styles.page}>
-      {/* ── Header ── */}
-      <header className={styles.header}>
-        <div className={styles.headerRow}>
-          <button className={styles.backBtn} onClick={() => navigate('/ventas')}>
-            <FiArrowLeft />
-            regresar a ventas
-          </button>
-          <div className={styles.headerActions}>
-            <button
-              className={styles.btnInvoice}
-              onClick={() => generarFactura(venta)}
-              title="Generar factura imprimible"
-            >
-              <FiFileText />
-              Generar Factura
-            </button>
-          </div>
-        </div>
-
-        <div className={styles.headerRow}>
-          <span className={styles.ventaId}>Venta {venta.pedido_id || `#${venta.id}`}</span>
-          <span className={`${styles.badge} ${badgeClass}`}>
-            <i className={`ti ti-${
-              venta.estado === 'Pagado' ? 'circle-check' :
-              venta.estado === 'Abono parcial' ? 'receipt-2' : 'clock'
-            }`} style={{ marginRight: 4 }} />
-            {venta.estado || 'Pendiente'}
-          </span>
-        </div>
-
-        <p className={styles.descripcion}>{venta.descripcion || 'Sin descripción'}</p>
-
-        <div className={styles.headerRow}>
-          <span className={styles.cliente}>
-            <i className="ti ti-user" style={{ marginRight: 6 }} />
-            {venta.cliente || 'Cliente no especificado'}
-          </span>
-          <span className={styles.fecha}>
-            <i className="ti ti-calendar" style={{ marginRight: 6 }} />
-            {venta.fecha || '—'}
-          </span>
-        </div>
-      </header>
 
       {/* ── Subnavegación ── */}
       <nav className={styles.subNav}>
@@ -300,7 +264,12 @@ const VentaSeleccionada = () => {
 
       {/* ── Contenido ── */}
       <main className={styles.content}>
-        <DetalleVenta venta={venta} />
+        <DetalleVenta
+          venta={venta}
+          onRegresar={() => navigate('/ventas')}
+          onDescargarFactura={handleDescargarFactura}
+          loadingFactura={loadingFactura}
+        />
       </main>
 
       {/* ── Línea separadora visual ── */}

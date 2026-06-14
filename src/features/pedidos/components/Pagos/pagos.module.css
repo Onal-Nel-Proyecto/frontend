@@ -30,6 +30,12 @@
   align-items: center;
   justify-content: center;
   pointer-events: auto;
+  background: var(--bg-root);
+}
+
+.blockedOverlayDarker {
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(3px);
 }
 
 .blockedBadge {
@@ -557,6 +563,54 @@
   font-weight: 600;
   background: rgba(239, 68, 68, 0.1);
   color: #f87171;
+}
+
+.statusPendiente {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  background: var(--accent-amber-subtle);
+  color: var(--accent-amber);
+}
+
+.statusAnulado {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  background: rgba(100, 100, 100, 0.12);
+  color: var(--text-muted);
+}
+
+/* ── Botón anular ── */
+.btnAnular {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: var(--radius-xs);
+  background: rgba(239, 68, 68, 0.08);
+  color: #f87171;
+  font-size: 0.68rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+}
+
+.btnAnular:hover {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
 }
 
 /* ── Success toast inline ── */

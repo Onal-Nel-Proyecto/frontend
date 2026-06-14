@@ -239,6 +239,12 @@
   transform: scaleX(1);
 }
 
+.subTabDisabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 /* ── Contenido general ── */
 
 .content {

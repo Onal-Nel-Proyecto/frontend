@@ -3,19 +3,17 @@
 // Muestra cliente, número, fecha, productos, totales y estado
 // ================================================================
 
-import { FiPackage, FiShoppingCart } from 'react-icons/fi';
+import { FiArrowLeft, FiDownload, FiPackage, FiShoppingCart } from 'react-icons/fi';
 import styles from './detalle-venta.module.css';
 
 const fmtCOP = (val) =>
   Number(val || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
 
-const DetalleVenta = ({ venta }) => {
+const DetalleVenta = ({ venta, onRegresar, onDescargarFactura, loadingFactura }) => {
   if (!venta) return null;
 
   const productos = venta.productos || venta.items || [];
   const totalVenta = Number(venta.total) || 0;
-  const totalPagado = Number(venta.pagado) || 0;
-  const saldo = Math.max(0, totalVenta - totalPagado);
 
   const estadoClases = {
     'Pagado': styles.statusPagado,
@@ -25,6 +23,31 @@ const DetalleVenta = ({ venta }) => {
 
   return (
     <div className={styles.detalleContent}>
+      {/* ── Barra de acciones ── */}
+      <div className={styles.actionBar}>
+        {onRegresar && (
+          <button className={styles.backBtn} onClick={onRegresar}>
+            <FiArrowLeft />
+            regresar a ventas
+          </button>
+        )}
+        {onDescargarFactura && (
+          <button
+            className={styles.btnInvoice}
+            onClick={onDescargarFactura}
+            disabled={loadingFactura}
+            title="Descargar factura PDF"
+          >
+            {loadingFactura ? (
+              <i className="ti ti-loader ti-spin" />
+            ) : (
+              <FiDownload />
+            )}
+            {loadingFactura ? 'Generando…' : 'Generar Factura'}
+          </button>
+        )}
+      </div>
+
       {/* Info del cliente y venta */}
       <section className={styles.cardSection}>
         <h3 className={styles.sectionTitle}>
@@ -38,8 +61,14 @@ const DetalleVenta = ({ venta }) => {
             <span className={styles.infoValue}>{venta.cliente || '—'}</span>
           </div>
           <div className={styles.infoItem}>
-            <span className={styles.infoLabel}>N° Venta / Pedido</span>
-            <span className={styles.infoValue}>{venta.pedido_id || venta.id || '—'}</span>
+            <span className={styles.infoLabel}>N° Venta</span>
+            <span className={styles.infoValue}>{venta.id || '—'}</span>
+            {venta.pedido_id && (
+              <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', marginTop: '0.2rem', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                <i className="ti ti-link" />
+                Originada del pedido N° {venta.pedido_id}
+              </span>
+            )}
           </div>
           <div className={styles.infoItem}>
             <span className={styles.infoLabel}>Fecha</span>
@@ -100,14 +129,12 @@ const DetalleVenta = ({ venta }) => {
                 <span className={styles.summaryLabel}>Total venta</span>
                 <span className={`${styles.summaryValue} ${styles.summaryGold}`}>{fmtCOP(totalVenta)}</span>
               </div>
-              <div className={styles.summaryItem}>
-                <span className={styles.summaryLabel}>Pagado</span>
-                <span className={`${styles.summaryValue} ${styles.summaryGreen}`}>{fmtCOP(totalPagado)}</span>
-              </div>
-              {saldo > 0 && (
+              {venta.descuento > 0 && (
                 <div className={styles.summaryItem}>
-                  <span className={styles.summaryLabel}>Saldo pendiente</span>
-                  <span className={`${styles.summaryValue} ${styles.summaryOrange}`}>{fmtCOP(saldo)}</span>
+                  <span className={styles.summaryLabel}>Descuento ({Math.round(venta.descuento)}%)</span>
+                  <span className={`${styles.summaryValue}`} style={{ color: '#dc2626' }}>
+                    -{fmtCOP(Math.round(totalVenta / (1 - venta.descuento / 100) * venta.descuento / 100))}
+                  </span>
                 </div>
               )}
             </div>

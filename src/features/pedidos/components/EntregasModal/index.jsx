@@ -139,23 +139,38 @@ const EntregasModal = ({ entrega, onClose }) => {
                       <th>Fecha</th>
                       <th>Monto</th>
                       <th>Método</th>
+                      <th>Estado</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {entrega.pagos.map((pago, i) => (
-                      <tr key={i}>
-                        <td>{pago.fecha}</td>
-                        <td className={styles.colRight}>{formatCurrency(Number(pago.monto ?? 0))}</td>
-                        <td>{pago.metodo}</td>
-                      </tr>
-                    ))}
+                    {entrega.pagos.map((pago, i) => {
+                      const est = (pago.estado || 'COMPLETADO').toUpperCase();
+                      const statusCls =
+                        est === 'COMPLETADO' ? styles.statusCompletado :
+                        est === 'RECHAZADO'  ? styles.statusRechazado :
+                        est === 'PENDIENTE'  ? styles.statusPendiente :
+                        est === 'ANULADO'    ? styles.statusAnulado :
+                        styles.statusCompletado;
+                      return (
+                        <tr key={i}>
+                          <td>{pago.fecha}</td>
+                          <td className={styles.colRight}>{formatCurrency(Number(pago.monto ?? 0))}</td>
+                          <td>{pago.metodo}</td>
+                          <td><span className={statusCls}>{est.charAt(0) + est.slice(1).toLowerCase()}</span></td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                   <tfoot>
                     <tr>
                       <td className={styles.totalLabel}>Total pagado</td>
                       <td className={styles.totalValue}>
-                        {formatCurrency(entrega.pagos.reduce((sum, p) => sum + Number(p.monto ?? 0), 0))}
+                        {formatCurrency(entrega.pagos
+                          .filter(p => (p.estado || 'COMPLETADO').toUpperCase() === 'COMPLETADO')
+                          .reduce((sum, p) => sum + Number(p.monto ?? 0), 0)
+                        )}
                       </td>
+                      <td></td>
                       <td></td>
                     </tr>
                   </tfoot>

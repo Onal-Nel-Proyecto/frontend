@@ -13,6 +13,7 @@
 // ================================================================
 
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FiCheckCircle,
@@ -41,7 +42,7 @@ const Alert = ({ type = 'success', title, message, children, onConfirm, onCancel
     };
   }, []);
 
-  return (
+  return createPortal(
     <AnimatePresence>
       <motion.div
         className={styles.overlay}
@@ -89,7 +90,8 @@ const Alert = ({ type = 'success', title, message, children, onConfirm, onCancel
           </div>
         </motion.div>
       </motion.div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 

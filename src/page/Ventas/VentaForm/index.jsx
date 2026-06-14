@@ -14,8 +14,13 @@ import { searchProductos } from '../../../api/productosService';
 import { createCliente } from '../../../api/clientesService';
 import styles from './VentaForm.module.css';
 
-const fmt = (val) =>
-  Number(val || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+const FMT_SAFE_MAX = 999999999;
+const fmt = (val) => {
+  const num = Number(val) || 0;
+  // Evitar overflow de toLocaleString con números enormes
+  const clamped = Math.min(Math.max(num, -FMT_SAFE_MAX), FMT_SAFE_MAX);
+  return clamped.toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+};
 
 const VentaForm = ({ isOpen, onClose }) => {
   const { addVenta } = useVentas();
@@ -48,9 +53,9 @@ const VentaForm = ({ isOpen, onClose }) => {
   const [clienteError, setClienteError] = useState('');
 
   // ─── Cálculos ───
-  const subtotal = items.reduce((s, it) => s + it.cantidad * it.precio, 0);
-  const descuentoNum = Number(descuento) || 0;
-  const total = Math.max(0, subtotal - descuentoNum);
+  const subtotal = items.reduce((s, it) => s + (Number(it.cantidad) || 0) * (Number(it.precio) || 0), 0);
+  const descuentoNum = Math.min(100, Math.max(0, Number(descuento) || 0));
+  const total = Math.max(0, subtotal * (1 - descuentoNum / 100));
 
   // ─── Handlers ───
 
@@ -202,18 +207,31 @@ const VentaForm = ({ isOpen, onClose }) => {
     }
     // Validar items con datos correctos
     for (const it of items) {
-      if (it.cantidad < 1) {
+      const cant = Number(it.cantidad) || 0;
+      const prec = Number(it.precio) || 0;
+      if (cant < 1) {
         setAlert({ type: 'error', title: 'Cantidad inválida', message: `"${it.nombre}" debe tener cantidad ≥ 1`, onClose: () => setAlert(null) });
         return;
       }
-      if (it.precio <= 0) {
+      if (cant > 300) {
+        setAlert({ type: 'error', title: 'Cantidad inválida', message: `"${it.nombre}" no puede exceder 300 unidades`, onClose: () => setAlert(null) });
+        return;
+      }
+      if (prec <= 0) {
         setAlert({ type: 'error', title: 'Precio inválido', message: `"${it.nombre}" debe tener un precio mayor a 0`, onClose: () => setAlert(null) });
+        return;
+      }
+      if (prec > 9999999) {
+        setAlert({ type: 'error', title: 'Precio inválido', message: `"${it.nombre}" supera el máximo permitido ($9,999,999)`, onClose: () => setAlert(null) });
+        return;
+      }
+      if (prec > 9999999) {
+        setAlert({ type: 'error', title: 'Precio inválido', message: `"${it.nombre}" supera el máximo permitido ($9,999,999,999)`, onClose: () => setAlert(null) });
         return;
       }
     }
 
     setSubmitting(true);
-    onClose();
     setLoading(true);
 
     const payload = {
@@ -239,8 +257,7 @@ const VentaForm = ({ isOpen, onClose }) => {
         type: 'success',
         title: 'Venta registrada',
         message: 'La venta se registró correctamente',
-        onConfirm: () => { setAlert(null); window.location.reload(); },
-        onClose: () => { setAlert(null); window.location.reload(); },
+        onClose: () => { setAlert(null); onClose(); window.location.reload(); },
       });
     } catch (err) {
       setLoading(false);
@@ -304,6 +321,7 @@ const VentaForm = ({ isOpen, onClose }) => {
                 onKeyDown={handleProdKeyDown}
                 onFocus={() => { if (prodResults.length > 0) setProdOpen(true); }}
                 autoComplete="off"
+                maxLength={300}
               />
               {prodLoading && (
                 <span style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
@@ -343,6 +361,7 @@ const VentaForm = ({ isOpen, onClose }) => {
 
             {/* Tabla de items seleccionados */}
             {items.length > 0 ? (
+              <div className={styles.itemsTableWrap}>
               <table className={styles.itemsTable}>
                 <thead>
                   <tr>
@@ -364,9 +383,24 @@ const VentaForm = ({ isOpen, onClose }) => {
                           className={styles.itemInput}
                           type="number"
                           min={1}
-                          max={it.stock > 0 ? it.stock : 9999}
+                          max={300}
                           value={it.cantidad}
-                          onChange={(e) => updateItem(it.producto_id, 'cantidad', Math.max(1, Number(e.target.value) || 1))}
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            if (raw === '') {
+                              updateItem(it.producto_id, 'cantidad', '');
+                              return;
+                            }
+                            const num = parseInt(raw, 10);
+                            if (!isNaN(num) && num >= 1) {
+                              updateItem(it.producto_id, 'cantidad', Math.min(num, 300));
+                            }
+                          }}
+                          onBlur={() => {
+                            if (it.cantidad === '' || Number(it.cantidad) < 1) {
+                              updateItem(it.producto_id, 'cantidad', 1);
+                            }
+                          }}
                         />
                       </td>
                       <td>
@@ -374,9 +408,25 @@ const VentaForm = ({ isOpen, onClose }) => {
                           className={styles.itemInput}
                           type="number"
                           min={1}
+                          max={9999999999}
                           step={100}
                           value={it.precio}
-                          onChange={(e) => updateItem(it.producto_id, 'precio', Math.max(1, Number(e.target.value) || 0))}
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            if (raw === '') {
+                              updateItem(it.producto_id, 'precio', '');
+                              return;
+                            }
+                            const num = parseInt(raw, 10);
+                            if (!isNaN(num) && num >= 1) {
+                              updateItem(it.producto_id, 'precio', Math.min(num, 9999999999));
+                            }
+                          }}
+                          onBlur={() => {
+                            if (it.precio === '' || Number(it.precio) < 1) {
+                              updateItem(it.producto_id, 'precio', 1);
+                            }
+                          }}
                         />
                       </td>
                       <td className={styles.itemTotal}>{fmt(it.cantidad * it.precio)}</td>
@@ -389,6 +439,7 @@ const VentaForm = ({ isOpen, onClose }) => {
                   ))}
                 </tbody>
               </table>
+              </div>
             ) : (
               <div className={styles.emptyItems}>
                 <FiSearch className={styles.emptyItemsIcon} />
@@ -398,20 +449,33 @@ const VentaForm = ({ isOpen, onClose }) => {
           </div>
 
           {/* ══ TOTALES ══ */}
-          <div className={styles.section}>
+          <div className={`${styles.section} ${items.length === 0 ? styles.sectionDisabled : ''}`}>
             <div className={styles.sectionTitle}>Totales</div>
 
             <div className={styles.field}>
-              <label className={styles.label}>Descuento (opcional)</label>
-              <input
-                className={styles.input}
-                type="number"
-                min={0}
-                step={1000}
-                placeholder="0"
-                value={descuento}
-                onChange={(e) => setDescuento(Math.max(0, Number(e.target.value) || 0))}
-              />
+              <label className={styles.label}>Descuento (%)</label>
+              <div className={styles.discountWrap}>
+                <input
+                  className={styles.input}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={3}
+                  placeholder="0"
+                  value={descuento}
+                  onChange={(e) => {
+                    const raw = e.target.value.replace(/[^0-9]/g, '');
+                    if (raw === '') {
+                      setDescuento('');
+                      return;
+                    }
+                    const num = Number(raw);
+                    if (!isNaN(num) && num >= 0) {
+                      setDescuento(Math.min(num, 100));
+                    }
+                  }}
+                />
+                <span className={styles.discountSuffix}>%</span>
+              </div>
             </div>
 
             <div className={styles.totals}>
@@ -421,8 +485,8 @@ const VentaForm = ({ isOpen, onClose }) => {
               </div>
               {descuentoNum > 0 && (
                 <div className={styles.totalRow}>
-                  <span>Descuento</span>
-                  <span className={styles.totalValue} style={{ color: '#dc2626' }}>-{fmt(descuentoNum)}</span>
+                  <span>Descuento ({descuentoNum}%)</span>
+                  <span className={styles.totalValue} style={{ color: '#dc2626' }}>-{fmt(subtotal - total)}</span>
                 </div>
               )}
               <div className={`${styles.totalRow} ${styles.totalRowGrand}`}>
@@ -433,19 +497,29 @@ const VentaForm = ({ isOpen, onClose }) => {
           </div>
 
           {/* ══ PAGO INICIAL (OPCIONAL) ══ */}
-          <div className={styles.section}>
+          <div className={`${styles.section} ${items.length === 0 ? styles.sectionDisabled : ''}`}>
             <div className={styles.sectionTitle}>Pago inicial (opcional)</div>
             <div className={styles.pagoRow}>
               <div className={styles.field}>
                 <label className={styles.label}>Monto</label>
                 <input
                   className={styles.input}
-                  type="number"
-                  min={0}
-                  step={1000}
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={12}
                   placeholder="0"
                   value={pagoMonto}
-                  onChange={(e) => setPagoMonto(e.target.value)}
+                  onChange={(e) => {
+                    const raw = e.target.value.replace(/[^0-9]/g, '');
+                    if (raw === '') {
+                      setPagoMonto('');
+                      return;
+                    }
+                    const num = Number(raw);
+                    if (!isNaN(num) && num >= 0) {
+                      setPagoMonto(Math.min(num, total || 0));
+                    }
+                  }}
                 />
               </div>
               <div className={styles.field}>

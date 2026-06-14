@@ -6,7 +6,7 @@
 import axiosInstance from "./axiosInstance";
 
 /**
- * Obtener lista paginada de productos activos
+ * Obtener lista paginada de productos activos de inventario
  * @param {Object} opts
  * @param {number} opts.pagina  - Página actual (default 1)
  * @param {number} opts.limite  - Items por página (default 50)
@@ -14,7 +14,7 @@ import axiosInstance from "./axiosInstance";
  * @returns {Promise<{status, data, meta}>}
  */
 export const getProductos = async ({ pagina = 1, limite = 50, nombre = "" } = {}) => {
-  const params = { pagina, limite };
+  const params = { pagina, limite, estado: 1, tipoProducto: "INVENTARIO" };
   if (nombre.trim()) params.nombre = nombre.trim();
 
   const response = await axiosInstance.get("/productos", { params });
