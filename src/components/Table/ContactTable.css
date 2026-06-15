@@ -6,13 +6,14 @@
   background: var(--bg-elevated);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-md, 18px);
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .contact-table {
   width: 100%;
   border-collapse: collapse;
-  table-layout: fixed;
+  min-width: 820px;
 }
 
 .contact-table thead tr {
@@ -28,6 +29,7 @@
   letter-spacing: 0.8px;
   color: #B0B0B0;
   text-align: left;
+  white-space: nowrap;
 }
 
 .contact-table td {
@@ -36,7 +38,22 @@
   color: var(--text-secondary);
   border-bottom: 1px solid var(--border-glass);
   vertical-align: middle;
+  white-space: nowrap;
 }
+
+/* ── Anchos fijos de columna ── */
+.contact-table th:nth-child(1),
+.contact-table td:nth-child(1) { min-width: 180px; }  /* Nombre */
+.contact-table th:nth-child(2),
+.contact-table td:nth-child(2) { min-width: 160px; }  /* Correo */
+.contact-table th:nth-child(3),
+.contact-table td:nth-child(3) { min-width: 120px; }  /* Teléfono */
+.contact-table th:nth-child(4),
+.contact-table td:nth-child(4) { min-width: 160px; }  /* Dirección */
+.contact-table th:nth-child(5),
+.contact-table td:nth-child(5) { min-width:  90px; }  /* Fecha */
+.contact-table th:nth-child(6),
+.contact-table td:nth-child(6) { min-width: 110px; }  /* Acciones */
 
 .contact-table tbody tr:last-child td { border-bottom: none; }
 .contact-table tbody tr:hover td      { background: var(--bg-glass-hover); }
@@ -59,8 +76,10 @@
   margin-top: 2px;
 }
 
+.td-email   { color: var(--text-secondary); font-size: 12px; }
 .td-phone   { color: var(--text-secondary); font-size: 12px; }
 .td-address { color: var(--text-secondary); font-size: 12px; }
+.td-date    { color: var(--text-secondary); font-size: 12px; white-space: nowrap; }
 
 .action-btns {
   display: flex;

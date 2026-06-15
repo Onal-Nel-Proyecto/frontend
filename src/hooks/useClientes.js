@@ -8,19 +8,27 @@ import {
 
 // ── Clientes de ejemplo para modo local ─────
 const CLIENTES_EJEMPLO = [
-  { id: 1, name: 'María García López', category: 'Activo', phone: 'maria.garcia@email.com', address: 'Calle 10 #20-30, Bogotá', lastOrder: 'Jan 15, 2025' },
-  { id: 2, name: 'Alejandro Martínez Ruiz', category: 'Activo', phone: 'alejandro.martinez@email.com', address: 'Carrera 7 #45-67, Medellín', lastOrder: 'Jan 18, 2025' },
-  { id: 3, name: 'Carmen Herrera Díaz', category: 'Activo', phone: 'carmen.herrera@email.com', address: 'Av siempre viva #123, Cali', lastOrder: 'Feb 1, 2025' },
-  { id: 4, name: 'Roberto Sánchez Vega', category: 'Inactivo', phone: 'roberto.sanchez@email.com', address: 'Calle 5 #10-20, Barranquilla', lastOrder: 'Feb 5, 2025' },
-  { id: 5, name: 'Laura Jiménez Torres', category: 'Activo', phone: 'laura.jimenez@email.com', address: 'Carrera 15 #30-45, Cartagena', lastOrder: 'Feb 10, 2025' },
-  { id: 6, name: 'Fernando Ortiz Mendoza', category: 'Activo', phone: 'fernando.ortiz@email.com', address: 'Diagonal 60 #15-30, Bucaramanga', lastOrder: 'Mar 3, 2025' },
-  { id: 7, name: 'Isabel Ramírez Castro', category: 'Activo', phone: 'isabel.ramirez@email.com', address: 'Calle 80 #12-34, Manizales', lastOrder: 'Mar 15, 2025' },
-  { id: 8, name: 'Daniela Rojas Pineda', category: 'Inactivo', phone: 'daniela.rojas@email.com', address: 'Av 68 #23-45, Pereira', lastOrder: 'Apr 2, 2025' },
+  { id: 1, name: 'María García López', category: 'Activo', email: 'maria.garcia@email.com', phone: '300 123 4567', address: 'Calle 10 #20-30, Bogotá', lastOrder: 'Jan 15, 2025' },
+  { id: 2, name: 'Alejandro Martínez Ruiz', category: 'Activo', email: 'alejandro.martinez@email.com', phone: '310 234 5678', address: 'Carrera 7 #45-67, Medellín', lastOrder: 'Jan 18, 2025' },
+  { id: 3, name: 'Carmen Herrera Díaz', category: 'Activo', email: 'carmen.herrera@email.com', phone: '320 345 6789', address: 'Av siempre viva #123, Cali', lastOrder: 'Feb 1, 2025' },
+  { id: 4, name: 'Roberto Sánchez Vega', category: 'Inactivo', email: 'roberto.sanchez@email.com', phone: '300 456 7890', address: 'Calle 5 #10-20, Barranquilla', lastOrder: 'Feb 5, 2025' },
+  { id: 5, name: 'Laura Jiménez Torres', category: 'Activo', email: 'laura.jimenez@email.com', phone: '310 567 8901', address: 'Carrera 15 #30-45, Cartagena', lastOrder: 'Feb 10, 2025' },
+  { id: 6, name: 'Fernando Ortiz Mendoza', category: 'Activo', email: 'fernando.ortiz@email.com', phone: '320 678 9012', address: 'Diagonal 60 #15-30, Bucaramanga', lastOrder: 'Mar 3, 2025' },
+  { id: 7, name: 'Isabel Ramírez Castro', category: 'Activo', email: 'isabel.ramirez@email.com', phone: '300 789 0123', address: 'Calle 80 #12-34, Manizales', lastOrder: 'Mar 15, 2025' },
+  { id: 8, name: 'Daniela Rojas Pineda', category: 'Inactivo', email: 'daniela.rojas@email.com', phone: '310 890 1234', address: 'Av 68 #23-45, Pereira', lastOrder: 'Apr 2, 2025' },
 ]
 
 // ──────────────────────────────────────────────
 //  Normaliza un item de la API → formato tabla
 // ──────────────────────────────────────────────
+const formatTelefonos = (telefonos) => {
+  if (!telefonos || !Array.isArray(telefonos) || telefonos.length === 0) return "-"
+  return telefonos
+    .map((t) => (typeof t === "string" ? t : t.numero_telefono || t.numero || t.telefono || ""))
+    .filter(Boolean)
+    .join(", ")
+}
+
 const mapearCliente = (item) => ({
   id: parseInt(item.cliente_id, 10) || item.cliente_id,
   name: `${item.cliente_nombre || ""} ${item.cliente_apellido || ""}`.trim(),
@@ -30,7 +38,8 @@ const mapearCliente = (item) => ({
       : item.estado === "inactivo"
         ? "Inactivo"
         : item.estado || "Activo",
-  phone: item.cliente_email || "",
+  email: item.cliente_email || "",
+  phone: formatTelefonos(item.cliente_telefonos),
   address: item.cliente_direccion || "",
   lastOrder: item.fecha_creacion || null,
 });
@@ -51,11 +60,17 @@ export const useClientes = ({ paginaInicial = 1, limiteInicial = 15 } = {}) => {
   const mounted = useRef(true);
 
   // ── CARGAR CLIENTES ──────────────────────────
-  const loadClientes = useCallback(async (pagina = 1, limite = 15) => {
+  const loadClientes = useCallback(async (pagina = 1, limite = 15, search = '') => {
     setLoading(true);
     setError(null);
+
+    // Timeout de seguridad: si la API tarda más de 10s, force loading=false
+    const safetyTimer = setTimeout(() => {
+      if (mounted.current) setLoading(false);
+    }, 10000);
+
     try {
-      const respuesta = await apiGetClientes(pagina, limite);
+      const respuesta = await apiGetClientes(pagina, limite, search);
       const items = Array.isArray(respuesta?.data) ? respuesta.data : [];
       setClientes(items.map(mapearCliente));
       setMeta(respuesta?.meta ?? null);
@@ -65,13 +80,14 @@ export const useClientes = ({ paginaInicial = 1, limiteInicial = 15 } = {}) => {
       setClientes(CLIENTES_EJEMPLO);
       setMeta({ total: CLIENTES_EJEMPLO.length, pagina_actual: 1, paginas_totales: 1, limite });
     } finally {
+      clearTimeout(safetyTimer);
       if (mounted.current) setLoading(false);
     }
   }, []);
 
   // Carga inicial
   useEffect(() => {
-    loadClientes(paginaInicial, limiteInicial);
+    loadClientes(paginaInicial, limiteInicial, '');
   }, [loadClientes, paginaInicial, limiteInicial]);
 
   // Cleanup
@@ -81,12 +97,12 @@ export const useClientes = ({ paginaInicial = 1, limiteInicial = 15 } = {}) => {
 
   // ── AGREGAR CLIENTE ──────────────────────────
   const addCliente = useCallback(
-    async (clienteData) => {
+    async (clienteData, search = '') => {
       setLoading(true);
       setError(null);
       try {
         await apiCreateCliente(clienteData);
-        await loadClientes(1, meta?.limite || limiteInicial);
+        await loadClientes(1, meta?.limite || limiteInicial, search);
       } catch (err) {
         // 🔸 Fallback local: agregar el cliente en memoria
         const nuevoId = ++localIdRef.current;
@@ -94,7 +110,8 @@ export const useClientes = ({ paginaInicial = 1, limiteInicial = 15 } = {}) => {
           id: nuevoId,
           name: `${clienteData.cliente_nombre || ""} ${clienteData.cliente_apellido || ""}`.trim(),
           category: "Activo",
-          phone: clienteData.cliente_email || "",
+          email: clienteData.cliente_email || "",
+          phone: "-",
           address: clienteData.cliente_direccion || "",
           lastOrder: new Date().toLocaleDateString("en-US", {
             month: "short", day: "numeric", year: "numeric",
@@ -113,12 +130,12 @@ export const useClientes = ({ paginaInicial = 1, limiteInicial = 15 } = {}) => {
 
   // ── ACTUALIZAR CLIENTE ───────────────────────
   const editCliente = useCallback(
-    async (id, clienteData) => {
+    async (id, clienteData, search = '') => {
       setLoading(true);
       setError(null);
       try {
         await apiUpdateCliente(id, clienteData);
-        await loadClientes(meta?.pagina_actual || 1, meta?.limite || limiteInicial);
+        await loadClientes(meta?.pagina_actual || 1, meta?.limite || limiteInicial, search);
       } catch (err) {
         // 🔸 Fallback local: actualizar en memoria
         setClientes((prev) =>
@@ -142,14 +159,16 @@ export const useClientes = ({ paginaInicial = 1, limiteInicial = 15 } = {}) => {
     [loadClientes, meta]
   );
 
-  // ── ELIMINAR (cambio de estado) ──────────────
+  // ── INHABILITAR (cambio de estado) ──────────
   const deleteCliente = useCallback(
-    async (id) => {
+    async (id, search = '') => {
       setLoading(true);
       setError(null);
+      let msg = null;
       try {
-        await apiChangeStatus(id, 2);
-        await loadClientes(meta?.pagina_actual || 1, meta?.limite || limiteInicial);
+        const response = await apiChangeStatus(id, 2);
+        msg = response?.msg || null;
+        await loadClientes(meta?.pagina_actual || 1, meta?.limite || limiteInicial, search);
       } catch (err) {
         // 🔸 Fallback local: eliminar del array
         setClientes((prev) => prev.filter((c) => c.id !== id));
@@ -158,7 +177,7 @@ export const useClientes = ({ paginaInicial = 1, limiteInicial = 15 } = {}) => {
       } finally {
         if (mounted.current) setLoading(false);
       }
-      return { ok: true };
+      return { ok: true, msg };
     },
     [loadClientes, meta]
   );

@@ -1,12 +1,12 @@
 import React from 'react'
 import AvatarBadge  from './AvatarBadge'
-import StatusBadge  from './StatusBadge'
+import { formatDate } from '../../utils/format'
 import './ContactTable.css'
 
 // Tabla principal de contactos
 // Props:
 //   clients → array de objetos:
-//     { id, name, category, phone, address, lastOrder }
+//     { id, name, category, email, phone, address, lastOrder }
 
 const ContactTable = ({ clients = [], onView, onEdit, onDelete, onReactivate, totalClientes }) => {
   return (
@@ -15,6 +15,7 @@ const ContactTable = ({ clients = [], onView, onEdit, onDelete, onReactivate, to
         <thead>
           <tr>
             <th>Nombre del Cliente</th>
+            <th>Correo</th>
             <th>Teléfono</th>
             <th>Dirección de Entrega</th>
             <th>fecha de registro</th>
@@ -37,11 +38,14 @@ const ContactTable = ({ clients = [], onView, onEdit, onDelete, onReactivate, to
                 </div>
               </td>
 
+              <td className="td-email">{client.email}</td>
               <td className="td-phone">{client.phone}</td>
               <td className="td-address">{client.address}</td>
 
               <td>
-                <StatusBadge date={client.lastOrder} />
+                <span className="td-date">
+                  {client.lastOrder ? formatDate(client.lastOrder) : '—'}
+                </span>
               </td>
 
               {/* Botones de acción */}
@@ -63,7 +67,7 @@ const ContactTable = ({ clients = [], onView, onEdit, onDelete, onReactivate, to
                   >
                     <i className="ti ti-edit" />
                   </button>
-                  {client.category === 'Inactivo' && (
+                  {client.category === 'Inactivo' ? (
                     <button
                       className="action-btn action-btn--reactivate"
                       aria-label="Reactivar"
@@ -72,15 +76,16 @@ const ContactTable = ({ clients = [], onView, onEdit, onDelete, onReactivate, to
                     >
                       <i className="ti ti-refresh" />
                     </button>
+                  ) : (
+                    <button
+                      className="action-btn action-btn--danger"
+                      aria-label="Inhabilitar cliente"
+                      onClick={() => onDelete?.(client)}
+                      title="Inhabilitar cliente"
+                    >
+                      <i className="ti ti-ban" />
+                    </button>
                   )}
-                  <button
-                    className="action-btn action-btn--danger"
-                    aria-label="Eliminar"
-                    onClick={() => onDelete?.(client)}
-                    title="Eliminar cliente"
-                  >
-                    <i className="ti ti-trash" />
-                  </button>
                 </div>
               </td>
 

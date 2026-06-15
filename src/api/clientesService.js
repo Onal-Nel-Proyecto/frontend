@@ -24,11 +24,11 @@ const extraerData = (respuesta) => {
 //  Servicios
 // ──────────────────────────────────────────────
 
-/** GET /clientes — obtener lista paginada */
-export const getClientes = async (pagina = 1, limite = 15) => {
-  const response = await axiosInstance.get(CLIENTES_ENDPOINTS.GET_ALL, {
-    params: { pagina, limite },
-  });
+/** GET /clientes — obtener lista paginada (opcional: filtrar por search) */
+export const getClientes = async (pagina = 1, limite = 15, search = '') => {
+  const params = { pagina, limite };
+  if (search) params.search = search;
+  const response = await axiosInstance.get(CLIENTES_ENDPOINTS.GET_ALL, { params });
   return response.data; // { meta: {...}, data: [...] }
 };
 
