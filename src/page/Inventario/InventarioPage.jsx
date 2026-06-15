@@ -32,9 +32,9 @@ const mapperProducto = (p) => ({
   genero: p.genero || '—',
   talla: p.talla || '—',
   price: Number(p.precioUnitario || 0),
-  stock: Number(p.stock || 0),
+  stock: Number(p.cantidadDisponible || 0),
   minStock: Number(p.umbralMinimo || 0),
-  status: p.estado === 1 ? 'disponible' : p.estado === 2 ? 'agotado' : 'eliminado',
+  status: (p.estado || '').toLowerCase(),
 })
 
 // ── Mini barra de stock ──
@@ -195,7 +195,9 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
     cancelar: cancelarAbs,
   } = useAbastecimiento()
 
+  const [matResumen, setMatResumen] = useState(null)
   const [matFilters, setMatFilters] = useState({ category: '', status: '', search: '', categoryOptions: [] })
+  const [prodResumen, setProdResumen] = useState(null)
   const [prodFilters, setProdFilters] = useState({ category: '', status: '', search: '', categoryOptions: [] })
   const [absFilters, setAbsFilters] = useState({ category: '', status: '', search: '', categoryOptions: [] })
 
@@ -206,6 +208,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
       const res = await getMateriales({ limite: 100 })
       const items = Array.isArray(res?.data) ? res.data.map(mapperMaterial) : []
       setMaterials(items)
+      if (res?.resumen) setMatResumen(res.resumen)
     } catch (err) {
       console.warn('Error al cargar materiales:', err)
       setMaterials([])
@@ -221,6 +224,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
       const res = await getProductos({ limite: 100 })
       const items = Array.isArray(res?.data) ? res.data.map(mapperProducto) : []
       setProducts(items)
+      if (res?.resumen) setProdResumen(res.resumen)
     } catch (err) {
       console.warn('Error al cargar productos:', err)
       setProducts([])
@@ -293,7 +297,6 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
         await updateProducto(data.id, {
           nombre: data.nombre,
           precioUnitario: data.precio || 0,
-          descripcion: data.descripcion,
           genero: data.genero,
           tipoPrenda: data.tipoPrenda,
           talla: data.talla,
@@ -303,7 +306,6 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
         await createProducto({
           nombre: data.nombre,
           precioUnitario: data.precio || 0,
-          descripcion: data.descripcion,
           genero: data.genero,
           tipoPrenda: data.tipoPrenda,
           talla: data.talla,
@@ -344,6 +346,14 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
 
   // ── Config Materiales ──
   const matStats = (items) => {
+    if (matResumen) {
+      const s = matResumen.total_stock
+      return [
+        { color: 'blue', icon: 'ti ti-stack', value: s.total.toLocaleString('es-CO'), unit: ' mts', label: 'Stock Total', sub: `${s.materiales_registrados} materiales registrados` },
+        { color: 'red', icon: 'ti ti-alert-triangle', value: matResumen.alertas_stock, unit: '', label: 'Alertas de Stock', valueRed: true, sub: 'requieren reposición' },
+        { color: 'green', icon: 'ti ti-package', value: s.materiales_registrados, unit: '', label: 'Materiales Registrados', sub: 'total en catálogo' },
+      ]
+    }
     const totalStock = items.reduce((s, m) => s + m.stock, 0)
     const lowCount = items.filter((m) => m.status === 'agotado').length
     return [
@@ -384,6 +394,13 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
 
   // ── Config Productos ──
   const prodStats = (items) => {
+    if (prodResumen) {
+      return [
+        { color: 'blue', icon: 'ti ti-hanger', value: prodResumen.total_productos, unit: '', label: 'Total Productos', sub: 'en catálogo' },
+        { color: 'red', icon: 'ti ti-alert-triangle', value: prodResumen.alertas_stock, unit: '', label: 'Alertas de Stock', valueRed: true, sub: 'requieren reposición' },
+        { color: 'green', icon: 'ti ti-coin', value: fmt(prodResumen.valor_total), unit: '', label: 'Valor del Catálogo', sub: 'precio de venta total' },
+      ]
+    }
     const totalVal = items.reduce((s, p) => s + p.price * p.stock, 0)
     const lowCount = items.filter((p) => p.status === 'agotado').length
     return [

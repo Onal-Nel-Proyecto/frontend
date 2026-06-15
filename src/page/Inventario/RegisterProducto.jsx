@@ -40,7 +40,6 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
 
   const [form, setForm] = useState({
     nombre: initialData?.name || '',
-    descripcion: initialData?.descripcion || '',
     tipoPrenda: initialData?.tipo_prenda || '',
     genero: initialData?.genero || '',
     talla: initialData?.talla || '',
@@ -72,7 +71,6 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
       await onSave({
         id: initialData?.id,
         nombre: form.nombre.trim(),
-        descripcion: form.descripcion.trim(),
         tipoPrenda: form.tipoPrenda,
         genero: form.genero,
         talla: form.talla.trim(),
@@ -113,18 +111,6 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
                 onChange={handleChange} onBlur={handleBlur} />
             </div>
             {hasError('nombre') && <p className="rp-err">{errors.nombre}</p>}
-          </div>
-        </div>
-
-        <div className="rp-row">
-          <div className="rp-group rp-group--full">
-            <label className="rp-label" htmlFor="rp-descripcion">Descripción</label>
-            <div className="rp-input-wrap">
-              <i className="ti ti-list-details" />
-              <input id="rp-descripcion" name="descripcion" type="text" maxLength="255" className="rp-input"
-                placeholder="Ej: Vestido largo de seda natural con encaje" value={form.descripcion}
-                onChange={handleChange} onBlur={handleBlur} />
-            </div>
           </div>
         </div>
 

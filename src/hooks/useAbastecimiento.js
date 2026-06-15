@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   getAbastecimientos as apiGetAbastecimientos,
   createAbastecimiento as apiCreateAbastecimiento,
@@ -70,8 +70,6 @@ export const useAbastecimiento = ({ paginaInicial = 1, limiteInicial = 15 } = {}
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const mounted = useRef(true);
-
   // ── Cargar abastecimientos ──
   const loadAbastecimientos = useCallback(async (pagina = 1, limite = 15) => {
     setLoading(true);
@@ -86,7 +84,7 @@ export const useAbastecimiento = ({ paginaInicial = 1, limiteInicial = 15 } = {}
       setAbastecimientos(ABASTECIMIENTOS_EJEMPLO.map(mapearAbastecimiento));
       setMeta({ total: ABASTECIMIENTOS_EJEMPLO.length, pagina_actual: 1, paginas_totales: 1, limite });
     } finally {
-      if (mounted.current) setLoading(false);
+      setLoading(false);
     }
   }, []);
 
@@ -111,11 +109,6 @@ export const useAbastecimiento = ({ paginaInicial = 1, limiteInicial = 15 } = {}
     loadProveedores();
   }, [loadAbastecimientos, loadProveedores, paginaInicial, limiteInicial]);
 
-  // Cleanup
-  useEffect(() => {
-    return () => { mounted.current = false; };
-  }, []);
-
   // ── Agregar abastecimiento ──
   const addAbastecimiento = useCallback(
     async (data) => {
@@ -128,7 +121,7 @@ export const useAbastecimiento = ({ paginaInicial = 1, limiteInicial = 15 } = {}
         console.error("Error al crear abastecimiento:", err?.message);
         throw err;
       } finally {
-        if (mounted.current) setLoading(false);
+        setLoading(false);
       }
       return { ok: true };
     },
@@ -147,7 +140,7 @@ export const useAbastecimiento = ({ paginaInicial = 1, limiteInicial = 15 } = {}
         console.error("Error al completar abastecimiento:", err?.message);
         throw err;
       } finally {
-        if (mounted.current) setLoading(false);
+        setLoading(false);
       }
       return { ok: true };
     },
@@ -166,7 +159,7 @@ export const useAbastecimiento = ({ paginaInicial = 1, limiteInicial = 15 } = {}
         console.error("Error al cancelar abastecimiento:", err?.message);
         throw err;
       } finally {
-        if (mounted.current) setLoading(false);
+        setLoading(false);
       }
       return { ok: true };
     },
