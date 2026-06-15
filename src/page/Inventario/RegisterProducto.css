@@ -51,8 +51,8 @@
 .rp-btn--primary { background: var(--accent-gold); color: #1a1a1a; border: none; box-shadow: var(--shadow-gold); }
 .rp-btn--primary:hover { background: var(--accent-gold-light); transform: translateY(-1px); box-shadow: var(--shadow-gold-lg); }
 .rp-btn--primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
-.rp-btn--outline { background: transparent; color: var(--text-secondary); border: 1px solid var(--border-glass); }
-.rp-btn--outline:hover { background: var(--bg-glass-hover); color: var(--text-primary); border-color: var(--border-glass-hover); }
+.rp-btn--outline { background: transparent; color: var(--accent-gold); border: 1.5px solid var(--accent-gold); }
+.rp-btn--outline:hover { background: var(--accent-gold-subtle); border-color: var(--accent-gold-light); color: var(--accent-gold-light); transform: translateY(-1px); }
 
 /* ── Responsive ── */
 @media (max-width: 768px) {

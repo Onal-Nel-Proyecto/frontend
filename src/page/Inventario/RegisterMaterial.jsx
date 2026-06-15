@@ -3,28 +3,29 @@ import { FiPackage } from 'react-icons/fi'
 import Drawer from '../../components/common/Drawer'
 import './RegisterMaterial.css'
 
+const TIPOS_MATERIAL = [
+  'TELA', 'HERRAMIENTA', 'HILO', 'BOTON', 'CREMALLERA',
+  'ELASTICO', 'ENTRETELA', 'CORDON', 'ENCAJE',
+  'APLIQUE', 'ETIQUETA', 'EMPAQUE', 'ACCESORIO',
+]
+
 const SOLO_LETRAS = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/
 
 const validate = (form) => {
   const errs = {}
-  
+
   const nom = form.nombre.trim()
   if (!nom) errs.nombre = 'El nombre del material es obligatorio'
   else if (nom.length < 3) errs.nombre = 'Mínimo 3 caracteres'
   else if (nom.length > 100) errs.nombre = 'Máximo 100 caracteres'
   else if (!SOLO_LETRAS.test(nom)) errs.nombre = 'Solo letras y espacios, sin números'
 
-  if (!form.tipoMaterial) errs.tipoMaterial = 'Indica el tipo de material'
-  if (!form.unidadMedida) errs.unidadMedida = 'Indica la unidad de medida'
+  if (!form.tipoMaterial) errs.tipoMaterial = 'Selecciona el tipo de material'
 
-  const desc = form.descripcion.trim()
-  if (!desc) errs.descripcion = 'Indica la descripción del material'
-  else if (desc.length > 255) errs.descripcion = 'Máximo 255 caracteres'
-
-  const umbralStr = form.umbralMinimo?.toString().trim()
-  if (umbralStr === '') errs.umbralMinimo = 'Ingresa el stock mínimo'
-  else if (!/^\d+$/.test(umbralStr)) errs.umbralMinimo = 'Solo números enteros'
-  else if (parseInt(umbralStr, 10) < 0) errs.umbralMinimo = 'No puede ser negativo'
+  const cantidadStr = form.cantidadDisponible?.toString().trim()
+  if (cantidadStr === '') errs.cantidadDisponible = 'Ingresa la cantidad disponible'
+  else if (!/^\d+$/.test(cantidadStr)) errs.cantidadDisponible = 'Solo números enteros'
+  else if (parseInt(cantidadStr, 10) < 0) errs.cantidadDisponible = 'No puede ser negativo'
 
   return errs
 }
@@ -36,7 +37,7 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, onSave }) => {
     nombre: initialData?.name || '',
     tipoMaterial: initialData?.tipo_material || '',
     unidadMedida: initialData?.unidad_medida || '',
-    descripcion: initialData?.desc || '',
+    cantidadDisponible: initialData?.stock?.toString() || '',
     umbralMinimo: initialData?.minStock?.toString() || '',
   })
   const [errors, setErrors] = useState({})
@@ -56,7 +57,7 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, onSave }) => {
     e.preventDefault()
     const newErrors = validate(form)
     setErrors(newErrors)
-    setTouched({ nombre: true, tipoMaterial: true, unidadMedida: true, descripcion: true, umbralMinimo: true })
+    setTouched({ nombre: true, cantidadDisponible: true, tipoMaterial: true, unidadMedida: true, umbralMinimo: true })
     if (Object.keys(newErrors).length > 0) return
 
     setSaving(true)
@@ -64,9 +65,9 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, onSave }) => {
       await onSave({
         id: initialData?.id,
         nombre: form.nombre.trim(),
+        cantidadDisponible: parseInt(form.cantidadDisponible, 10) || 0,
         tipoMaterial: form.tipoMaterial.trim(),
         unidadMedida: form.unidadMedida.trim(),
-        descripcion: form.descripcion.trim(),
         umbralMinimo: parseInt(form.umbralMinimo, 10) || 0,
       })
     } finally {
@@ -95,7 +96,7 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, onSave }) => {
       <form id="rm-form" className="rm-form" onSubmit={handleSubmit} noValidate>
         <div className="rm-row">
           <div className="rm-group rm-group--full">
-            <label className="rm-label" htmlFor="rm-nombre">Nombre del Material</label>
+            <label className="rm-label" htmlFor="rm-nombre">Nombre del Material <span className="rm-required">*</span></label>
             <div className="rm-input-wrap">
               <i className="ti ti-tag rm-input-icon" />
               <input id="rm-nombre" name="nombre" type="text" maxLength="100"
@@ -108,14 +109,33 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, onSave }) => {
         </div>
 
         <div className="rm-row">
+          <div className="rm-group rm-group--full">
+            <label className="rm-label" htmlFor="rm-cantidad">Cantidad Disponible <span className="rm-required">*</span></label>
+            <div className="rm-input-wrap">
+              <i className="ti ti-stack rm-input-icon" />
+              <input id="rm-cantidad" name="cantidadDisponible" type="number" min="0"
+                className={`rm-input ${hasError('cantidadDisponible') ? 'rm-input--error' : ''}`}
+                placeholder="Ej: 100" value={form.cantidadDisponible}
+                onChange={handleChange} onBlur={handleBlur} />
+            </div>
+            {hasError('cantidadDisponible') && <p className="rm-err">{errors.cantidadDisponible}</p>}
+          </div>
+        </div>
+
+        <div className="rm-row">
           <div className="rm-group">
-            <label className="rm-label" htmlFor="rm-tipoMaterial">Tipo de material</label>
+            <label className="rm-label" htmlFor="rm-tipoMaterial">Tipo de material <span className="rm-required">*</span></label>
             <div className="rm-input-wrap">
               <i className="ti ti-category rm-input-icon" />
-              <input id="rm-tipoMaterial" name="tipoMaterial" type="text" maxLength="60"
-                className={`rm-input ${hasError('tipoMaterial') ? 'rm-input--error' : ''}`}
-                placeholder="Ej: Tela, Hilo, Tinte, Forro" value={form.tipoMaterial}
-                onChange={handleChange} onBlur={handleBlur} />
+              <select id="rm-tipoMaterial" name="tipoMaterial"
+                className={`rm-input rm-select ${hasError('tipoMaterial') ? 'rm-input--error' : ''}`}
+                value={form.tipoMaterial}
+                onChange={handleChange} onBlur={handleBlur}>
+                <option value="">Seleccione...</option>
+                {TIPOS_MATERIAL.map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
             </div>
             {hasError('tipoMaterial') && <p className="rm-err">{errors.tipoMaterial}</p>}
           </div>
@@ -129,20 +149,6 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, onSave }) => {
                 onChange={handleChange} onBlur={handleBlur} />
             </div>
             {hasError('unidadMedida') && <p className="rm-err">{errors.unidadMedida}</p>}
-          </div>
-        </div>
-
-        <div className="rm-row">
-          <div className="rm-group rm-group--full">
-            <label className="rm-label" htmlFor="rm-descripcion">Descripción</label>
-            <div className="rm-input-wrap">
-              <i className="ti ti-list-details rm-input-icon" />
-              <input id="rm-descripcion" name="descripcion" type="text" maxLength="255"
-                className={`rm-input ${hasError('descripcion') ? 'rm-input--error' : ''}`}
-                placeholder="Ej: 5.5 mm, 12 mm, 120 g/m²" value={form.descripcion}
-                onChange={handleChange} onBlur={handleBlur} />
-            </div>
-            {hasError('descripcion') && <p className="rm-err">{errors.descripcion}</p>}
           </div>
         </div>
 
