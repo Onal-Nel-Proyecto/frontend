@@ -99,7 +99,7 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, onSave }) => {
             <label className="rm-label" htmlFor="rm-nombre">Nombre del Material <span className="rm-required">*</span></label>
             <div className="rm-input-wrap">
               <i className="ti ti-tag rm-input-icon" />
-              <input id="rm-nombre" name="nombre" type="text" maxLength="100"
+              <input id="rm-nombre" name="nombre" type="text" maxLength="20"
                 className={`rm-input ${hasError('nombre') ? 'rm-input--error' : ''}`}
                 placeholder="Ej: Seda Natural China" value={form.nombre}
                 onChange={handleChange} onBlur={handleBlur} />
@@ -113,7 +113,7 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, onSave }) => {
             <label className="rm-label" htmlFor="rm-cantidad">Cantidad Disponible <span className="rm-required">*</span></label>
             <div className="rm-input-wrap">
               <i className="ti ti-stack rm-input-icon" />
-              <input id="rm-cantidad" name="cantidadDisponible" type="number" min="0"
+              <input id="rm-cantidad" name="cantidadDisponible" type="number" min="0" max="999999"
                 className={`rm-input ${hasError('cantidadDisponible') ? 'rm-input--error' : ''}`}
                 placeholder="Ej: 100" value={form.cantidadDisponible}
                 onChange={handleChange} onBlur={handleBlur} />
@@ -157,7 +157,7 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, onSave }) => {
             <label className="rm-label" htmlFor="rm-umbralMinimo">Stock mínimo de seguridad</label>
             <div className="rm-input-wrap">
               <i className="ti ti-alert-triangle rm-input-icon" />
-              <input id="rm-umbralMinimo" name="umbralMinimo" type="number" min="0"
+              <input id="rm-umbralMinimo" name="umbralMinimo" type="number" min="0" max="999999"
                 className={`rm-input ${hasError('umbralMinimo') ? 'rm-input--error' : ''}`}
                 placeholder="0" value={form.umbralMinimo} onChange={handleChange} onBlur={handleBlur} />
             </div>

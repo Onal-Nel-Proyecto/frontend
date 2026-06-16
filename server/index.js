@@ -25,8 +25,12 @@ function paginate(items, pagina = 1, limite = 15) {
 }
 
 // ── Filtro de materiales ──
-function filterMateriales(items, { nombre, estado, tipoMaterial }) {
+function filterMateriales(items, { nombre, estado, tipoMaterial, incluirEliminados = false }) {
   let filtered = [...items];
+  // Por defecto, excluir eliminados (Bug #1)
+  if (!incluirEliminados) {
+    filtered = filtered.filter((m) => m.estado?.toLowerCase() !== 'eliminado');
+  }
   if (nombre?.trim()) {
     const q = nombre.toLowerCase();
     filtered = filtered.filter((m) => m.nombre.toLowerCase().includes(q));
@@ -43,8 +47,12 @@ function filterMateriales(items, { nombre, estado, tipoMaterial }) {
 }
 
 // ── Filtro de productos ──
-function filterProductos(items, { nombre, estado, tipoProducto }) {
+function filterProductos(items, { nombre, estado, tipoProducto, incluirEliminados = false }) {
   let filtered = [...items];
+  // Por defecto, excluir eliminados (Bug #1)
+  if (!incluirEliminados) {
+    filtered = filtered.filter((p) => p.estado?.toLowerCase() !== 'eliminado');
+  }
   if (nombre?.trim()) {
     const q = nombre.toLowerCase();
     filtered = filtered.filter((p) => p.nombre.toLowerCase().includes(q));
@@ -146,7 +154,8 @@ app.patch('/materiales/:id/estado', (req, res) => {
 
   const estadoMap = { 1: 'disponible', 2: 'agotado', 3: 'eliminado' };
   const rawEstado = req.body.estado;
-  const estadoStr = estadoMap[rawEstado] || rawEstado || 'disponible';
+  // Normalizar: numérico → string, 'ELIMINADO' → 'eliminado' (Bug #1)
+  const estadoStr = estadoMap[rawEstado] || (typeof rawEstado === 'string' ? rawEstado.toLowerCase() : 'disponible');
 
   db.materiales[idx].estado = estadoStr;
   db.materiales[idx].updatedAt = new Date().toISOString();
@@ -241,7 +250,8 @@ app.patch('/productos/:id/estado', (req, res) => {
 
   const estadoMap = { 1: 'disponible', 2: 'agotado', 3: 'eliminado' };
   const rawEstado = req.body.estado;
-  const estadoStr = estadoMap[rawEstado] || rawEstado || 'disponible';
+  // Normalizar: numérico → string, 'ELIMINADO' → 'eliminado' (Bug #1)
+  const estadoStr = estadoMap[rawEstado] || (typeof rawEstado === 'string' ? rawEstado.toLowerCase() : 'disponible');
 
   db.productos[idx].estado = estadoStr;
   db.productos[idx].updatedAt = new Date().toISOString();

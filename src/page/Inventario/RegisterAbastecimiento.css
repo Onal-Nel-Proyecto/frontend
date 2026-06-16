@@ -46,6 +46,24 @@
 .ra-select.ra-input--no-icon { padding-left: 0.85rem; }
 .ra-select option { background: var(--bg-elevated); color: var(--text-primary); }
 
+/* ── Autocomplete ── */
+.ra-autocomplete { position: relative; width: 100%; }
+.ra-autocomplete-dropdown {
+  position: absolute; top: calc(100% + 2px); left: 0; right: 0; z-index: 50;
+  max-height: 200px; overflow-y: auto;
+  background: var(--bg-elevated); border: 1px solid var(--border-glass);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  list-style: none; margin: 0; padding: 0.25rem 0;
+}
+.ra-autocomplete-item {
+  padding: 0.45rem 0.85rem;
+  font-size: var(--text-sm); color: var(--text-primary);
+  cursor: pointer; transition: all var(--transition-fast);
+}
+.ra-autocomplete-item:hover { background: var(--accent-violet-subtle); }
+.ra-autocomplete-item:active { background: var(--accent-violet); color: #fff; }
+
 .ra-input--error { border-color: #dc2626 !important; background: rgba(239,68,68,0.05) !important; }
 .ra-err { font-size: 0.72rem; color: #f87171; margin: 0.2rem 0 0; line-height: 1.4; }
 .ra-err--global { margin-bottom: 0.5rem; font-weight: 500; }

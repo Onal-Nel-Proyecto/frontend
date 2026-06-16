@@ -7,7 +7,7 @@ import './RegisterAbastecimiento.css'
 
 const TIPOS_ITEM = ['MATERIAL', 'PRODUCTO']
 
-const ITEM_VACIO = { tipo: 'MATERIAL', cantidad: '', costo: '', refId: '' }
+const ITEM_VACIO = { tipo: 'MATERIAL', cantidad: '', costo: '', refId: '', busqueda: '' }
 
 const validate = (form, proveedores) => {
   const errs = {}
@@ -28,7 +28,7 @@ const validate = (form, proveedores) => {
       else {
         const n = parseInt(cant, 10)
         if (n <= 0) ie.cantidad = 'Debe ser mayor a 0'
-        else if (n > 99999) ie.cantidad = 'Máximo 99999'
+        else if (n > 999999) ie.cantidad = 'Máximo 999999'
       }
       if (item.costo !== '' && item.costo !== null) {
         const costoStr = item.costo.toString().trim()
@@ -64,8 +64,9 @@ const RegisterAbastecimiento = ({ isOpen, onClose, proveedores = [], onSave }) =
           getMateriales({ limite: 200 }),
           getProductosApi({ limite: 200 }),
         ])
-        const mats = Array.isArray(matRes?.data) ? matRes.data.map(m => ({ value: m.id, label: `${m.nombre} (${m.id})` })) : []
-        const prods = Array.isArray(prodRes?.data) ? prodRes.data.map(p => ({ value: p.id, label: `${p.nombre} (${p.id})` })) : []
+        // Bug #3: Guardamos id y nombre por separado para el autocomplete
+        const mats = Array.isArray(matRes?.data) ? matRes.data.map(m => ({ id: m.id, nombre: m.nombre })) : []
+        const prods = Array.isArray(prodRes?.data) ? prodRes.data.map(p => ({ id: p.id, nombre: p.nombre })) : []
         setReferencias({ MATERIAL: mats, PRODUCTO: prods })
       } catch (err) {
         console.warn('No se pudieron cargar referencias:', err)
@@ -95,7 +96,7 @@ const RegisterAbastecimiento = ({ isOpen, onClose, proveedores = [], onSave }) =
     setForm((prev) => {
       const nuevos = [...prev.detalles]
       if (field === 'tipo') {
-        nuevos[index] = { ...nuevos[index], tipo: value, refId: '' }
+        nuevos[index] = { ...nuevos[index], tipo: value, refId: '', busqueda: '' }
       } else {
         nuevos[index] = { ...nuevos[index], [field]: value }
       }
@@ -226,17 +227,38 @@ const RegisterAbastecimiento = ({ isOpen, onClose, proveedores = [], onSave }) =
 
                 <div className="ra-group ra-group--ref">
                   <label className="ra-label">Referencia <span className="ra-required">*</span></label>
-                  <select
-                    className={`ra-input ra-select ra-input--no-icon ${errors.detallesItems?.[index]?.refId ? 'ra-input--error' : ''}`}
-                    value={item.refId}
-                    onChange={(e) => handleItemChange(index, 'refId', e.target.value)}
-                    disabled={loadingRef}
-                  >
-                    <option value="">{loadingRef ? 'Cargando...' : 'Seleccionar...'}</option>
-                    {(referencias[item.tipo] || []).map((ref) => (
-                      <option key={ref.value} value={ref.value}>{ref.label}</option>
-                    ))}
-                  </select>
+                  <div className="ra-autocomplete">
+                    <input
+                      type="text" maxLength="50"
+                      className={`ra-input ra-input--no-icon ${errors.detallesItems?.[index]?.refId ? 'ra-input--error' : ''}`}
+                      placeholder={loadingRef ? 'Cargando...' : 'Buscar referencia...'}
+                      value={item.busqueda}
+                      onChange={(e) => handleItemChange(index, 'busqueda', e.target.value)}
+                      disabled={loadingRef}
+                      autoComplete="off"
+                    />
+                    {item.busqueda && (referencias[item.tipo] || [])
+                      .filter(r => r.nombre.toLowerCase().includes(item.busqueda.toLowerCase()))
+                      .length > 0 && (
+                      <ul className="ra-autocomplete-dropdown">
+                        {(referencias[item.tipo] || [])
+                          .filter(r => r.nombre.toLowerCase().includes(item.busqueda.toLowerCase()))
+                          .slice(0, 20)
+                          .map(ref => (
+                            <li
+                              key={ref.id}
+                              className="ra-autocomplete-item"
+                              onClick={() => {
+                                handleItemChange(index, 'refId', ref.id);
+                                handleItemChange(index, 'busqueda', ref.nombre);
+                              }}
+                            >
+                              {ref.nombre}
+                            </li>
+                          ))}
+                      </ul>
+                    )}
+                  </div>
                   {errors.detallesItems?.[index]?.refId && (
                     <p className="ra-err">{errors.detallesItems[index].refId}</p>
                   )}
@@ -244,7 +266,7 @@ const RegisterAbastecimiento = ({ isOpen, onClose, proveedores = [], onSave }) =
 
                 <div className="ra-group ra-group--cant">
                   <label className="ra-label">Cantidad <span className="ra-required">*</span></label>
-                  <input type="number" min="1" max="99999"
+                  <input type="number" min="1" max="999999"
                     className={`ra-input ra-input--no-icon ${errors.detallesItems?.[index]?.cantidad ? 'ra-input--error' : ''}`}
                     placeholder="0" value={item.cantidad}
                     onChange={(e) => handleItemChange(index, 'cantidad', e.target.value)} />
@@ -255,7 +277,7 @@ const RegisterAbastecimiento = ({ isOpen, onClose, proveedores = [], onSave }) =
 
                 <div className="ra-group ra-group--costo">
                   <label className="ra-label">Costo unitario</label>
-                  <input type="text" inputMode="decimal"
+                  <input type="text" inputMode="decimal" maxLength="20"
                     className={`ra-input ra-input--no-icon ${errors.detallesItems?.[index]?.costo ? 'ra-input--error' : ''}`}
                     placeholder="0.00" value={item.costo}
                     onChange={(e) => handleItemChange(index, 'costo', e.target.value)} />

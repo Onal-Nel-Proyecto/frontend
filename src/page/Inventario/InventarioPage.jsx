@@ -34,7 +34,7 @@ const mapperProducto = (p) => ({
   price: Number(p.precioUnitario || 0),
   stock: Number(p.cantidadDisponible || 0),
   minStock: Number(p.umbralMinimo || 0),
-  status: (p.estado || '').toLowerCase(),
+  status: typeof p.estado === 'string' ? p.estado.toLowerCase() : p.estado === 1 ? 'disponible' : p.estado === 2 ? 'agotado' : 'eliminado',
 })
 
 // ── Mini barra de stock ──
@@ -243,7 +243,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
   const handleDeleteMaterial = async (item) => {
     if (!window.confirm(`¿Desactivar "${item.name}"?`)) return
     try {
-      await changeMaterialEstado(item.id, 3) // DESCONTINUADO
+      await changeMaterialEstado(item.id, 'ELIMINADO')
       await loadMateriales()
     } catch (err) {
       alert('Error: ' + (err?.response?.data?.message || err?.message))
@@ -284,7 +284,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
   const handleDeleteProduct = async (item) => {
     if (!window.confirm(`¿Desactivar "${item.name}"?`)) return
     try {
-      await changeProductoEstado(item.id, 3)
+      await changeProductoEstado(item.id, 'ELIMINADO')
       await loadProductos()
     } catch (err) {
       alert('Error: ' + (err?.response?.data?.message || err?.message))
