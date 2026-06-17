@@ -238,7 +238,12 @@ const PagosVenta = ({ venta, onPagoRegistrado }) => {
           </div>
           <div className={styles.progressLabel}>
             <span>{pctPagado.toFixed(1)}% pagado</span>
-            <span className={styles.progressPct}>{pagos.length} pago{pagos.length !== 1 ? 's' : ''}</span>
+            <span className={styles.progressPct}>
+              {(() => {
+                const activos = pagos.filter(p => !['ANULADO', 'RECHAZADO'].includes(p.estado?.toUpperCase()));
+                return `${activos.length} pago${activos.length !== 1 ? 's' : ''}`;
+              })()}
+            </span>
           </div>
         </div>
       </section>

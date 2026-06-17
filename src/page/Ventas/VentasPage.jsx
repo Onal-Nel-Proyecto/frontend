@@ -199,13 +199,14 @@ const VentasPage = () => {
     const id = venta.id
     setLoadingFacturas((prev) => ({ ...prev, [id]: true }))
     try {
-      const blob = await getFacturaPdfBlob(venta.id)
+      const { blob, filename } = await getFacturaPdfBlob(venta.id)
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `Factura_${venta.id}.pdf`
+      a.download = filename
       document.body.appendChild(a)
       a.click()
+      console.log(filename)
       document.body.removeChild(a)
       window.URL.revokeObjectURL(url)
     } catch {

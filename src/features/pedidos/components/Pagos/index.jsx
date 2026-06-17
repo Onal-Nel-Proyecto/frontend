@@ -52,8 +52,9 @@ const Pagos = () => {
   const { pedido } = useOutletContext();
   const user = getStoredUser();
 
-  // Datos del pedido
-  const totalGeneral = Number(pedido.total_general) || 0;
+  // Datos del pedido — prioriza precio_total (campo principal del backend)
+  const totalGeneral = Number(pedido.precio_total ?? pedido.total_general ?? 0);
+  
   const detalles = pedido.detalles_pedido || [];
   const ventaId = pedido.venta_id || null;
 
@@ -81,10 +82,12 @@ const Pagos = () => {
     metodo: '',
   });
 
-  // Cálculos — usa resumen del backend si está disponible
+  // Cálculos — usa resumen del backend solo para pagos registrados,
+  // el total siempre del pedido (evita que una venta asociada
+  // con distinto total sobreescriba el valor)
   const totalPagado = resumen ? Number(resumen.total_pagado || 0) : pagos.reduce((sum, p) => sum + Number(p.monto || 0), 0);
-  const saldoRestante = resumen ? Number(resumen.faltante || 0) : Math.max(0, totalCalculado - totalPagado);
-  const totalBackend = resumen ? Number(resumen.total || 0) : totalCalculado;
+  const totalBackend = totalCalculado;
+  const saldoRestante = Math.max(0, totalBackend - totalPagado);
   const pctPagado = totalBackend > 0 ? Math.min((totalPagado / totalBackend) * 100, 100) : 0;
   const estaPagadoCompleto = totalPagado >= totalBackend && totalBackend > 0;
 
@@ -247,7 +250,14 @@ const Pagos = () => {
           </div>
           <div className={styles.progressLabel}>
             <span>{pctPagado.toFixed(1)}% pagado</span>
-            <span className={styles.progressPct}>{pagos.length} pago{pagos.length !== 1 ? 's' : ''}</span>
+            <span className={styles.progressPct}>
+              {(() => {
+                const activos = pagos.filter(p => !['ANULADO', 'RECHAZADO'].includes(p.estado?.toUpperCase()));
+                console.log(activos);
+                
+                return `${activos.length} pago${activos.length !== 1 ? 's' : ''}`;
+              })()}
+            </span>
           </div>
         </div>
       </section>

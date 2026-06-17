@@ -228,6 +228,8 @@ const DetallePedido = () => {
                     <th>ID</th>
                     <th>Nombre - Producto</th>
                     <th>Cantidad</th>
+                    <th>Precio Unitario</th>
+                    <th>Total</th>
                     <th>En producción</th>
                     <th></th>
                   </tr>
@@ -238,9 +240,11 @@ const DetallePedido = () => {
                       <td className={styles.cellId}>{d.detalle_id}</td>
                       <td>{d.producto?.nombre || '—'}</td>
                       <td className={styles.cellQty}>{d.cantidad}</td>
+                      <td className={styles.cellPrice}>${Number(d.producto?.precio || 0).toLocaleString()}</td>
+                      <td className={styles.cellPrice}>${Number(d.cantidad * (d.producto?.precio || 0)).toLocaleString()}</td>
                       <td>
-                        <span className={`${styles.prodBadge} ${(d.in_produccion?.length || 0) > 0 ? styles.prodSi : styles.prodNo}`}>
-                          {(d.in_produccion?.length || 0) > 0 ? 'Sí' : 'No'}
+                        <span className={`${styles.prodBadge} ${(d.in_produccion || []).some(p => p.estado?.toUpperCase() !== 'CANCELADO') ? styles.prodSi : styles.prodNo}`}>
+                          {(d.in_produccion || []).some(p => p.estado?.toUpperCase() !== 'CANCELADO') ? 'Sí' : 'No'}
                         </span>
                       </td>
                       <td>
@@ -294,9 +298,17 @@ const DetallePedido = () => {
                       <span className={styles.detalleMobileValue}>{d.cantidad}</span>
                     </div>
                     <div className={styles.detalleMobileRow}>
+                      <span className={styles.detalleMobileLabel}>Precio Unitario</span>
+                      <span className={styles.detalleMobileValue}>${Number(d.producto?.precio || 0).toLocaleString()}</span>
+                    </div>
+                    <div className={styles.detalleMobileRow}>
+                      <span className={styles.detalleMobileLabel}>Total</span>
+                      <span className={styles.detalleMobileValue}>${Number(d.cantidad * (d.producto?.precio || 0)).toLocaleString()}</span>
+                    </div>
+                    <div className={styles.detalleMobileRow}>
                       <span className={styles.detalleMobileLabel}>En producción</span>
-                      <span className={`${styles.prodBadge} ${(d.in_produccion?.length || 0) > 0 ? styles.prodSi : styles.prodNo}`}>
-                        {(d.in_produccion?.length || 0) > 0 ? 'Sí' : 'No'}
+                      <span className={`${styles.prodBadge} ${(d.in_produccion || []).some(p => p.estado?.toUpperCase() !== 'CANCELADO') ? styles.prodSi : styles.prodNo}`}>
+                        {(d.in_produccion || []).some(p => p.estado?.toUpperCase() !== 'CANCELADO') ? 'Sí' : 'No'}
                       </span>
                     </div>
                   </div>

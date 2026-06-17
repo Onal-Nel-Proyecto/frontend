@@ -154,6 +154,12 @@
   color: var(--text-muted);
 }
 
+.totalPrice {
+  font-size: var(--text-md);
+  color: var(--accent-emerald);
+  font-weight: 700;
+}
+
 /* ── Sub-páginas ── */
 
 /* ── Observación ── */
@@ -614,6 +620,12 @@
 .cellQty {
   white-space: nowrap;
   font-weight: 600;
+}
+
+.cellPrice {
+  white-space: nowrap;
+  font-weight: 600;
+  color: var(--accent-emerald);
 }
 
 /* ── Badge de producción ── */

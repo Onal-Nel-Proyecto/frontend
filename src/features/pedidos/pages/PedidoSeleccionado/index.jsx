@@ -196,6 +196,9 @@ const PedidoSeleccionado = () => {
           <span className={styles.cliente}>
             {pedido.cliente?.cliente_nombres || 'Cliente no especificado'}
           </span>
+          <span className={styles.totalPrice}>
+            <strong>Total:</strong> ${precioTotal.toLocaleString()}
+          </span>
           <span className={styles.fecha}>
             {pedido.fecha_entrega ? 'Fecha de entrega:' : 'Fecha estimada:'}{' '}
             {fecha || '—'}

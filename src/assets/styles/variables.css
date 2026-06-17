@@ -13,9 +13,9 @@
   --bg-glass-active: rgba(255, 255, 255, 0.95);
 
   /* ── Bordes glass (tinte rosa) ── */
-  --border-glass: rgba(200, 80, 140, 0.08);
-  --border-glass-hover: rgba(200, 80, 140, 0.15);
-  --border-glass-active: rgba(200, 80, 140, 0.22);
+  --border-glass: rgba(200, 80, 140, 0.18);
+  --border-glass-hover: rgba(200, 80, 140, 0.25);
+  --border-glass-active: rgba(200, 80, 140, 0.32);
 
   /* ── Acentos pastel ── */
   --accent-gold: #D4A84B;

@@ -102,10 +102,25 @@ export const downloadFacturaPdf = async (id) => {
   window.open(url, '_blank');
 };
 
-/** GET /ventas/:id/factura/pdf — retorna el PDF como Blob para descarga controlada */
+/** GET /ventas/:id/factura/pdf — retorna el PDF como Blob + nombre del archivo */
 export const getFacturaPdfBlob = async (id) => {
   const response = await axiosInstance.get(VENTAS_ENDPOINTS.FACTURA_PDF(id), {
     responseType: 'blob',
   });
-  return response.data;
+  // Extraer nombre del archivo desde Content-Disposition
+  let filename = `Factura_${id}.pdf`;
+  try {
+    const cd = response.headers?.['content-disposition']
+      || response.headers?.['Content-Disposition']
+      || response.request?.getResponseHeader?.('Content-Disposition');
+    if (cd) {
+      const match = cd.match(/filename\*?=(?:UTF-8'')?"?([^";]+)"?/i);
+      if (match) {
+        filename = decodeURIComponent(match[1]);
+      }
+    }
+  } catch {
+    // Si CORS bloquea el header, usar nombre por defecto
+  }
+  return { blob: response.data, filename };
 };
