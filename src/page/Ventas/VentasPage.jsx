@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom'
 import { FiFileText, FiChevronLeft, FiChevronRight, FiXCircle } from 'react-icons/fi'
 import { useVentas } from '../../hooks/useVentas'
 import { useDocumentTitle } from '../../hooks/useDocumentTitle'
@@ -45,10 +45,20 @@ const getPageNumbers = (current, total) => {
 const VentasPage = () => {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
+  const location = useLocation()
   useDocumentTitle('Ventas')
   const [showDrawer, setShowDrawer] = useState(false)
   const [ventaSel, setVentaSel] = useState(null)
   const [showVentaForm, setShowVentaForm] = useState(false)
+
+  // Abrir formulario de registro si se navegó con openForm:true (ej: desde acceso rápido del dashboard)
+  useEffect(() => {
+    if (location.state?.openForm) {
+      setShowVentaForm(true);
+      window.history.replaceState(null, '');
+    }
+  }, [location.state]);
+
   const [hoveredRow, setHoveredRow] = useState(null)
   const [loadingFacturas, setLoadingFacturas] = useState({})
 
@@ -307,6 +317,7 @@ const VentasPage = () => {
               <th>Abonado</th>
               <th>Saldo</th>
               <th>Fecha</th>
+              <th>Vencimiento</th>
               <th>Estado</th>
               <th />
             </tr>
@@ -331,6 +342,7 @@ const VentasPage = () => {
                   {fmt(v.total - v.abonado)}
                 </td>
                 <td className="vtas-cell-fecha" onClick={() => irADetalle(v)} style={{ cursor: 'pointer' }}>{v.fecha}</td>
+                <td className="vtas-cell-fecha" onClick={() => irADetalle(v)} style={{ cursor: 'pointer' }}>{v.fecha_limite_pago || '—'}</td>
                 <td onClick={() => irADetalle(v)} style={{ cursor: 'pointer' }}>
                   <span className={`vtas-badge ${
                     v.estado === 'Pagado' ? 'vtas-badge--ok' :
@@ -464,6 +476,12 @@ const VentasPage = () => {
                     <span className="vtas-mobile-label">Fecha</span>
                     <span className="vtas-mobile-value">{v.fecha}</span>
                   </div>
+                  {v.fecha_limite_pago && (
+                    <div className="vtas-mobile-field">
+                      <span className="vtas-mobile-label">Vencimiento</span>
+                      <span className="vtas-mobile-value">{v.fecha_limite_pago}</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Abonado con barra de progreso */}

@@ -45,6 +45,7 @@ const VentaForm = ({ isOpen, onClose }) => {
   const [descuento, setDescuento] = useState(0);
   const [pagoMonto, setPagoMonto] = useState('');
   const [pagoMetodo, setPagoMetodo] = useState('EFECTIVO');
+  const [fechaVencimiento, setFechaVencimiento] = useState('');
 
   // Estados UI
   const [alert, setAlert] = useState(null);
@@ -244,10 +245,32 @@ const VentaForm = ({ isOpen, onClose }) => {
       descuento: descuentoNum,
     };
 
-    // Si hay pago inicial
+    // Validar fecha de vencimiento
     const pagoMontoNum = Number(pagoMonto) || 0;
+    const pagoCubreTotal = pagoMontoNum >= total;
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    if (!pagoCubreTotal && !fechaVencimiento) {
+      setAlert({ type: 'error', title: 'Fecha de vencimiento requerida', message: 'Si el pago inicial no cubre el total, debes asignar una fecha de vencimiento', onClose: () => setAlert(null) });
+      return;
+    }
+    if (fechaVencimiento) {
+      const selected = new Date(fechaVencimiento + 'T00:00:00');
+      if (selected < hoy) {
+        setAlert({ type: 'error', title: 'Fecha inválida', message: 'La fecha de vencimiento no puede ser anterior al día de hoy', onClose: () => setAlert(null) });
+        return;
+      }
+    }
+
+    // Si hay pago inicial
     if (pagoMontoNum > 0) {
       payload.pagos = [{ monto: pagoMontoNum, metodo_pago: pagoMetodo }];
+    }
+
+    // Fecha de vencimiento
+    if (fechaVencimiento) {
+      payload.fecha_limite_pago = fechaVencimiento;
     }
 
     try {
@@ -539,6 +562,29 @@ const VentaForm = ({ isOpen, onClose }) => {
               <span className={styles.fieldError}>El pago no puede ser mayor al total ({fmt(total)})</span>
             )}
           </div>
+
+          {/* ══ FECHA DE VENCIMIENTO ══ */}
+          {Number(pagoMonto || 0) < total && (
+            <div className={`${styles.section} ${items.length === 0 ? styles.sectionDisabled : ''}`}>
+              <div className={styles.sectionTitle}>Vencimiento</div>
+              <div className={styles.field}>
+                <label className={styles.label}>
+                  Fecha de vencimiento
+                  <span style={{ color: '#dc2626' }}> *</span>
+                </label>
+                <input
+                  className={styles.input}
+                  type="date"
+                  min={new Date().toISOString().split('T')[0]}
+                  value={fechaVencimiento}
+                  onChange={(e) => setFechaVencimiento(e.target.value)}
+                />
+                {!fechaVencimiento && (
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Obligatorio — el pago inicial no cubre el total</span>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </Drawer>
 

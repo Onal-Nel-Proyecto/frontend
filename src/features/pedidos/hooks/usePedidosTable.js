@@ -103,14 +103,17 @@ export const usePedidosTable = () => {
     tipo_pedido: searchParams.get("tipo_pedido") || "",
     tipo_prenda: searchParams.get("tipo_prenda") || "",
     estado_pago: searchParams.get("estado_pago") || "",
-    estado: searchParams.get("estado") || "",
+    estado: searchParams.get("estado") || "pendiente,en proceso",
     fecha_entrega_desde: searchParams.get("fecha_entrega_desde") || "",
     fecha_entrega_hasta: searchParams.get("fecha_entrega_hasta") || "",
   }));
 
-  const [filtrosActivos, setFiltrosActivos] = useState(() =>
-    readFiltrosFromParams(searchParams)
-  );
+  const [filtrosActivos, setFiltrosActivos] = useState(() => {
+    const fromParams = readFiltrosFromParams(searchParams);
+    if (fromParams) return fromParams;
+    // Por defecto: mostrar solo pendientes y en proceso
+    return { estado: "pendiente,en proceso" };
+  });
   const [showFiltros, setShowFiltros] = useState(false);
 
   // ─── Cancelación ───
@@ -134,7 +137,11 @@ export const usePedidosTable = () => {
         const filtrosLimpios = {};
         if (filtrosActivos) {
           for (const key of FILTER_KEYS) {
-            if (filtrosActivos[key]) filtrosLimpios[key] = filtrosActivos[key];
+            const val = filtrosActivos[key];
+            if (!val) continue;
+            // "todos" se muestra en la URL pero no se envía al backend
+            if (key === 'estado' && val === 'todos') continue;
+            filtrosLimpios[key] = val;
           }
         }
         // Búsqueda server-side por nombre de cliente
@@ -163,7 +170,10 @@ export const usePedidosTable = () => {
     if (search) params.set("busqueda", search);
     if (filtrosActivos) {
       for (const [key, val] of Object.entries(filtrosActivos)) {
-        if (val) params.set(key, val);
+        if (!val) continue;
+        // "Por defecto" (pendiente,en proceso) no se muestra en la URL
+        if (key === 'estado' && val === 'pendiente,en proceso') continue;
+        params.set(key, val);
       }
     }
     setSearchParams(params, { replace: true });

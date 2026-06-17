@@ -84,6 +84,12 @@ const DetalleVenta = ({ venta, onRegresar, onDescargarFactura, loadingFactura })
               {venta.estado || 'Pendiente'}
             </span>
           </div>
+          {venta.fecha_limite_pago && (
+            <div className={styles.infoItem}>
+              <span className={styles.infoLabel}>Fecha límite de pago</span>
+              <span className={styles.infoValue}>{venta.fecha_limite_pago}</span>
+            </div>
+          )}
         </div>
       </section>
 

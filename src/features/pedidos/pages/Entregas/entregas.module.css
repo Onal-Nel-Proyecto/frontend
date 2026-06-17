@@ -319,6 +319,11 @@
   background: var(--bg-glass-active);
 }
 
+.filterInput option {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+
 .filterInput::placeholder {
   color: var(--text-muted);
 }

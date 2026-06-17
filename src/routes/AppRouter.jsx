@@ -58,7 +58,7 @@ const AppRoutes = () => {
           <Route path="/dashboard" element={<Home />} />
 
           {/* Clientes */}
-          <Route path="/gestion-clientes" element={<ClientDirectory />} />
+          <Route path="/gestion-personal/clientes" element={<ClientDirectory />} />
 
           {/* Pedidos */}
           <Route path="/pedidos/dash" element={<DashboardPedidos />} />
@@ -87,7 +87,7 @@ const AppRoutes = () => {
         {/* RUTAS SOLO ADMIN */}
         <Route element={<AdminRoute />}>
         <Route path="/" element={<MainLayout />}>
-          <Route path="/gestion-usuarios" element={<GestionUsuarios />} />
+          <Route path="/gestion-personal/usuarios" element={<GestionUsuarios />} />
           <Route path="/config" element={<Config />} />
           <Route path="/ventas/reportes" element={<ReportesVentas />} />
           <Route path="/config/categorias" element={<CategoriaPage />} />

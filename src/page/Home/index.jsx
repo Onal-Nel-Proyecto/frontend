@@ -238,7 +238,7 @@ const SystemActivities = memo(({ actividades }) => (
                 {s.icon}
               </div>
               <div className={styles.activityBody}>
-                <p className={styles.activityMsg}>{a.descripcion}</p>
+                <p className={styles.activityMsg} title={a.descripcion}>{a.descripcion}</p>
                 <p className={styles.activityTime}>{a.usuario} &middot; {formatRelativeTime(a.fecha)}</p>
               </div>
             </div>

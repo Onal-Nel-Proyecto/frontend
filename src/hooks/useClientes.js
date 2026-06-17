@@ -72,7 +72,8 @@ export const useClientes = ({ paginaInicial = 1, limiteInicial = 15 } = {}) => {
     try {
       const respuesta = await apiGetClientes(pagina, limite, search);
       const items = Array.isArray(respuesta?.data) ? respuesta.data : [];
-      setClientes(items.map(mapearCliente));
+      // Excluir cliente por defecto (ID 9999999999) de la lista
+      setClientes(items.filter((c) => String(c.cliente_id) !== '9999999999').map(mapearCliente));
       setMeta(respuesta?.meta ?? null);
     } catch (err) {
       // Si falla la API, cargamos datos de ejemplo

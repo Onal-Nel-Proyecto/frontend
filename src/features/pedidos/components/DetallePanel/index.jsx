@@ -48,8 +48,8 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle, pedidoEstado }) => {
       const fetchCatalogos = async () => {
         try {
           const [catRes, medRes] = await Promise.all([
-            getCategorias(),
-            getMedidas(),
+            getCategorias(1, { estado: 'ACTIVO' }),
+            getMedidas(1, { estado: 'ACTIVO' }),
           ]);
           setCategorias(Array.isArray(catRes.data) ? catRes.data : []);
           setMedidasList(Array.isArray(medRes.data) ? medRes.data : []);

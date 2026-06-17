@@ -8,6 +8,7 @@ import Alert from '../components/ui/feedback/Alert'
 import { changeStatus } from '../api/clientesService'
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi'
 import './ClientDirectory.css'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 // ── Generar números de página para paginación inteligente ──
 const getPageNumbers = (current, total) => {
@@ -28,6 +29,7 @@ const LIMITE = 15
 
 const ClientDirectory = () => {
   const location = useLocation()
+  useDocumentTitle('Gestión de Clientes');
   const [showRegister, setShowRegister] = useState(false)
   const [clienteEditando, setClienteEditando] = useState(null)
 
@@ -112,6 +114,16 @@ const ClientDirectory = () => {
 
   // ── INHABILITAR ───────────────────────────────────────
   const handleDeleteCliente = (cliente) => {
+    // Proteger cliente por defecto
+    if (cliente.id === 9999999999 || cliente.id === '9999999999') {
+      setAlert({
+        type: 'error',
+        title: 'Acción no permitida',
+        message: 'El cliente por defecto no puede ser inhabilitado.',
+        onClose: () => setAlert(null),
+      })
+      return
+    }
     setConfirmTarget(cliente)
   }
 

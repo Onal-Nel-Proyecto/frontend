@@ -337,7 +337,7 @@ const Entregas = () => {
           <h2 className={styles.title}>Entregas</h2>
           <p className={styles.subtitle}>Historial de pedidos entregados y terminados</p>
         </div>
-        <button className={styles.btnNew} onClick={() => navigate('/pedidos')}>
+        <button className={styles.btnNew} onClick={() => navigate('/pedidos', { state: { openForm: true } })}>
           <FiPackage className={styles.btnIcon} />
           Nuevo Pedido
         </button>

@@ -51,13 +51,14 @@ const ClienteSearch = ({ initialNombre = '', onChange, error, onAddCliente }) =>
           ? resp.data
           : [];
 
-      // Siempre agregar "cliente por defecto" al final
-      setResults([...data, CLIENTE_POR_DEFECTO]);
+      // Filtrar cliente por defecto (ID 9999999999) que pueda venir del backend
+      // para que solo aparezca como opción separada al final del dropdown
+      setResults(data.filter((c) => c.cliente_id !== CLIENTE_POR_DEFECTO.cliente_id));
       setOpen(true);
       setHighlightIdx(-1);
     } catch (err) {
       console.error('Error al buscar clientes:', err);
-      setResults([CLIENTE_POR_DEFECTO]);
+      setResults([]);
       setOpen(true);
     } finally {
       setLoading(false);
@@ -111,8 +112,12 @@ const ClienteSearch = ({ initialNombre = '', onChange, error, onAddCliente }) =>
         break;
       case 'Enter':
         e.preventDefault();
-        if (highlightIdx >= 0 && highlightIdx < results.length) {
-          selectCliente(results[highlightIdx]);
+        if (highlightIdx >= 0) {
+          if (highlightIdx < results.length) {
+            selectCliente(results[highlightIdx]);
+          } else {
+            selectCliente(CLIENTE_POR_DEFECTO);
+          }
         }
         break;
       case 'Escape':
@@ -166,6 +171,41 @@ const ClienteSearch = ({ initialNombre = '', onChange, error, onAddCliente }) =>
           maxLength={300}
         />
         {loading && <span className={styles.spinner} />}
+
+        {/* Dropdown dentro de inputWrap para que herede su ancho */}
+        {open && (
+          <ul className={styles.dropdown}>
+            {results.length > 0 ? (
+              results.map((cliente, idx) => (
+                <li
+                  key={`${cliente.cliente_id}-${idx}`}
+                  className={`${styles.option} ${highlightIdx === idx ? styles.optionHighlighted : ''}`}
+                  onClick={() => selectCliente(cliente)}
+                  onMouseEnter={() => setHighlightIdx(idx)}
+                >
+                  <span>{nombreCompleto(cliente)}</span>
+                  <span className={styles.optionId}>{cliente.cliente_id}</span>
+                </li>
+              ))
+            ) : (
+              <li className={styles.option} style={{ justifyContent: 'center', color: 'var(--text-muted)', cursor: 'default' }}>No se encontraron clientes</li>
+            )}
+
+            {/* Cliente por defecto al final, separado con borde */}
+            <li
+              className={`${styles.option} ${styles.defaultOption} ${highlightIdx === results.length ? styles.optionHighlighted : ''}`}
+              onClick={() => selectCliente(CLIENTE_POR_DEFECTO)}
+              onMouseEnter={() => setHighlightIdx(results.length)}
+            >
+              <span>
+                Cliente por defecto
+                <span style={{ marginLeft: '0.3rem', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                  (id 9999999999)
+                </span>
+              </span>
+            </li>
+          </ul>
+        )}
       </div>
 
       <button
@@ -176,40 +216,6 @@ const ClienteSearch = ({ initialNombre = '', onChange, error, onAddCliente }) =>
       >
         <FiPlus />
       </button>
-
-      {open && results.length > 0 && (
-        <ul className={styles.dropdown}>
-          {results.map((cliente, idx) => {
-            const esDefault = cliente.cliente_id === CLIENTE_POR_DEFECTO.cliente_id;
-            return (
-              <li
-                key={`${cliente.cliente_id}-${idx}`}
-                className={`${styles.option} ${highlightIdx === idx ? styles.optionHighlighted : ''} ${esDefault ? styles.defaultOption : ''}`}
-                onClick={() => selectCliente(cliente)}
-                onMouseEnter={() => setHighlightIdx(idx)}
-              >
-                <span>
-                  {nombreCompleto(cliente)}
-                  {esDefault && (
-                    <span style={{ marginLeft: '0.3rem', fontSize: '0.7rem', color: '#bbb' }}>
-                      (id 9999999999)
-                    </span>
-                  )}
-                </span>
-                {!esDefault && <span className={styles.optionId}>{cliente.cliente_id}</span>}
-              </li>
-            );
-          })}
-        </ul>
-      )}
-
-      {open && !loading && query.trim() && results.length === 0 && (
-        <div className={styles.dropdown}>
-          <div className={styles.noResults}>
-            No se encontraron clientes
-          </div>
-        </div>
-      )}
 
       {error && <span className={styles.fieldError}>{error}</span>}
     </div>

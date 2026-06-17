@@ -181,8 +181,8 @@ const TablaPedidos = () => {
             <FiSearch className={styles.searchIcon} />
             <input type="text" placeholder="Buscar por cliente o pedido..." className={styles.searchInput} value={search} onChange={(e) => setSearch(e.target.value)} maxLength={200}/>
           </div>
-          <button className={`${styles.filterBtn} ${filtrosActivos ? styles.filterActive : ''}`} onClick={() => setShowFiltros(true)}>
-            <FiFilter /> Filtrar{filtrosActivos ? ` (${Object.values(filtrosActivos).filter(Boolean).length})` : ''}
+          <button className={`${styles.filterBtn} ${filtrosActivos && Object.entries(filtrosActivos).filter(([k,v]) => v && !(k === 'estado' && v === 'pendiente,en proceso')).length > 0 ? styles.filterActive : ''}`} onClick={() => setShowFiltros(true)}>
+            <FiFilter /> Filtrar{filtrosActivos && Object.entries(filtrosActivos).filter(([k,v]) => v && !(k === 'estado' && v === 'pendiente,en proceso')).length > 0 ? ` (${Object.entries(filtrosActivos).filter(([k,v]) => v && !(k === 'estado' && v === 'pendiente,en proceso')).length})` : ''}
           </button>
         </div>
       </div>
@@ -267,9 +267,10 @@ const TablaPedidos = () => {
                 value={filtros.estado}
                 onChange={(e) => setFiltros((prev) => ({ ...prev, estado: e.target.value }))}
               >
-                <option value="">Todos</option>
+                <option value="pendiente,en proceso">Por defecto</option>
+                <option value="todos">Todos</option>
                 <option value="PENDIENTE">Pendiente</option>
-                <option value="EN_PROCESO">En proceso</option>
+                <option value="EN PROCESO">En proceso</option>
                 <option value="TERMINADO">Terminado</option>
                 <option value="CANCELADO">Cancelado</option>
               </select>

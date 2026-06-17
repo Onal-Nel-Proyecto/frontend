@@ -59,7 +59,22 @@ const mapearVenta = (item) => {
     abonado,
     metodo: item.metodo || item.metodo_pago || null,
     estado: normalizarEstado(item.estado),
-    fecha: item.fecha || item.fecha_registro || item.created_at?.split('T')[0] || '—',
+    fecha_limite_pago: item.fecha_limite_pago
+      ? (() => {
+          const [y, m, d] = item.fecha_limite_pago.split('-');
+          return `${d}/${m}/${y}`;
+        })()
+      : null,
+    fecha: (() => {
+      const raw = item.fecha || item.fecha_registro || item.created_at?.split('T')[0] || '';
+      if (!raw) return '—';
+      const parts = raw.split('-');
+      if (parts.length === 3) {
+        const [y, m, d] = parts;
+        return `${d}/${m}/${y}`;
+      }
+      return raw;
+    })(),
     productos: detallesArr.map((d) => ({
       nombre: d.producto?.producto_nombre || d.producto?.nombre || d.nombre || 'Producto',
       cantidad: d.cantidad || d.cant || 1,

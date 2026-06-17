@@ -3,7 +3,7 @@
 // Replica la estructura visual de PedidoForm
 // ================================================================
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FiGrid } from 'react-icons/fi';
 import { BiSolidUserDetail } from 'react-icons/bi';
 import { createCategoria, updateCategoria } from '../../../../services/categoriaService';
@@ -27,6 +27,16 @@ const CategoriaForm = ({ isOpen, onClose, categoria, onSuccess }) => {
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null);
+
+  // Sincronizar el formulario cuando cambia la categoría a editar
+  useEffect(() => {
+    setForm({
+      catNom: categoria?.cat_nom || categoria?.nombre || '',
+      catDesc: categoria?.cat_desc || categoria?.descripcion || '',
+      catEst: categoria?.cat_est || categoria?.estado || 'ACTIVO',
+    });
+    setErrors({});
+  }, [categoria]);
 
   const validate = () => {
     const errs = {};
@@ -68,9 +78,9 @@ const CategoriaForm = ({ isOpen, onClose, categoria, onSuccess }) => {
     setLoading(true);
 
     const payload = {
-      cat_nom: form.catNom.trim(),
-      cat_desc: form.catDesc.trim() || null,
-      cat_est: form.catEst,
+      catNom: form.catNom.trim(),
+      catDesc: form.catDesc.trim() || null,
+      catEst: form.catEst,
     };
 
     try {
@@ -181,25 +191,29 @@ const CategoriaForm = ({ isOpen, onClose, categoria, onSuccess }) => {
             <span className={styles.charCount}>{form.catDesc.length}/120</span>
           </div>
 
-          {/* Estado */}
-          <div className={styles.field}>
-            <label className={styles.label}>Estado *</label>
-            <div className={styles.inputWrap}>
-              <select
-                name="catEst"
-                className={`${styles.select} ${errors.catEst ? styles.inputError : ''}`}
-                value={form.catEst}
-                onChange={handleChange}
-              >
-                {STATUS_OPTIONS.map((opt) => (
-                  <option key={opt} value={opt}>
-                    {opt === 'ACTIVO' ? 'Activo' : 'Inactivo'}
-                  </option>
-                ))}
-              </select>
-            </div>
-            {errors.catEst && <span className={styles.fieldError}>{errors.catEst}</span>}
-          </div>
+          {!isEdit && (
+            <>
+              {/* Estado */}
+              <div className={styles.field}>
+                <label className={styles.label}>Estado *</label>
+                <div className={styles.inputWrap}>
+                  <select
+                    name="catEst"
+                    className={`${styles.select} ${errors.catEst ? styles.inputError : ''}`}
+                    value={form.catEst}
+                    onChange={handleChange}
+                  >
+                    {STATUS_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt}>
+                        {opt === 'ACTIVO' ? 'Activo' : 'Inactivo'}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {errors.catEst && <span className={styles.fieldError}>{errors.catEst}</span>}
+              </div>
+            </>
+          )}
         </form>
       </Drawer>
 

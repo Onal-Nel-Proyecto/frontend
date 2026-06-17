@@ -87,7 +87,7 @@
   -webkit-overflow-scrolling: touch;
 }
 .vtas-table {
-  width: 100%; border-collapse: collapse;
+  width: 100%; min-width: 900px; border-collapse: collapse;
   table-layout: fixed;
 }
 .vtas-table thead tr { background: var(--bg-glass); }
@@ -104,21 +104,23 @@
 
 /* Column width proportions */
 .vtas-table th:nth-child(1),
-.vtas-table td:nth-child(1) { width: 9%; }
+.vtas-table td:nth-child(1) { width: 10%; }
 .vtas-table th:nth-child(2),
-.vtas-table td:nth-child(2) { width: 25%; }
+.vtas-table td:nth-child(2) { width: 15%; }
 .vtas-table th:nth-child(3),
 .vtas-table td:nth-child(3) { width: 10%; }
 .vtas-table th:nth-child(4),
-.vtas-table td:nth-child(4) { width: 16%; }
+.vtas-table td:nth-child(4) { width: 14%; }
 .vtas-table th:nth-child(5),
 .vtas-table td:nth-child(5) { width: 8%; }
 .vtas-table th:nth-child(6),
-.vtas-table td:nth-child(6) { width: 8%; }
+.vtas-table td:nth-child(6) { width: 9%; }
 .vtas-table th:nth-child(7),
-.vtas-table td:nth-child(7) { width: 12%; }
+.vtas-table td:nth-child(7) { width: 10%; }
 .vtas-table th:nth-child(8),
-.vtas-table td:nth-child(8) { width: 12%; }
+.vtas-table td:nth-child(8) { width: 10%; }
+.vtas-table th:nth-child(9),
+.vtas-table td:nth-child(9) { width: 12%; }
 .vtas-table tbody tr:last-child td { border-bottom: none; }
 .vtas-table tbody tr:hover td { background: var(--bg-glass-hover); }
 
@@ -447,14 +449,8 @@
   }
 }
 
-/* ══ Responsive: la tabla se oculta y se muestran las tarjetas ══ */
-@media (max-width: 1024px) {
-  .vtas-table-wrap { display: none; }
-  .vtas-mobile-list { display: flex; }
-}
-
-/* ══ Responsive: tabla se oculta y se muestran las tarjetas (después de todos los estilos base para que la cascada funcione) ══ */
-@media (max-width: 1024px) {
+/* ══ Responsive: tabla se oculta y se muestran las tarjetas ══ */
+@media (max-width: 768px) {
   .vtas-table-wrap { display: none; }
   .vtas-mobile-list { display: flex; }
 }
