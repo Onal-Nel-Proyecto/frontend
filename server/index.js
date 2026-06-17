@@ -1,3 +1,8 @@
+// ================================================================
+// Inventario Server — API REST con persistencia JSON
+// Endpoints para: materiales, productos, abastecimientos, proveedores
+// ================================================================
+
 import express from 'express';
 import cors from 'cors';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
@@ -7,10 +12,15 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DB_PATH = join(__dirname, 'data.json');
 
-// ── Persistencia ──
+// ════════════════════════════════════════════
+//  PERSISTENCIA (archivo JSON)
+// ════════════════════════════════════════════
+
+/** Lee y parsea la base de datos JSON */
 function readDB() {
   return JSON.parse(readFileSync(DB_PATH, 'utf-8'));
 }
+/** Escribe la base de datos al archivo JSON */
 function writeDB(db) {
   writeFileSync(DB_PATH, JSON.stringify(db, null, 2), 'utf-8');
 }
@@ -68,7 +78,10 @@ function filterProductos(items, { nombre, estado, tipoProducto, incluirEliminado
   return filtered;
 }
 
-// ── Express app ──
+// ════════════════════════════════════════════
+//  EXPRESS APP
+// ════════════════════════════════════════════
+
 const app = express();
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
@@ -170,9 +183,14 @@ app.patch('/materiales/:id/estado', (req, res) => {
 // GET /productos — lista paginada con filtros
 app.get('/productos', (req, res) => {
   const db = readDB();
-  const { pagina = 1, limite = 15, nombre, estado, tipoProducto } = req.query;
-  // Nota: productosApiService también envía categoria y tipoProducto, pero usamos tipoProducto
-  const filtered = filterProductos(db.productos, { nombre, estado, tipoProducto });
+  const { pagina = 1, limite = 15, nombre, estado, tipoProducto, categoria } = req.query;
+  let filtered = filterProductos(db.productos, { nombre, estado, tipoProducto });
+  // Filtro adicional por categoría
+  if (categoria?.trim()) {
+    filtered = filtered.filter((p) =>
+      p.categoria?.toLowerCase() === categoria.toLowerCase()
+    );
+  }
   const alertasFiltrado = filtered.filter((p) => {
     const stock = Number(p.cantidadDisponible || 0);
     const min = Number(p.umbralMinimo || 0);
@@ -198,13 +216,16 @@ app.get('/productos/:id', (req, res) => {
 // POST /productos
 app.post('/productos', (req, res) => {
   const db = readDB();
-  const { nombre, tipoPrenda, genero, talla, precioUnitario, umbralMinimo, descripcion } = req.body;
+  const { nombre, tipoPrenda, categoria, genero, talla, precioUnitario, umbralMinimo, descripcion } = req.body;
+  // Normalizar género a código de una letra (F/M/U)
+  const generoNormalizado = genero === 'Femenino' ? 'F' : genero === 'Masculino' ? 'M' : genero === 'Unisex' ? 'U' : genero || '';
   const id = db.nextId.productos++;
   const nuevo = {
     id,
     nombre: nombre || '',
     tipoPrenda: tipoPrenda || '',
-    genero: genero || '',
+    categoria: categoria || '',
+    genero: generoNormalizado,
     talla: talla || '',
     precioUnitario: Number(precioUnitario || 0),
     cantidadDisponible: 0,
@@ -226,12 +247,15 @@ app.put('/productos/:id', (req, res) => {
   const idx = db.productos.findIndex((p) => p.id === Number(req.params.id));
   if (idx === -1) return res.status(404).json({ error: 'Producto no encontrado' });
 
-  const { nombre, tipoPrenda, genero, talla, precioUnitario, umbralMinimo } = req.body;
+  const { nombre, tipoPrenda, categoria, genero, talla, precioUnitario, umbralMinimo } = req.body;
+  // Normalizar género a código de una letra (F/M/U)
+  const generoNormalizado = genero === 'Femenino' ? 'F' : genero === 'Masculino' ? 'M' : genero === 'Unisex' ? 'U' : genero;
   const actualizado = {
     ...db.productos[idx],
     nombre: nombre ?? db.productos[idx].nombre,
     tipoPrenda: tipoPrenda ?? db.productos[idx].tipoPrenda,
-    genero: genero ?? db.productos[idx].genero,
+    categoria: categoria !== undefined ? categoria : db.productos[idx].categoria,
+    genero: generoNormalizado ?? db.productos[idx].genero,
     talla: talla ?? db.productos[idx].talla,
     precioUnitario: precioUnitario !== undefined ? Number(precioUnitario) : db.productos[idx].precioUnitario,
     umbralMinimo: umbralMinimo !== undefined ? Number(umbralMinimo) : db.productos[idx].umbralMinimo,

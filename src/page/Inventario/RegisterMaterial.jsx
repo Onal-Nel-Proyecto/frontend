@@ -1,4 +1,9 @@
 import { useState } from 'react'
+// ================================================================
+// RegisterMaterial — Drawer para crear/editar materiales
+// Soporta: nombre (máx 50), tipoMaterial, unidadMedida, stock mínimo
+// ================================================================
+
 import { FiPackage } from 'react-icons/fi'
 import Drawer from '../../components/common/Drawer'
 import './RegisterMaterial.css'
@@ -17,15 +22,10 @@ const validate = (form) => {
   const nom = form.nombre.trim()
   if (!nom) errs.nombre = 'El nombre del material es obligatorio'
   else if (nom.length < 3) errs.nombre = 'Mínimo 3 caracteres'
-  else if (nom.length > 100) errs.nombre = 'Máximo 100 caracteres'
+  else if (nom.length > 50) errs.nombre = 'Máximo 50 caracteres'
   else if (!SOLO_LETRAS.test(nom)) errs.nombre = 'Solo letras y espacios, sin números'
 
   if (!form.tipoMaterial) errs.tipoMaterial = 'Selecciona el tipo de material'
-
-  const cantidadStr = form.cantidadDisponible?.toString().trim()
-  if (cantidadStr === '') errs.cantidadDisponible = 'Ingresa la cantidad disponible'
-  else if (!/^\d+$/.test(cantidadStr)) errs.cantidadDisponible = 'Solo números enteros'
-  else if (parseInt(cantidadStr, 10) < 0) errs.cantidadDisponible = 'No puede ser negativo'
 
   return errs
 }
@@ -37,7 +37,7 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, onSave }) => {
     nombre: initialData?.name || '',
     tipoMaterial: initialData?.tipo_material || '',
     unidadMedida: initialData?.unidad_medida || '',
-    cantidadDisponible: initialData?.stock?.toString() || '',
+    cantidadDisponible: 0,
     umbralMinimo: initialData?.minStock?.toString() || '',
   })
   const [errors, setErrors] = useState({})
@@ -57,7 +57,7 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, onSave }) => {
     e.preventDefault()
     const newErrors = validate(form)
     setErrors(newErrors)
-    setTouched({ nombre: true, cantidadDisponible: true, tipoMaterial: true, unidadMedida: true, umbralMinimo: true })
+    setTouched({ nombre: true, tipoMaterial: true, unidadMedida: true, umbralMinimo: true })
     if (Object.keys(newErrors).length > 0) return
 
     setSaving(true)
@@ -99,7 +99,7 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, onSave }) => {
             <label className="rm-label" htmlFor="rm-nombre">Nombre del Material <span className="rm-required">*</span></label>
             <div className="rm-input-wrap">
               <i className="ti ti-tag rm-input-icon" />
-              <input id="rm-nombre" name="nombre" type="text" maxLength="20"
+              <input id="rm-nombre" name="nombre" type="text" maxLength="50"
                 className={`rm-input ${hasError('nombre') ? 'rm-input--error' : ''}`}
                 placeholder="Ej: Seda Natural China" value={form.nombre}
                 onChange={handleChange} onBlur={handleBlur} />
@@ -108,19 +108,7 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, onSave }) => {
           </div>
         </div>
 
-        <div className="rm-row">
-          <div className="rm-group rm-group--full">
-            <label className="rm-label" htmlFor="rm-cantidad">Cantidad Disponible <span className="rm-required">*</span></label>
-            <div className="rm-input-wrap">
-              <i className="ti ti-stack rm-input-icon" />
-              <input id="rm-cantidad" name="cantidadDisponible" type="number" min="0" max="999999"
-                className={`rm-input ${hasError('cantidadDisponible') ? 'rm-input--error' : ''}`}
-                placeholder="Ej: 100" value={form.cantidadDisponible}
-                onChange={handleChange} onBlur={handleBlur} />
-            </div>
-            {hasError('cantidadDisponible') && <p className="rm-err">{errors.cantidadDisponible}</p>}
-          </div>
-        </div>
+        {/* Cantidad Disponible oculto — se gestiona vía abastecimiento */}
 
         <div className="rm-row">
           <div className="rm-group">

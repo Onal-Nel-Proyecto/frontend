@@ -1,9 +1,19 @@
 import { useState } from 'react'
+// ================================================================
+// RegisterProducto — Drawer para crear/editar productos
+// Soporta: nombre, tipoPrenda, categoría, género (F/M/U),
+//           talla, precio, stock mínimo
+// ================================================================
+
+import { useState } from 'react'
 import { FiTag } from 'react-icons/fi'
 import Drawer from '../../components/common/Drawer'
 import './RegisterProducto.css'
 
 const SOLO_LETRAS = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/
+
+/** Opciones predefinidas para el campo Categoría */
+const CATEGORIAS = ['Ropa de Dama', 'Ropa de Caballero', 'Accesorios', 'Uniformes', 'Otro']
 
 const validate = (form) => {
   const errs = {}
@@ -11,10 +21,11 @@ const validate = (form) => {
   const nom = form.nombre.trim()
   if (!nom) errs.nombre = 'El nombre del producto es obligatorio'
   else if (nom.length < 3) errs.nombre = 'Mínimo 3 caracteres'
-  else if (nom.length > 100) errs.nombre = 'Máximo 100 caracteres'
+  else if (nom.length > 70) errs.nombre = 'Máximo 70 caracteres'
   else if (!SOLO_LETRAS.test(nom)) errs.nombre = 'Solo letras y espacios, sin números'
 
   if (!form.tipoPrenda) errs.tipoPrenda = 'Selecciona el tipo de prenda'
+  if (!form.categoria) errs.categoria = 'Selecciona la categoría'
   if (!form.genero) errs.genero = 'Selecciona el género'
 
   const precioStr = form.precio?.toString().trim()
@@ -41,7 +52,8 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
   const [form, setForm] = useState({
     nombre: initialData?.name || '',
     tipoPrenda: initialData?.tipo_prenda || '',
-    genero: initialData?.genero || '',
+    categoria: initialData?.categoria || '',
+    genero: initialData?.genero === 'Femenino' ? 'F' : initialData?.genero === 'Masculino' ? 'M' : initialData?.genero === 'Unisex' ? 'U' : initialData?.genero || '',
     talla: initialData?.talla || '',
     precio: initialData?.price?.toString() || '',
     umbralMinimo: initialData?.minStock?.toString() || '',
@@ -63,7 +75,7 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
     e.preventDefault()
     const newErrors = validate(form)
     setErrors(newErrors)
-    setTouched({ nombre: true, tipoPrenda: true, genero: true, precio: true })
+    setTouched({ nombre: true, tipoPrenda: true, categoria: true, genero: true, precio: true })
     if (Object.keys(newErrors).length > 0) return
 
     setSaving(true)
@@ -72,6 +84,7 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
         id: initialData?.id,
         nombre: form.nombre.trim(),
         tipoPrenda: form.tipoPrenda,
+        categoria: form.categoria,
         genero: form.genero,
         talla: form.talla.trim(),
         precio: parseFloat(form.precio) || 0,
@@ -106,7 +119,7 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
             <label className="rp-label" htmlFor="rp-nombre">Nombre del Producto</label>
             <div className={`rp-input-wrap ${hasError('nombre') ? 'rp-input-wrap--err' : ''}`}>
               <i className="ti ti-tag" />
-              <input id="rp-nombre" name="nombre" type="text" maxLength="20" className="rp-input"
+              <input id="rp-nombre" name="nombre" type="text" maxLength="70" className="rp-input"
                 placeholder="Ej: Vestido de Noche Seda" value={form.nombre}
                 onChange={handleChange} onBlur={handleBlur} />
             </div>
@@ -136,15 +149,32 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
             {hasError('tipoPrenda') && <p className="rp-err">{errors.tipoPrenda}</p>}
           </div>
           <div className="rp-group">
+            <label className="rp-label" htmlFor="rp-categoria">Categoría</label>
+            <div className={`rp-input-wrap ${hasError('categoria') ? 'rp-input-wrap--err' : ''}`}>
+              <i className="ti ti-category" />
+              <select id="rp-categoria" name="categoria" className="rp-input rp-select"
+                value={form.categoria} onChange={handleChange} onBlur={handleBlur}>
+                <option value="">Seleccione...</option>
+                {CATEGORIAS.map((cat) => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+            {hasError('categoria') && <p className="rp-err">{errors.categoria}</p>}
+          </div>
+        </div>
+
+        <div className="rp-row">
+          <div className="rp-group">
             <label className="rp-label" htmlFor="rp-genero">Género</label>
             <div className={`rp-input-wrap ${hasError('genero') ? 'rp-input-wrap--err' : ''}`}>
               <i className="ti ti-gender-male" />
               <select id="rp-genero" name="genero" className="rp-input rp-select"
                 value={form.genero} onChange={handleChange} onBlur={handleBlur}>
                 <option value="">Seleccione...</option>
-                <option value="Femenino">Femenino</option>
-                <option value="Masculino">Masculino</option>
-                <option value="Unisex">Unisex</option>
+                <option value="F">Femenino</option>
+                <option value="M">Masculino</option>
+                <option value="U">Unisex</option>
               </select>
             </div>
             {hasError('genero') && <p className="rp-err">{errors.genero}</p>}

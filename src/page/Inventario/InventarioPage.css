@@ -122,7 +122,7 @@
   background: var(--bg-glass); border: 1px solid var(--border-glass);
   border-radius: var(--radius-md); overflow: hidden;
 }
-.inv-table { width: 100%; border-collapse: collapse; }
+.inv-table { width: 100%; table-layout: fixed; border-collapse: collapse; }
 .inv-table thead tr { background: var(--bg-glass); }
 .inv-table th {
   padding: 0.85rem 1rem; font-size: 0.68rem; font-weight: 600;
@@ -177,8 +177,9 @@
 
 /* ── Acciones ── */
 /* Reservar espacio para la columna de acciones (2 botones de 2rem + gap) */
+/* 6.5rem = 2 botones (2rem c/u) + gap (4px) + padding horizontal (2rem) */
 .inv-table th:last-child,
-.inv-table td:last-child { width: 5rem; min-width: 5rem; white-space: nowrap; text-align: right; }
+.inv-table td:last-child { width: 6.5rem; white-space: nowrap; text-align: right; }
 .inv-actions { display: flex; gap: 4px; justify-content: flex-end; opacity: 0; transition: opacity 0.2s ease; }
 .inv-actions--visible { opacity: 1; }
 .inv-action-btn {

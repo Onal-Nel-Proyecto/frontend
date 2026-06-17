@@ -1,3 +1,9 @@
+// ================================================================
+// InventarioPage — Página principal del módulo de Inventario
+// Gestiona tres sub-pestañas: Materiales, Productos, Abastecimiento
+// Cada pestaña tiene su propia tabla, filtros, estadísticas y CRUD
+// ================================================================
+
 import { useState, useRef, useCallback, useEffect } from 'react'
 import RegisterMaterial from './RegisterMaterial'
 import RegisterProducto from './RegisterProducto'
@@ -5,12 +11,31 @@ import RegisterAbastecimiento from './RegisterAbastecimiento'
 import { useAbastecimiento } from '../../hooks/useAbastecimiento'
 import { getMateriales, createMaterial, updateMaterial, changeMaterialEstado } from '../../api/materialesService'
 import { getProductos, createProducto, updateProducto, changeProductoEstado } from '../../api/productosApiService'
+import Alert from '../../components/ui/feedback/Alert'
 import './InventarioPage.css'
 
+// ════════════════════════════════════════════
+//  UTILIDADES
+// ════════════════════════════════════════════
+
+/** Formatea un número como moneda COP (sin decimales) */
 const fmt = (val) =>
   Number(val || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
 
-// ── Mappers API → tabla ──
+/** Convierte un código de género (F/M/U) a su etiqueta visible */
+const displayGenero = (g) => {
+  if (g === 'F' || g === 'Femenino') return 'Femenino'
+  if (g === 'M' || g === 'Masculino') return 'Masculino'
+  if (g === 'U' || g === 'Unisex') return 'Unisex'
+  return g || '—'
+}
+
+// ════════════════════════════════════════════
+//  TRANSFORMADORES API → TABLA (mappers)
+//  Convierten la respuesta cruda del backend
+//  al formato que espera la tabla (TablaSection)
+// ════════════════════════════════════════════
+
 const mapperMaterial = (m) => ({
   id: m.id,
   name: m.nombre || '—',
@@ -37,7 +62,17 @@ const mapperProducto = (p) => ({
   status: typeof p.estado === 'string' ? p.estado.toLowerCase() : p.estado === 1 ? 'disponible' : p.estado === 2 ? 'agotado' : 'eliminado',
 })
 
-// ── Mini barra de stock ──
+// ════════════════════════════════════════════
+//  COMPONENTES INTERNOS
+// ════════════════════════════════════════════
+
+/**
+ * StockBar — Barra de progreso visual del stock
+ * @param {number} current - Stock actual
+ * @param {number} min     - Stock mínimo (umbral)
+ * Color verde si hay stock suficiente,
+ * naranja si está cerca del mínimo, rojo si está en 0
+ */
 const StockBar = ({ current, min }) => {
   const pct = Math.min((current / Math.max(min, 1)) * 100, 100)
   const color = current === 0 ? '#e74c3c' : current <= min ? '#e67e22' : '#2e7d32'
@@ -51,8 +86,13 @@ const StockBar = ({ current, min }) => {
   )
 }
 
-// ── Hook para debounce ──
-const useDebounce = (value, delay = 300) => {
+/**
+ * useDebounce — Hook que retrasa la actualización de un valor
+ * Útil para evitar llamadas a la API en cada pulsación de teclado
+ * @param {any}  value - Valor a debouncear
+ * @param {number} delay - Milisegundos de retardo (default 400ms)
+ */
+const useDebounce = (value, delay = 400) => {
   const [debounced, setDebounced] = useState(value)
   useEffect(() => {
     const t = setTimeout(() => setDebounced(value), delay)
@@ -61,22 +101,23 @@ const useDebounce = (value, delay = 300) => {
   return debounced
 }
 
-// ── TablaSection ──
+/**
+ * TablaSection — Componente reutilizable de tabla + filtros + estadísticas
+ * 
+ * Props:
+ * @param {Array}  items     - Datos filtrados a mostrar
+ * @param {boolean} loading   - Estado de carga
+ * @param {string} tipo       - Etiqueta del tipo (materiales/productos/abastecimientos)
+ * @param {Array}  columns    - Nombres de las columnas (array de strings)
+ * @param {Function} renderRow - Función que renderiza una fila (<td>...</td>)
+ * @param {Function} statConfig - Función que calcula las tarjetas de estadísticas
+ * @param {Object} filters    - Estado actual de los filtros
+ * @param {Function} onFiltersChange - Callback para cambiar los filtros
+ * 
+ * Los filtros (búsqueda y estado) se envían al backend via useEffect en el padre.
+ * Este componente solo muestra los datos que recibe como items.
+ */
 const TablaSection = ({ items, loading, tipo, columns, renderRow, statConfig, filters, onFiltersChange }) => {
-  const searchDebounced = useDebounce(filters.search, 300)
-
-  const filtered = items.filter((item) => {
-    if (filters.category && item.category !== filters.category) return false
-    if (filters.status && item.status !== filters.status) return false
-    if (searchDebounced) {
-      const q = searchDebounced.toLowerCase()
-      const matchName = item.name?.toLowerCase()?.includes(q)
-      const matchRef = item.ref?.toLowerCase()?.includes(q)
-      if (!matchName && !matchRef) return false
-    }
-    return true
-  })
-
   const [hoveredRow, setHoveredRow] = useState(null)
   const stats = statConfig(items)
 
@@ -132,14 +173,14 @@ const TablaSection = ({ items, loading, tipo, columns, renderRow, statConfig, fi
           </div>
           <div className="inv-search">
             <i className="ti ti-search" />
-            <input type="text" placeholder={`Buscar ${tipo}...`}
+            <input type="text" maxLength={50} placeholder={`Buscar ${tipo}...`}
               value={filters.search}
               onChange={(e) => onFiltersChange({ ...filters, search: e.target.value })}
             />
           </div>
         </div>
         <p className="inv-filters__count">
-          {filtered.length} de {items.length} {tipo}
+          {items.length} {tipo}
         </p>
       </div>
 
@@ -149,7 +190,7 @@ const TablaSection = ({ items, loading, tipo, columns, renderRow, statConfig, fi
             <tr>{columns.map((col, i) => <th key={i}>{col}</th>)}</tr>
           </thead>
           <tbody>
-            {filtered.map((item) => (
+            {items.map((item) => (
               <tr key={item.id}
                 className={`${item.status === 'agotado' ? 'inv-row--warning' : ''} ${hoveredRow === item.id ? 'inv-row--hover' : ''}`}
                 onMouseEnter={() => setHoveredRow(item.id)}
@@ -160,7 +201,7 @@ const TablaSection = ({ items, loading, tipo, columns, renderRow, statConfig, fi
             ))}
           </tbody>
         </table>
-        {filtered.length === 0 && (
+        {items.length === 0 && (
           <div className="inv-empty-state">
             <i className="ti ti-search-off" />
             <p>No se encontraron {tipo} con esos filtros.</p>
@@ -174,7 +215,19 @@ const TablaSection = ({ items, loading, tipo, columns, renderRow, statConfig, fi
   )
 }
 
-// ── Página principal ──
+// ════════════════════════════════════════════
+//  COMPONENTE PRINCIPAL
+// ════════════════════════════════════════════
+
+/**
+ * InventarioPage — Página principal del módulo de inventario
+ * @param {string} tipo - Pestaña activa: 'materiales' | 'productos' | 'abastecimiento'
+ * 
+ * Flujo de datos:
+ * 1. Carga inicial via useEffect → loadMateriales() / loadProductos()
+ * 2. Filtros cambian → useEffect detecta cambios debounced → recarga con parámetros
+ * 3. CRUD (crear/editar/eliminar) → handlers llaman a la API → recargan lista
+ */
 const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
   const [materials, setMaterials] = useState([])
   const [products, setProducts] = useState([])
@@ -185,6 +238,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
   const [showDrawerAbs, setShowDrawerAbs] = useState(false)
   const [editingMaterial, setEditingMaterial] = useState(null)
   const [editingProduct, setEditingProduct] = useState(null)
+  const [alertState, setAlertState] = useState(null)
 
   const {
     abastecimientos,
@@ -201,11 +255,12 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
   const [prodFilters, setProdFilters] = useState({ category: '', status: '', search: '', categoryOptions: [] })
   const [absFilters, setAbsFilters] = useState({ category: '', status: '', search: '', categoryOptions: [] })
 
-  // ── Cargar materiales ──
-  const loadMateriales = useCallback(async () => {
+  /** Carga la lista de materiales desde el backend, aplicando filtros opcionales */
+  const loadMateriales = useCallback(async (filtros = {}) => {
     setLoadingMat(true)
     try {
-      const res = await getMateriales({ limite: 100 })
+      const params = { limite: 100, ...filtros }
+      const res = await getMateriales(params)
       const items = Array.isArray(res?.data) ? res.data.map(mapperMaterial) : []
       setMaterials(items)
       if (res?.resumen) setMatResumen(res.resumen)
@@ -217,11 +272,12 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
     }
   }, [])
 
-  // ── Cargar productos ──
-  const loadProductos = useCallback(async () => {
+  /** Carga la lista de productos desde el backend, aplicando filtros opcionales */
+  const loadProductos = useCallback(async (filtros = {}) => {
     setLoadingProd(true)
     try {
-      const res = await getProductos({ limite: 100 })
+      const params = { limite: 100, ...filtros }
+      const res = await getProductos(params)
       const items = Array.isArray(res?.data) ? res.data.map(mapperProducto) : []
       setProducts(items)
       if (res?.resumen) setProdResumen(res.resumen)
@@ -236,18 +292,27 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
   useEffect(() => { loadMateriales() }, [loadMateriales])
   useEffect(() => { loadProductos() }, [loadProductos])
 
-  // ── Handlers Materiales ──
+  /* ── Handlers Materiales ── */
+  /** Abre el drawer para crear un nuevo material */
   const handleAddMaterial = () => { setEditingMaterial(null); setShowDrawerMat(true) }
   const handleEditMaterial = (item) => { setEditingMaterial(item); setShowDrawerMat(true) }
 
   const handleDeleteMaterial = async (item) => {
-    if (!window.confirm(`¿Desactivar "${item.name}"?`)) return
-    try {
-      await changeMaterialEstado(item.id, 'ELIMINADO')
-      await loadMateriales()
-    } catch (err) {
-      alert('Error: ' + (err?.response?.data?.message || err?.message))
-    }
+    setAlertState({
+      type: 'confirm',
+      title: 'Desactivar material',
+      message: `¿Desactivar "${item.name}"?`,
+      onConfirm: async () => {
+        setAlertState(null)
+        try {
+          await changeMaterialEstado(item.id, 'ELIMINADO')
+          await loadMateriales()
+        } catch (err) {
+          setAlertState({ type: 'error', title: 'Error', message: err?.response?.data?.message || err?.message, onClose: () => setAlertState(null) })
+        }
+      },
+      onCancel: () => setAlertState(null),
+    })
   }
 
   const handleSaveMaterial = async (data) => {
@@ -273,22 +338,31 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
       setEditingMaterial(null)
       await loadMateriales()
     } catch (err) {
-      alert('Error: ' + (err?.response?.data?.message || err?.message))
+      setAlertState({ type: 'error', title: 'Error al guardar', message: err?.response?.data?.message || err?.message, onClose: () => setAlertState(null) })
     }
   }
 
-  // ── Handlers Productos ──
+  /* ── Handlers Productos ── */
+  /** Abre el drawer para crear un nuevo producto */
   const handleAddProduct = () => { setEditingProduct(null); setShowDrawerProd(true) }
   const handleEditProduct = (item) => { setEditingProduct(item); setShowDrawerProd(true) }
 
   const handleDeleteProduct = async (item) => {
-    if (!window.confirm(`¿Desactivar "${item.name}"?`)) return
-    try {
-      await changeProductoEstado(item.id, 'ELIMINADO')
-      await loadProductos()
-    } catch (err) {
-      alert('Error: ' + (err?.response?.data?.message || err?.message))
-    }
+    setAlertState({
+      type: 'confirm',
+      title: 'Desactivar producto',
+      message: `¿Desactivar "${item.name}"?`,
+      onConfirm: async () => {
+        setAlertState(null)
+        try {
+          await changeProductoEstado(item.id, 'ELIMINADO')
+          await loadProductos()
+        } catch (err) {
+          setAlertState({ type: 'error', title: 'Error', message: err?.response?.data?.message || err?.message, onClose: () => setAlertState(null) })
+        }
+      },
+      onCancel: () => setAlertState(null),
+    })
   }
 
   const handleSaveProduct = async (data) => {
@@ -299,6 +373,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
           precioUnitario: data.precio || 0,
           genero: data.genero,
           tipoPrenda: data.tipoPrenda,
+          categoria: data.categoria,
           talla: data.talla,
           umbralMinimo: data.umbralMinimo || 0,
         })
@@ -308,6 +383,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
           precioUnitario: data.precio || 0,
           genero: data.genero,
           tipoPrenda: data.tipoPrenda,
+          categoria: data.categoria,
           talla: data.talla,
           umbralMinimo: data.umbralMinimo || 0,
         })
@@ -316,11 +392,12 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
       setEditingProduct(null)
       await loadProductos()
     } catch (err) {
-      alert('Error: ' + (err?.response?.data?.message || err?.message))
+      setAlertState({ type: 'error', title: 'Error al guardar', message: err?.response?.data?.message || err?.message, onClose: () => setAlertState(null) })
     }
   }
 
-  // ── Handlers Abastecimiento ──
+  /* ── Handlers Abastecimiento ── */
+  /** Abre el drawer para crear un nuevo abastecimiento */
   const handleAddAbastecimiento = () => setShowDrawerAbs(true)
   const handleSaveAbastecimiento = async (data) => {
     try {
@@ -328,23 +405,45 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
       setShowDrawerAbs(false)
     } catch (err) {
       const msg = err?.response?.data?.error || err?.response?.data?.message || err?.message || 'Error desconocido'
-      alert('Error al registrar abastecimiento: ' + msg)
+      setAlertState({ type: 'error', title: 'Error al registrar', message: msg, onClose: () => setAlertState(null) })
     }
   }
   const handleCompletarAbastecimiento = async (item) => {
-    if (!window.confirm(`¿Completar el abastecimiento #${item.id}?\n\nEsto actualizará el stock de los ítems.`)) return
-    try {
-      await completarAbs(item.id)
-      await loadMateriales()
-      await loadProductos()
-    } catch (err) { alert('Error: ' + (err?.response?.data?.message || err?.message)) }
+    setAlertState({
+      type: 'confirm',
+      title: 'Completar abastecimiento',
+      message: `¿Completar el abastecimiento #${item.id}?\n\nEsto actualizará el stock de los ítems.`,
+      onConfirm: async () => {
+        setAlertState(null)
+        try {
+          await completarAbs(item.id)
+          await loadMateriales()
+          await loadProductos()
+        } catch (err) {
+          setAlertState({ type: 'error', title: 'Error', message: err?.response?.data?.message || err?.message, onClose: () => setAlertState(null) })
+        }
+      },
+      onCancel: () => setAlertState(null),
+    })
   }
   const handleCancelarAbastecimiento = async (item) => {
-    if (!window.confirm(`¿Cancelar el abastecimiento #${item.id}?`)) return
-    try { await cancelarAbs(item.id) } catch (err) { alert('Error: ' + (err?.response?.data?.message || err?.message)) }
+    setAlertState({
+      type: 'confirm',
+      title: 'Cancelar abastecimiento',
+      message: `¿Cancelar el abastecimiento #${item.id}?`,
+      onConfirm: async () => {
+        setAlertState(null)
+        try {
+          await cancelarAbs(item.id)
+        } catch (err) {
+          setAlertState({ type: 'error', title: 'Error', message: err?.response?.data?.message || err?.message, onClose: () => setAlertState(null) })
+        }
+      },
+      onCancel: () => setAlertState(null),
+    })
   }
 
-  // ── Config Materiales ──
+  /* ════ Configuración de la tabla de Materiales ════ */
   const matStats = (items) => {
     if (matResumen) {
       const s = matResumen.total_stock
@@ -392,7 +491,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
 
   const matColumns = ['MATERIAL', 'TIPO', 'UNIDAD', 'DESCRIPCIÓN', 'STOCK', 'ESTADO', '']
 
-  // ── Config Productos ──
+  /* ════ Configuración de la tabla de Productos ════ */
   const prodStats = (items) => {
     if (prodResumen) {
       return [
@@ -419,6 +518,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
         </div>
       </td>
       <td className="inv-cell-specs">{p.descripcion || '—'}</td>
+      <td><span className="inv-cat-tag">{p.categoria || '—'}</span></td>
       <td><span className="inv-cat-tag">{p.tipo_prenda || '—'}</span></td>
       <td className="inv-cell-specs">{p.genero} · {p.talla}</td>
       <td className="inv-cell-price">{fmt(p.price)}</td>
@@ -438,9 +538,10 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
     </>
   )
 
-  const prodColumns = ['PRODUCTO', 'DESCRIPCIÓN', 'TIPO PRENDA', 'GÉNERO · TALLA', 'PRECIO', 'STOCK', 'ESTADO', '']
+  const prodColumns = ['PRODUCTO', 'DESCRIPCIÓN', 'CATEGORÍA', 'TIPO PRENDA', 'GÉNERO · TALLA', 'PRECIO', 'STOCK', 'ESTADO', '']
 
-  // ── Config Abastecimiento ──
+  /* ════ Configuración de la tabla de Abastecimientos ════ */
+  /** Formatea un número como moneda COP para abastecimientos */
   const fmtAbs = (val) => Number(val || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
   const absStats = (items) => {
     const pendientes = items.filter((a) => a.estado === 'PENDIENTE').length
@@ -539,6 +640,17 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
           onClose={() => setShowDrawerAbs(false)}
           proveedores={proveedores}
           onSave={handleSaveAbastecimiento}
+        />
+      )}
+
+      {alertState && (
+        <Alert
+          type={alertState.type}
+          title={alertState.title}
+          message={alertState.message}
+          onConfirm={alertState.onConfirm}
+          onCancel={alertState.onCancel}
+          onClose={alertState.onClose}
         />
       )}
     </div>
