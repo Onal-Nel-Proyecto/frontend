@@ -1,11 +1,4 @@
 import { useState } from 'react'
-// ================================================================
-// RegisterProducto — Drawer para crear/editar productos
-// Soporta: nombre, tipoPrenda, categoría, género (F/M/U),
-//           talla, precio, stock mínimo
-// ================================================================
-
-import { useState } from 'react'
 import { FiTag } from 'react-icons/fi'
 import Drawer from '../../components/common/Drawer'
 import './RegisterProducto.css'
