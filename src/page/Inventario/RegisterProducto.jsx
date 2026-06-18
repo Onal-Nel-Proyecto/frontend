@@ -29,8 +29,15 @@ const validate = (form) => {
   const umbralStr = form.umbralMinimo?.toString().trim()
   if (umbralStr !== '' && umbralStr) {
     if (!/^\d+$/.test(umbralStr)) errs.umbralMinimo = 'Solo números enteros'
-    else if (parseInt(umbralStr, 10) < 0) errs.umbralMinimo = 'No puede ser negativo'
+    else {
+      const n = parseInt(umbralStr, 10)
+      if (n < 0) errs.umbralMinimo = 'No puede ser negativo'
+      else if (n > 999999) errs.umbralMinimo = 'Máximo 999,999'
+    }
   }
+
+  const tallaStr = form.talla?.trim()
+  if (tallaStr.length > 10) errs.talla = 'Máximo 10 caracteres'
 
   return errs
 }
@@ -63,8 +70,33 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     const newErrors = validate(form)
+
+    // Si es edición y no hay cambios, bloquear el guardado
+    if (isEditing && Object.keys(newErrors).length === 0) {
+      const orig = {
+        nombre: initialData?.name?.trim() || '',
+        tipoPrenda: initialData?.tipo_prenda || '',
+        categoria: initialData?.categoria || '',
+        genero: initialData?.genero === 'Femenino' ? 'F' : initialData?.genero === 'Masculino' ? 'M' : initialData?.genero === 'Unisex' ? 'U' : initialData?.genero || '',
+        talla: initialData?.talla?.trim() || '',
+        precio: initialData?.price?.toString() || '',
+        umbralMinimo: initialData?.minStock?.toString() || '',
+      }
+      const sinCambios =
+        orig.nombre === form.nombre.trim() &&
+        orig.tipoPrenda === form.tipoPrenda &&
+        orig.categoria === form.categoria &&
+        orig.genero === form.genero &&
+        orig.talla === form.talla.trim() &&
+        orig.precio === form.precio?.toString().trim() &&
+        orig.umbralMinimo === form.umbralMinimo?.toString().trim()
+      if (sinCambios) {
+        newErrors._general = 'No se detectaron cambios para guardar'
+      }
+    }
+
     setErrors(newErrors)
-    setTouched({ nombre: true, precio: true })
+    setTouched({ nombre: true, precio: true, talla: true })
     if (Object.keys(newErrors).length > 0) return
 
     setSaving(true)
@@ -103,6 +135,7 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
       }
     >
       <form id="rp-form" className="rp-form" onSubmit={handleSubmit} noValidate>
+        {errors._general && <div className="rp-err rp-err--general"><i className="ti ti-alert-triangle" /> {errors._general}</div>}
         <div className="rp-row">
           <div className="rp-group rp-group--full">
             <label className="rp-label" htmlFor="rp-nombre">Nombre del Producto</label>
@@ -122,7 +155,7 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
             <div className="rp-input-wrap">
               <i className="ti ti-tag" />
               <select id="rp-tipoPrenda" name="tipoPrenda" className="rp-input rp-select"
-                value={form.tipoPrenda} onChange={handleChange}>
+                value={form.tipoPrenda} onChange={handleChange} onBlur={handleBlur}>
                 <option value="">Seleccione...</option>
                 <option value="Vestido">Vestido</option>
                 <option value="Blazer">Blazer</option>
@@ -141,7 +174,7 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
             <div className="rp-input-wrap">
               <i className="ti ti-category" />
               <select id="rp-categoria" name="categoria" className="rp-input rp-select"
-                value={form.categoria} onChange={handleChange}>
+                value={form.categoria} onChange={handleChange} onBlur={handleBlur}>
                 <option value="">Seleccione...</option>
                 {CATEGORIAS.map((cat) => (
                   <option key={cat} value={cat}>{cat}</option>
@@ -157,7 +190,7 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
             <div className="rp-input-wrap">
               <i className="ti ti-gender-male" />
               <select id="rp-genero" name="genero" className="rp-input rp-select"
-                value={form.genero} onChange={handleChange}>
+                value={form.genero} onChange={handleChange} onBlur={handleBlur}>
                 <option value="">Seleccione...</option>
                 <option value="F">Femenino</option>
                 <option value="M">Masculino</option>
@@ -172,10 +205,11 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
             <label className="rp-label" htmlFor="rp-talla">Talla</label>
             <div className="rp-input-wrap">
               <i className="ti ti-ruler" />
-              <input id="rp-talla" name="talla" type="text" maxLength="10" className="rp-input"
+              <input id="rp-talla" name="talla" type="text" maxLength="10" className={`rp-input ${hasError('talla') ? 'rp-input-wrap--err' : ''}`}
                 placeholder="Ej: XS, S, M, L, XL, 38, 60, 90" value={form.talla}
                 onChange={handleChange} onBlur={handleBlur} />
             </div>
+            {hasError('talla') && <p className="rp-err">{errors.talla}</p>}
           </div>
         </div>
 
@@ -185,7 +219,7 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
             <div className={`rp-input-wrap ${hasError('precio') ? 'rp-input-wrap--err' : ''}`}>
               <i className="ti ti-currency-dollar" />
               <input id="rp-precio" name="precio" type="number" step="1" min="0" max="999999999999" className="rp-input"
-                placeholder="0" value={form.precio} onChange={handleChange} onBlur={handleBlur} />
+                placeholder="0" value={form.precio} onChange={handleChange} onBlur={handleBlur} maxLength="15" />
             </div>
             {hasError('precio') && <p className="rp-err">{errors.precio}</p>}
           </div>

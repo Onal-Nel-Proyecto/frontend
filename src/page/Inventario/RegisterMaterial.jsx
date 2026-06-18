@@ -27,6 +27,21 @@ const validate = (form) => {
 
   if (!form.tipoMaterial) errs.tipoMaterial = 'Selecciona el tipo de material'
 
+  const uni = form.unidadMedida.trim()
+  if (uni.length > 20) errs.unidadMedida = 'Máximo 20 caracteres'
+  else if (uni.length > 0 && !/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ.,\s]+$/.test(uni))
+    errs.unidadMedida = 'Solo letras, puntos, comas y espacios'
+
+  const umbral = form.umbralMinimo?.toString().trim()
+  if (umbral !== '' && umbral !== undefined) {
+    if (!/^\d+$/.test(umbral)) errs.umbralMinimo = 'Solo números enteros'
+    else {
+      const n = parseInt(umbral, 10)
+      if (n < 0) errs.umbralMinimo = 'No puede ser negativo'
+      else if (n > 999999) errs.umbralMinimo = 'Máximo 999,999'
+    }
+  }
+
   return errs
 }
 
@@ -56,6 +71,25 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, onSave }) => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     const newErrors = validate(form)
+
+    // Si es edición y no hay cambios, bloquear el guardado
+    if (isEditing && Object.keys(newErrors).length === 0) {
+      const orig = {
+        nombre: initialData?.name?.trim() || '',
+        tipoMaterial: initialData?.tipo_material || '',
+        unidadMedida: initialData?.unidad_medida?.trim() || '',
+        umbralMinimo: initialData?.minStock?.toString() || '',
+      }
+      const sinCambios =
+        orig.nombre === form.nombre.trim() &&
+        orig.tipoMaterial === form.tipoMaterial &&
+        orig.unidadMedida === form.unidadMedida.trim() &&
+        orig.umbralMinimo === form.umbralMinimo?.toString().trim()
+      if (sinCambios) {
+        newErrors._general = 'No se detectaron cambios para guardar'
+      }
+    }
+
     setErrors(newErrors)
     setTouched({ nombre: true, tipoMaterial: true, unidadMedida: true, umbralMinimo: true })
     if (Object.keys(newErrors).length > 0) return
@@ -94,6 +128,7 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, onSave }) => {
       }
     >
       <form id="rm-form" className="rm-form" onSubmit={handleSubmit} noValidate>
+        {errors._general && <div className="rm-err rm-err--general"><i className="ti ti-alert-triangle" /> {errors._general}</div>}
         <div className="rm-row">
           <div className="rm-group rm-group--full">
             <label className="rm-label" htmlFor="rm-nombre">Nombre del Material <span className="rm-required">*</span></label>

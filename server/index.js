@@ -287,11 +287,21 @@ app.patch('/productos/:id/estado', (req, res) => {
 //  ABASTECIMIENTOS
 // ════════════════════════════════════════════
 
-// GET /abastecimientos — lista paginada
+// ── Filtro de abastecimientos ──
+function filterAbastecimientos(items, { estado }) {
+  let filtered = [...items];
+  if (estado) {
+    filtered = filtered.filter((a) => a.absEst === estado);
+  }
+  return filtered;
+}
+
+// GET /abastecimientos — lista paginada con filtros
 app.get('/abastecimientos', (req, res) => {
   const db = readDB();
-  const { pagina = 1, limite = 15 } = req.query;
-  res.json(paginate(db.abastecimientos, Number(pagina), Number(limite)));
+  const { pagina = 1, limite = 15, estado } = req.query;
+  const filtered = filterAbastecimientos(db.abastecimientos, { estado });
+  res.json(paginate(filtered, Number(pagina), Number(limite)));
 });
 
 // GET /abastecimientos/:id

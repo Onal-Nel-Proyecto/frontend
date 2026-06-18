@@ -26,6 +26,12 @@
   font-size: 0.72rem; color: #f87171; margin: 0.2rem 0 0; line-height: 1.4;
   display: flex; align-items: center; gap: 4px;
 }
+.rp-err--general {
+  padding: 0.55rem 0.75rem; margin-bottom: 0.25rem;
+  background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
+  border-radius: var(--radius-sm); font-size: var(--text-xs); font-weight: 500;
+}
+.rp-err--general::before { content: none; }
 .rp-err::before {
   content: '!'; display: inline-flex; align-items: center; justify-content: center;
   width: 14px; height: 14px; background: #e74c3c; color: #fff;

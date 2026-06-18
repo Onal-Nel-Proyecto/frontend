@@ -4,7 +4,7 @@
 // Cada pestaña tiene su propia tabla, filtros, estadísticas y CRUD
 // ================================================================
 
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import RegisterMaterial from './RegisterMaterial'
 import RegisterProducto from './RegisterProducto'
 import RegisterAbastecimiento from './RegisterAbastecimiento'
@@ -118,7 +118,7 @@ const useDebounce = (value, delay = 400) => {
  * Los filtros (búsqueda y estado) se envían al backend via useEffect en el padre.
  * Este componente solo muestra los datos que recibe como items.
  */
-const TablaSection = ({ items, loading, tipo, columns, renderRow, statConfig, filters, onFiltersChange }) => {
+const TablaSection = ({ items, loading, tipo, columns, renderRow, statConfig, filters, onFiltersChange, statusOptions }) => {
   const [hoveredRow, setHoveredRow] = useState(null)
   const stats = statConfig(items)
 
@@ -167,9 +167,13 @@ const TablaSection = ({ items, loading, tipo, columns, renderRow, statConfig, fi
             <select className="inv-select" value={filters.status}
               onChange={(e) => onFiltersChange({ ...filters, status: e.target.value })}>
               <option value="">Estado: Todos</option>
-              <option value="disponible">Disponible</option>
-              <option value="agotado">Agotado</option>
-              <option value="eliminado">Eliminado</option>
+              {(statusOptions || [
+                { value: 'disponible', label: 'Disponible' },
+                { value: 'agotado', label: 'Agotado' },
+                { value: 'eliminado', label: 'Eliminado' },
+              ]).map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
             </select>
           </div>
           <div className="inv-search">
@@ -255,6 +259,24 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
   const [prodResumen, setProdResumen] = useState(null)
   const [prodFilters, setProdFilters] = useState({ category: '', status: '', search: '', categoryOptions: [] })
   const [absFilters, setAbsFilters] = useState({ category: '', status: '', search: '', categoryOptions: [] })
+
+  // Filtro cliente-side para abastecimientos (por estado y búsqueda)
+  const filteredAbastecimientos = useMemo(() => {
+    let items = abastecimientos
+    if (absFilters.status) {
+      items = items.filter((a) => a.estado === absFilters.status)
+    }
+    if (absFilters.search) {
+      const q = absFilters.search.toLowerCase()
+      items = items.filter(
+        (a) =>
+          a.proveedorNombre?.toLowerCase().includes(q) ||
+          a.observacion?.toLowerCase().includes(q) ||
+          String(a.id).includes(q)
+      )
+    }
+    return items
+  }, [abastecimientos, absFilters.status, absFilters.search])
 
   /** Carga la lista de materiales desde el backend, aplicando filtros opcionales */
   const loadMateriales = useCallback(async (filtros = {}) => {
@@ -591,7 +613,6 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
         </td>
         <td><span className={`inv-badge ${estadoClass}`}><i className={`ti ti-${a.estado === 'COMPLETADO' ? 'circle-check' : a.estado === 'CANCELADO' ? 'x-circle' : 'clock'}`} />{estadoLabel}</span></td>
         <td className="inv-cell-price">{fmtAbs(a.costoTotal)}</td>
-        <td className="inv-cell-specs">{a.observacion || '—'}</td>
         <td>
           <div className={`inv-actions ${hovered ? 'inv-actions--visible' : ''}`}>
             {a.estado === 'PENDIENTE' && (
@@ -606,7 +627,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
     )
   }
 
-  const absColumns = ['ABASTECIMIENTO', 'ESTADO', 'COSTO TOTAL', 'OBSERVACIÓN', '']
+  const absColumns = ['ABASTECIMIENTO', 'ESTADO', 'COSTO TOTAL', '']
 
   const handleAddBtn = () => {
     if (activeTab === 'materiales') handleAddMaterial()
@@ -637,7 +658,13 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
         <TablaSection items={products} loading={loadingProd} tipo="productos" columns={prodColumns} renderRow={prodRenderRow} statConfig={prodStats} filters={prodFilters} onFiltersChange={setProdFilters} />
       )}
       {activeTab === 'abastecimiento' && (
-        <TablaSection items={abastecimientos} loading={absLoading} tipo="abastecimientos" columns={absColumns} renderRow={absRenderRow} statConfig={absStats} filters={absFilters} onFiltersChange={setAbsFilters} />
+        <TablaSection items={filteredAbastecimientos} loading={absLoading} tipo="abastecimientos" columns={absColumns} renderRow={absRenderRow} statConfig={absStats} filters={absFilters} onFiltersChange={setAbsFilters}
+          statusOptions={[
+            { value: 'PENDIENTE', label: 'Pendiente' },
+            { value: 'COMPLETADO', label: 'Completado' },
+            { value: 'CANCELADO', label: 'Cancelado' },
+          ]}
+        />
       )}
 
       {showDrawerMat && (
