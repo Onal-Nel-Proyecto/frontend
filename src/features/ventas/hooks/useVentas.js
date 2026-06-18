@@ -5,7 +5,7 @@ import {
   createVenta as apiCreateVenta,
   changeEstadoVenta as apiChangeEstado,
   deleteVenta as apiDeleteVenta,
-} from "../api/ventasService";
+} from "../services/ventasService";
 
 // ── Mapear venta de API a formato de frontend ──
 // Backend real devuelve: { venta_id, cliente: { cliente_nombres, cliente_apellidos }, 

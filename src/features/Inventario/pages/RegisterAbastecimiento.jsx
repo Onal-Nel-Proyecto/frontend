@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { FiTruck, FiSave } from 'react-icons/fi'
-import Drawer from '../../components/common/Drawer'
-import './RegisterAbastecimiento.css'
+import Drawer from '../../../components/common/Drawer'
 
 const TIPOS_ITEM = ['MATERIAL', 'PRODUCTO']
 

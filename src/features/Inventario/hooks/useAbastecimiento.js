@@ -5,7 +5,7 @@ import {
   completarAbastecimiento as apiCompletar,
   cancelarAbastecimiento as apiCancelar,
   getProveedores as apiGetProveedores,
-} from "../api/abastecimientoService";
+} from "../services/abastecimientoService";
 
 // ── Datos de ejemplo (fallback sin API) ──
 const ABASTECIMIENTOS_EJEMPLO = [

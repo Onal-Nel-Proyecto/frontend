@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { FiDollarSign } from 'react-icons/fi'
-import Drawer from '../../components/common/Drawer'
-import Alert from '../../components/ui/feedback/Alert'
-import { createPago } from '../../services/pagosService'
+import Drawer from '../../../components/common/Drawer'
+import Alert from '../../../components/ui/feedback/Alert'
+import { createPago } from '../../../services/pagosService'
 import './RegistrarPago.css'
 
 const METODOS = [

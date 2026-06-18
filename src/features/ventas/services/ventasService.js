@@ -1,5 +1,5 @@
-import axiosInstance from "./axiosInstance";
-import { VENTAS_ENDPOINTS } from "./endpoints/ventasEndpoints";
+import axiosInstance from "../../../api/axiosInstance";
+import { VENTAS_ENDPOINTS } from "../../../api/endpoints/ventasEndpoints";
 
 // ── GET /ventas — lista paginada con filtros ──
 export const getVentas = async ({ pagina = 1, limite = 15, busqueda, estado } = {}) => {

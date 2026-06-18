@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { useLocation } from 'react-router-dom'
-import NewClientPanel   from '../page/RegisterClient'
-import ContactTable     from '../components/table/ContactTable'
+import NewClientPanel   from './RegisterClient'
+import ContactTable     from '../components/ContactTable/ContactTable'
 import { useClientes }  from '../hooks/useClientes'
-import ViewClientModal   from '../components/ui/feedback/ViewClientModal/ViewClientModal'
-import Alert from '../components/ui/feedback/Alert'
-import { changeStatus } from '../api/clientesService'
+import ViewClientModal   from '../components/ViewClientModal/ViewClientModal'
+import Alert from '../../../components/ui/feedback/Alert'
+import { changeStatus } from '../services/clientesService'
 import { FiChevronLeft, FiChevronRight } from 'react-icons/fi'
 import './ClientDirectory.css'
-import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useDocumentTitle } from '../../../hooks/useDocumentTitle'
 
 // ── Generar números de página para paginación inteligente ──
 const getPageNumbers = (current, total) => {

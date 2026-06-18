@@ -29,7 +29,7 @@ import {
   exportReporteMensualExcel,
   exportReportePeriodoPDF,
   exportReportePeriodoExcel,
-} from '../../../../api/ventasService';
+} from '../../services/ventasService';
 import { formatCurrency, formatDate, pad } from '../../../../utils/format';
 import styles from './reportes.module.css';
 

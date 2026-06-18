@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { FiUser, FiPlus } from 'react-icons/fi';
-import { searchClientes } from '../../../../api/clientesService';
+import { searchClientes } from '../../../../features/Clientes/services/clientesService';
 import styles from './ClienteSearch.module.css';
 
 const CLIENTE_POR_DEFECTO = {

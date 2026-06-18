@@ -4,14 +4,14 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { FiShoppingCart, FiPlus, FiTrash2, FiSearch } from 'react-icons/fi';
-import Drawer from '../../../components/common/Drawer';
-import Alert from '../../../components/ui/feedback/Alert';
-import LoadingOverlay from '../../../components/ui/feedback/LoadingOverlay';
-import ClienteSearch from '../../../features/pedidos/components/ClienteSearch';
-import NewClientPanel from '../../RegisterClient';
-import { useVentas } from '../../../hooks/useVentas';
-import { searchProductos } from '../../../api/productosService';
-import { createCliente } from '../../../api/clientesService';
+import Drawer from '../../../../components/common/Drawer';
+import Alert from '../../../../components/ui/feedback/Alert';
+import LoadingOverlay from '../../../../components/ui/feedback/LoadingOverlay';
+import ClienteSearch from '../../../pedidos/components/ClienteSearch';
+import NewClientPanel from '../../../Clientes/pages/RegisterClient';
+import { useVentas } from '../../hooks/useVentas';
+import { searchProductos } from '../../../Inventario/services/productosService';
+import { createCliente } from '../../../Clientes/services/clientesService';
 import styles from './VentaForm.module.css';
 
 const FMT_SAFE_MAX = 999999999;

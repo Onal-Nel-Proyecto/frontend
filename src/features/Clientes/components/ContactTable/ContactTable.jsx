@@ -1,6 +1,6 @@
 import React from 'react'
-import AvatarBadge  from './AvatarBadge'
-import { formatDate } from '../../utils/format'
+import AvatarBadge  from '../../../../components/Table/AvatarBadge'
+import { formatDate } from '../../../../utils/format'
 import './ContactTable.css'
 
 // Tabla principal de contactos

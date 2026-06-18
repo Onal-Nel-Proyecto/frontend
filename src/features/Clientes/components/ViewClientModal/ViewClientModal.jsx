@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { formatDate, formatCurrency } from '../../../../utils/format'
-import { getClienteById } from '../../../../api/clientesService'
-import { getPedidos } from '../../../../features/pedidos/services/pedidosService'
+import { getClienteById } from '../../services/clientesService'
+import { getPedidos } from '../../../pedidos/services/pedidosService'
 import './ViewClientModal.css'
 
 const statusMap = {

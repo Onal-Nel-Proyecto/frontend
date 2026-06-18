@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from 'react'
 import RegisterMaterial from './RegisterMaterial'
 import RegisterProducto from './RegisterProducto'
 import RegisterAbastecimiento from './RegisterAbastecimiento'
-import { useAbastecimiento } from '../../hooks/useAbastecimiento'
+import { useAbastecimiento } from '../hooks/useAbastecimiento'
 import './InventarioPage.css'
 
 // ── Datos iniciales ─────────────────────────

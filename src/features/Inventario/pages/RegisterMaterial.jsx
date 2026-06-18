@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { FiPackage, FiSave } from 'react-icons/fi'
-import Drawer from '../../components/common/Drawer'
-import './RegisterMaterial.css'
+import Drawer from '../../../components/common/Drawer'
 
 const SOLO_LETRAS = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/
 

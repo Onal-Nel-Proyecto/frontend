@@ -1,5 +1,5 @@
-import axiosInstance from "./axiosInstance";
-import { ABASTECIMIENTO_ENDPOINTS } from "./endpoints/abastecimientoEndpoints";
+import axiosInstance from "../../../api/axiosInstance";
+import { ABASTECIMIENTO_ENDPOINTS } from "../../../api/endpoints/abastecimientoEndpoints";
 
 // ── GET /abastecimientos — lista paginada ──
 export const getAbastecimientos = async (pagina = 1, limite = 15) => {

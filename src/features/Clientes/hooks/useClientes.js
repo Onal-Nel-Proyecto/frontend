@@ -4,7 +4,7 @@ import {
   createCliente as apiCreateCliente,
   updateCliente as apiUpdateCliente,
   changeStatus as apiChangeStatus,
-} from "../api/clientesService";
+} from "../services/clientesService";
 
 // ── Clientes de ejemplo para modo local ─────
 const CLIENTES_EJEMPLO = [

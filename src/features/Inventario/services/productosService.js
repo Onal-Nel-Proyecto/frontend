@@ -3,7 +3,7 @@
 // GET /productos — lista paginada con filtro por nombre
 // ================================================================
 
-import axiosInstance from "./axiosInstance";
+import axiosInstance from "../../../api/axiosInstance";
 
 /**
  * Obtener lista paginada de productos activos de inventario

@@ -1,5 +1,5 @@
-import axiosInstance from "./axiosInstance";
-import { CLIENTES_ENDPOINTS } from "./endpoints/clientesEndpoints";
+import axiosInstance from "../../../api/axiosInstance";
+import { CLIENTES_ENDPOINTS } from "../../../api/endpoints/clientesEndpoints";
 
 // ──────────────────────────────────────────────
 //  Utilidad: normalizar la respuesta del backend
