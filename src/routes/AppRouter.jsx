@@ -24,7 +24,7 @@ import Entregas from "../features/pedidos/pages/Entregas";
 // ─── Rutas pesadas → lazy loading ───
 const DashboardPedidos = lazy(() => import("../features/pedidos/pages/Dashboard"));
 const GestionPersonal = lazy(() => import("../page/GestionPersonal"));
-const InventarioPage = lazy(() => import("../features/Inventario/pages/InventarioPage"));
+const InventarioPage = lazy(() => import("../page/Inventario/InventarioPage"));
 const VentasPage = lazy(() => import("../features/Ventas/pages/VentasPage"));
 const Config = lazy(() => import("../page/Config"));
 const CategoriaPage = lazy(() => import("../page/categoria/CategoriaPage"));
