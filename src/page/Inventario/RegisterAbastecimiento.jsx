@@ -276,7 +276,7 @@ const RegisterAbastecimiento = ({ isOpen, onClose, proveedores = [], onSave }) =
 
                 <div className="ra-group ra-group--cant">
                   <label className="ra-label">Cantidad <span className="ra-required">*</span></label>
-                  <input type="number" min="1" max="100"
+                  <input type="text" inputMode="numeric" maxLength="3"
                     className={`ra-input ra-input--no-icon ${errors.detallesItems?.[index]?.cantidad ? 'ra-input--error' : ''}`}
                     placeholder="0" value={item.cantidad}
                     onChange={(e) => handleItemChange(index, 'cantidad', e.target.value)} />

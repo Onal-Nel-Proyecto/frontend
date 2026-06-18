@@ -38,7 +38,7 @@ const validate = (form) => {
     else {
       const n = parseInt(umbral, 10)
       if (n < 0) errs.umbralMinimo = 'No puede ser negativo'
-      else if (n > 999999) errs.umbralMinimo = 'Máximo 999,999'
+      else if (n > 300) errs.umbralMinimo = 'Máximo 300'
     }
   }
 
@@ -180,7 +180,7 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, onSave }) => {
             <label className="rm-label" htmlFor="rm-umbralMinimo">Stock mínimo de seguridad</label>
             <div className="rm-input-wrap">
               <i className="ti ti-alert-triangle rm-input-icon" />
-              <input id="rm-umbralMinimo" name="umbralMinimo" type="number" min="0" max="999999"
+              <input id="rm-umbralMinimo" name="umbralMinimo" type="text" inputMode="numeric" maxLength="3"
                 className={`rm-input ${hasError('umbralMinimo') ? 'rm-input--error' : ''}`}
                 placeholder="0" value={form.umbralMinimo} onChange={handleChange} onBlur={handleBlur} />
             </div>

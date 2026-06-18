@@ -32,7 +32,7 @@ const validate = (form) => {
     else {
       const n = parseInt(umbralStr, 10)
       if (n < 0) errs.umbralMinimo = 'No puede ser negativo'
-      else if (n > 999999) errs.umbralMinimo = 'Máximo 999,999'
+      else if (n > 300) errs.umbralMinimo = 'Máximo 300'
     }
   }
 
@@ -218,7 +218,7 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
             <label className="rp-label" htmlFor="rp-precio">Precio de venta ($)</label>
             <div className={`rp-input-wrap ${hasError('precio') ? 'rp-input-wrap--err' : ''}`}>
               <i className="ti ti-currency-dollar" />
-              <input id="rp-precio" name="precio" type="number" step="1" min="0" max="999999999999" className="rp-input"
+              <input id="rp-precio" name="precio" type="text" inputMode="decimal" className="rp-input"
                 placeholder="0" value={form.precio} onChange={handleChange} onBlur={handleBlur} maxLength="15" />
             </div>
             {hasError('precio') && <p className="rp-err">{errors.precio}</p>}
@@ -230,7 +230,7 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
             <label className="rp-label" htmlFor="rp-umbralMinimo">Stock mínimo <span style={{fontSize:'0.65rem',color:'var(--text-muted)',fontWeight:400}}>(opcional)</span></label>
             <div className="rp-input-wrap">
               <i className="ti ti-alert-triangle" />
-              <input id="rp-umbralMinimo" name="umbralMinimo" type="number" min="0" max="999999" className="rp-input"
+              <input id="rp-umbralMinimo" name="umbralMinimo" type="text" inputMode="numeric" maxLength="3" className="rp-input"
                 placeholder="0" value={form.umbralMinimo} onChange={handleChange} onBlur={handleBlur} />
             </div>
           </div>
