@@ -66,7 +66,7 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, onSave }) => {
         id: initialData?.id,
         nombre: form.nombre.trim(),
         cantidadDisponible: parseInt(form.cantidadDisponible, 10) || 0,
-        tipoMaterial: form.tipoMaterial.trim(),
+        tipoMaterial: form.tipoMaterial.trim() || null,
         unidadMedida: form.unidadMedida.trim(),
         umbralMinimo: parseInt(form.umbralMinimo, 10) || 0,
       })

@@ -13,7 +13,7 @@
 // ================================================================
 
 import { useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   FiCheckCircle,
   FiAlertCircle,
@@ -42,22 +42,19 @@ const Alert = ({ type = 'success', title, message, children, onConfirm, onCancel
   }, []);
 
   return (
-    <AnimatePresence>
+    <motion.div
+      className={styles.overlay}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      onClick={isConfirm ? handleCancel : handleClose}
+    >
       <motion.div
-        className={styles.overlay}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={isConfirm ? handleCancel : handleClose}
+        className={`${styles.card} ${styles[type]}`}
+        initial={{ opacity: 0, scale: 0.92, y: 30 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ type: 'spring', damping: 22, stiffness: 300 }}
+        onClick={(e) => e.stopPropagation()}
       >
-        <motion.div
-          className={`${styles.card} ${styles[type]}`}
-          initial={{ opacity: 0, scale: 0.92, y: 30 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.92, y: 30 }}
-          transition={{ type: 'spring', damping: 22, stiffness: 300 }}
-          onClick={(e) => e.stopPropagation()}
-        >
           {/* Icono */}
           <div className={styles.iconWrapper}>
             {icons[type]}
@@ -87,9 +84,8 @@ const Alert = ({ type = 'success', title, message, children, onConfirm, onCancel
               </button>
             )}
           </div>
-        </motion.div>
       </motion.div>
-    </AnimatePresence>
+    </motion.div>
   );
 };
 

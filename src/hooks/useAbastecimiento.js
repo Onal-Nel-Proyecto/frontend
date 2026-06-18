@@ -10,10 +10,10 @@ import {
 // ── Datos de ejemplo (fallback sin API) ──
 const ABASTECIMIENTOS_EJEMPLO = [
   {
-    absId: 1,
-    absFec: "2025-06-01 10:30:00",
-    absEst: "COMPLETADO",
-    absObs: "Pedido mensual de telas",
+    id: 1,
+    fecha: "2025-06-01 10:30:00",
+    estado: "COMPLETADO",
+    observacion: "Pedido mensual de telas",
     provIdFk: "PROV001",
     proveedor_nombre: "Textiles Nacionales S.A.",
     usuIdFk: "123",
@@ -21,10 +21,10 @@ const ABASTECIMIENTOS_EJEMPLO = [
     costo_total: 450000,
   },
   {
-    absId: 2,
-    absFec: "2025-06-10 14:15:00",
-    absEst: "PENDIENTE",
-    absObs: null,
+    id: 2,
+    fecha: "2025-06-10 14:15:00",
+    estado: "PENDIENTE",
+    observacion: null,
     provIdFk: "PROV002",
     proveedor_nombre: "Importadora Textil Ltda.",
     usuIdFk: "123",
@@ -32,10 +32,10 @@ const ABASTECIMIENTOS_EJEMPLO = [
     costo_total: 280000,
   },
   {
-    absId: 3,
-    absFec: "2025-05-28 09:00:00",
-    absEst: "CANCELADO",
-    absObs: "Proveedor no disponible",
+    id: 3,
+    fecha: "2025-05-28 09:00:00",
+    estado: "CANCELADO",
+    observacion: "Proveedor no disponible",
     provIdFk: "PROV003",
     proveedor_nombre: "Distribuciones El Punto",
     usuIdFk: "456",
@@ -52,10 +52,10 @@ const PROVEEDORES_EJEMPLO = [
 
 // ── Mapear ítem de API a formato tabla ──
 const mapearAbastecimiento = (item) => ({
-  id: item.absId,
-  fecha: item.absFec,
-  estado: item.absEst,
-  observacion: item.absObs || "",
+  id: item.id,
+  fecha: item.fecha,
+  estado: item.estado,
+  observacion: item.observacion || "",
   proveedorId: item.provIdFk,
   proveedorNombre: item.proveedor_nombre,
   usuarioId: item.usuIdFk,
@@ -91,9 +91,17 @@ export const useAbastecimiento = ({ paginaInicial = 1, limiteInicial = 15 } = {}
   // ── Cargar proveedores ──
   const loadProveedores = useCallback(async () => {
     try {
-      const data = await apiGetProveedores();
-      if (Array.isArray(data) && data.length > 0) {
-        setProveedores(data);
+      const response = await apiGetProveedores();
+      // El backend devuelve { meta, data } con prov_id/prov_nombre
+      const raw = Array.isArray(response?.data) ? response.data : (Array.isArray(response) ? response : []);
+      const list = raw.map(p => ({
+        provId: p.prov_id || p.provId,
+        provNom: p.prov_nombre || p.provNom,
+        provTel: p.prov_telefono || p.provTel || '',
+        provCorr: p.prov_correo || p.provCorr || '',
+      }));
+      if (list.length > 0) {
+        setProveedores(list);
       } else {
         setProveedores(PROVEEDORES_EJEMPLO);
       }

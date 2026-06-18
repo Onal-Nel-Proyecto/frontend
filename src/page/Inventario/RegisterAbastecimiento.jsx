@@ -7,7 +7,7 @@ import './RegisterAbastecimiento.css'
 
 const TIPOS_ITEM = ['MATERIAL', 'PRODUCTO']
 
-const ITEM_VACIO = { tipo: 'MATERIAL', cantidad: '', costo: '', refId: '', busqueda: '' }
+const ITEM_VACIO = { tipo: 'MATERIAL', cantidad: '', costo: '', refId: '', busqueda: '', focus: false }
 
 const validate = (form, proveedores) => {
   const errs = {}
@@ -28,12 +28,13 @@ const validate = (form, proveedores) => {
       else {
         const n = parseInt(cant, 10)
         if (n <= 0) ie.cantidad = 'Debe ser mayor a 0'
-        else if (n > 999999) ie.cantidad = 'Máximo 999999'
+        else if (n > 100) ie.cantidad = 'Máximo 100'
       }
       if (item.costo !== '' && item.costo !== null) {
         const costoStr = item.costo.toString().trim()
         if (!/^\d+(\.\d{1,2})?$/.test(costoStr)) ie.costo = 'Formato inválido (ej: 1500 o 1500.50)'
         else if (parseFloat(costoStr) < 0) ie.costo = 'No puede ser negativo'
+        else if (parseFloat(costoStr) > 999999999999) ie.costo = 'Máximo $999,999,999,999'
       }
       if (Object.keys(ie).length > 0) itemsErrs.push(ie)
       else itemsErrs.push(null)
@@ -61,8 +62,8 @@ const RegisterAbastecimiento = ({ isOpen, onClose, proveedores = [], onSave }) =
       setLoadingRef(true)
       try {
         const [matRes, prodRes] = await Promise.all([
-          getMateriales({ limite: 200 }),
-          getProductosApi({ limite: 200 }),
+          getMateriales({ limite: 100 }),
+          getProductosApi({ limite: 100 }),
         ])
         // Bug #3: Guardamos id y nombre por separado para el autocomplete
         const mats = Array.isArray(matRes?.data) ? matRes.data.map(m => ({ id: m.id, nombre: m.nombre })) : []
@@ -132,10 +133,10 @@ const RegisterAbastecimiento = ({ isOpen, onClose, proveedores = [], onSave }) =
     const payload = {
       provIdFk: form.provIdFk,
       detalles: form.detalles.map((d) => ({
-        tipo: d.tipo,
-        referencia: d.refId,
-        cantidad: parseInt(d.cantidad, 10),
-        costo: d.costo !== '' && d.costo !== null ? parseFloat(d.costo) : null,
+        detAbsTip: d.tipo,
+        detAbsRefId: d.refId,
+        detAbsCant: parseInt(d.cantidad, 10),
+        detAbsCos: d.costo !== '' && d.costo !== null ? parseFloat(d.costo) : 0,
       })),
     }
     try {
@@ -231,32 +232,41 @@ const RegisterAbastecimiento = ({ isOpen, onClose, proveedores = [], onSave }) =
                     <input
                       type="text" maxLength="50"
                       className={`ra-input ra-input--no-icon ${errors.detallesItems?.[index]?.refId ? 'ra-input--error' : ''}`}
-                      placeholder={loadingRef ? 'Cargando...' : 'Buscar referencia...'}
+                      placeholder={loadingRef ? 'Cargando...' : (item.refId ? '✓ Referencia seleccionada' : 'Escribe o haz clic para buscar...')}
                       value={item.busqueda}
                       onChange={(e) => handleItemChange(index, 'busqueda', e.target.value)}
+                      onFocus={() => handleItemChange(index, 'focus', true)}
+                      onBlur={() => setTimeout(() => handleItemChange(index, 'focus', false), 200)}
                       disabled={loadingRef}
                       autoComplete="off"
                     />
-                    {item.busqueda && (referencias[item.tipo] || [])
-                      .filter(r => r.nombre.toLowerCase().includes(item.busqueda.toLowerCase()))
-                      .length > 0 && (
-                      <ul className="ra-autocomplete-dropdown">
-                        {(referencias[item.tipo] || [])
-                          .filter(r => r.nombre.toLowerCase().includes(item.busqueda.toLowerCase()))
-                          .slice(0, 20)
-                          .map(ref => (
-                            <li
-                              key={ref.id}
-                              className="ra-autocomplete-item"
-                              onClick={() => {
-                                handleItemChange(index, 'refId', ref.id);
-                                handleItemChange(index, 'busqueda', ref.nombre);
-                              }}
-                            >
-                              {ref.nombre}
-                            </li>
-                          ))}
-                      </ul>
+                    {item.focus && !loadingRef && (
+                      <>
+                        {(referencias[item.tipo] || []).filter(r =>
+                          !item.busqueda || r.nombre.toLowerCase().includes(item.busqueda.toLowerCase())
+                        ).length > 0 ? (
+                          <ul className="ra-autocomplete-dropdown">
+                            {(referencias[item.tipo] || []).filter(r =>
+                              !item.busqueda || r.nombre.toLowerCase().includes(item.busqueda.toLowerCase())
+                            ).slice(0, 20).map(ref => (
+                              <li
+                                key={ref.id}
+                                className={`ra-autocomplete-item ${ref.id === item.refId ? 'ra-autocomplete-item--active' : ''}`}
+                                onClick={() => {
+                                  handleItemChange(index, 'refId', ref.id);
+                                  handleItemChange(index, 'busqueda', ref.nombre);
+                                }}
+                              >
+                                {ref.nombre}
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <div className="ra-autocomplete-empty">
+                            <i className="ti ti-search-off" /> Sin resultados para "{item.busqueda}"
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                   {errors.detallesItems?.[index]?.refId && (
@@ -266,7 +276,7 @@ const RegisterAbastecimiento = ({ isOpen, onClose, proveedores = [], onSave }) =
 
                 <div className="ra-group ra-group--cant">
                   <label className="ra-label">Cantidad <span className="ra-required">*</span></label>
-                  <input type="number" min="1" max="999999"
+                  <input type="number" min="1" max="100"
                     className={`ra-input ra-input--no-icon ${errors.detallesItems?.[index]?.cantidad ? 'ra-input--error' : ''}`}
                     placeholder="0" value={item.cantidad}
                     onChange={(e) => handleItemChange(index, 'cantidad', e.target.value)} />

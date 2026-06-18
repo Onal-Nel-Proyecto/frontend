@@ -54,6 +54,7 @@ const mapperProducto = (p) => ({
   ref: p.referencia || p.id || '—',
   descripcion: p.descripcion || '—',
   tipo_prenda: p.tipoPrenda || '—',
+  categoria: p.categoria || '—',
   genero: p.genero || '—',
   talla: p.talla || '—',
   price: Number(p.precioUnitario || 0),
@@ -289,8 +290,27 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
     }
   }, [])
 
-  useEffect(() => { loadMateriales() }, [loadMateriales])
-  useEffect(() => { loadProductos() }, [loadProductos])
+  // Debounce para búsqueda (evita llamadas API en cada tecla)
+  const debouncedMatSearch = useDebounce(matFilters.search, 500)
+  const debouncedProdSearch = useDebounce(prodFilters.search, 500)
+
+  // Recargar materiales al cambiar filtros (búsqueda debounced, estado/categoría inmediato)
+  useEffect(() => {
+    const params = { limite: 100 }
+    if (matFilters.search) params.nombre = matFilters.search
+    if (matFilters.status) params.estado = matFilters.status === 'disponible' ? 1 : matFilters.status === 'agotado' ? 2 : 0
+    if (matFilters.category) params.tipoMaterial = matFilters.category
+    loadMateriales(params)
+  }, [loadMateriales, debouncedMatSearch, matFilters.status, matFilters.category])
+
+  // Recargar productos al cambiar filtros
+  useEffect(() => {
+    const params = { limite: 100 }
+    if (prodFilters.search) params.nombre = prodFilters.search
+    if (prodFilters.status) params.estado = prodFilters.status === 'disponible' ? 1 : prodFilters.status === 'agotado' ? 2 : 0
+    if (prodFilters.category) params.categoria = prodFilters.category
+    loadProductos(params)
+  }, [loadProductos, debouncedProdSearch, prodFilters.status, prodFilters.category])
 
   /* ── Handlers Materiales ── */
   /** Abre el drawer para crear un nuevo material */
@@ -337,6 +357,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
       setShowDrawerMat(false)
       setEditingMaterial(null)
       await loadMateriales()
+      setAlertState({ type: 'success', title: 'Éxito', message: 'Material guardado correctamente', onClose: () => setAlertState(null) })
     } catch (err) {
       setAlertState({ type: 'error', title: 'Error al guardar', message: err?.response?.data?.message || err?.message, onClose: () => setAlertState(null) })
     }
@@ -391,6 +412,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
       setShowDrawerProd(false)
       setEditingProduct(null)
       await loadProductos()
+      setAlertState({ type: 'success', title: 'Éxito', message: 'Producto guardado correctamente', onClose: () => setAlertState(null) })
     } catch (err) {
       setAlertState({ type: 'error', title: 'Error al guardar', message: err?.response?.data?.message || err?.message, onClose: () => setAlertState(null) })
     }
