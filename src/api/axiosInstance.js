@@ -65,6 +65,11 @@ axiosInstance.interceptors.response.use(
       return Promise.reject(error);
     }
 
+    // Si es la petición de login, no intentar refresh — pasar el error directo
+    if (originalRequest.url === AUTH_ENDPOINTS.LOGIN) {
+      return Promise.reject(error);
+    }
+
     // Token expirado → intentar refrescar
     if (error.response?.status === 401) {
 

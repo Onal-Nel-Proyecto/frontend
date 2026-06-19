@@ -154,6 +154,12 @@
   color: var(--text-muted);
 }
 
+.totalPrice {
+  font-size: var(--text-md);
+  color: var(--accent-emerald);
+  font-weight: 700;
+}
+
 /* ── Sub-páginas ── */
 
 /* ── Observación ── */
@@ -237,6 +243,12 @@
 .subTabActive::after {
   background: var(--text-muted);
   transform: scaleX(1);
+}
+
+.subTabDisabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 /* ── Contenido general ── */
@@ -608,6 +620,12 @@
 .cellQty {
   white-space: nowrap;
   font-weight: 600;
+}
+
+.cellPrice {
+  white-space: nowrap;
+  font-weight: 600;
+  color: var(--accent-emerald);
 }
 
 /* ── Badge de producción ── */

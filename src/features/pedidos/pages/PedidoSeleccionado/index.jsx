@@ -5,7 +5,7 @@
 // ================================================================
 
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate, Outlet, NavLink } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, Outlet, NavLink } from 'react-router-dom';
 import { FiArrowLeft, FiEdit2, FiXCircle } from 'react-icons/fi';
 import { useDocumentTitle } from '../../../../hooks/useDocumentTitle';
 import { getPedidoById } from '../../services/pedidosService';
@@ -130,6 +130,15 @@ const PedidoSeleccionado = () => {
     return () => { cancel = true; };
   }, [id]);
 
+  // ── Redirigir desde /pagos si precio_total es inválido ──
+  useEffect(() => {
+    if (!pedido) return;
+    const precioTotal = Number(pedido.precio_total ?? pedido.total_general ?? 0);
+    if (precioTotal <= 0 && location.pathname.endsWith('/pagos')) {
+      navigate(`/pedidos/${id}`, { replace: true });
+    }
+  }, [pedido, location.pathname, navigate, id]);
+
   if (loading) {
     return <div className={styles.placeholder}>Cargando pedido…</div>;
   }
@@ -139,6 +148,8 @@ const PedidoSeleccionado = () => {
   }
 
   const st = statusConfig[pedido.estado?.toUpperCase()] || {};
+  const precioTotal = Number(pedido.precio_total ?? pedido.total_general ?? 0);
+  const precioValido = precioTotal > 0;
   const fecha = pedido.fecha_entrega || pedido.fecha_estimada_entrega;
 
   return (
@@ -185,6 +196,9 @@ const PedidoSeleccionado = () => {
           <span className={styles.cliente}>
             {pedido.cliente?.cliente_nombres || 'Cliente no especificado'}
           </span>
+          <span className={styles.totalPrice}>
+            <strong>Total:</strong> ${precioTotal.toLocaleString()}
+          </span>
           <span className={styles.fecha}>
             {pedido.fecha_entrega ? 'Fecha de entrega:' : 'Fecha estimada:'}{' '}
             {fecha || '—'}
@@ -195,18 +209,28 @@ const PedidoSeleccionado = () => {
       {/* ── Sub-páginas ── */}
       <nav className={styles.subNav}>
         <div className={styles.subNavInner}>
-          {subPages.map((tab) => (
-            <NavLink
-              key={tab.to}
-              to={tab.to}
-              end={tab.to === ''}
-              className={({ isActive }) =>
-                `${styles.subTab} ${isActive ? styles.subTabActive : ''}`
-              }
-            >
-              {tab.label}
-            </NavLink>
-          ))}
+          {subPages.map((tab) => {
+            const isPagosTab = tab.to === 'pagos';
+            if (isPagosTab && !precioValido) {
+              return (
+                <span key={tab.to} className={`${styles.subTab} ${styles.subTabDisabled}`}>
+                  {tab.label}
+                </span>
+              );
+            }
+            return (
+              <NavLink
+                key={tab.to}
+                to={tab.to}
+                end={tab.to === ''}
+                className={({ isActive }) =>
+                  `${styles.subTab} ${isActive ? styles.subTabActive : ''}`
+                }
+              >
+                {tab.label}
+              </NavLink>
+            );
+          })}
         </div>
       </nav>
 

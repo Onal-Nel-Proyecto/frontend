@@ -72,6 +72,8 @@ input, textarea, select {
   font-size: inherit;
 }
 
+
+
 /* ── Focus global para campos de formulario ── */
 input:focus,
 textarea:focus,

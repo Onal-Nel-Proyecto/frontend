@@ -184,7 +184,8 @@ const TablaMedidas = ({ onEditar }) => {
   const filtered = medidas.filter(
     (m) =>
       (m.med_nom || m.nombre || '')?.toLowerCase().includes(search.toLowerCase()) ||
-      (m.med_desc || m.descripcion || '')?.toLowerCase().includes(search.toLowerCase())
+      (m.med_desc || m.descripcion || '')?.toLowerCase().includes(search.toLowerCase()) ||
+      (m.med_tipo || m.tipo_medida || '')?.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleStatusConfirm = async () => {
@@ -292,15 +293,16 @@ const TablaMedidas = ({ onEditar }) => {
               <th>ID</th>
               <th>NOMBRE</th>
               <th>DESCRIPCIÓN</th>
+              <th>TIPO</th>
               <th>ESTADO</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={5} className={styles.loadingText}>Cargando medidas…</td></tr>
+              <tr><td colSpan={6} className={styles.loadingText}>Cargando medidas…</td></tr>
             ) : filtered.length === 0 ? (
-              <tr><td colSpan={5} className={styles.loadingText}>No se encontraron medidas</td></tr>
+              <tr><td colSpan={6} className={styles.loadingText}>No se encontraron medidas</td></tr>
             ) : (
               filtered.map((row) => {
                 const st = statusMap[row.med_est || row.estado] || {};
@@ -309,6 +311,7 @@ const TablaMedidas = ({ onEditar }) => {
                     <td className={styles.cellId}>{row.med_id || row.id}</td>
                     <td className={styles.cellName}>{row.med_nom || row.nombre}</td>
                     <td className={styles.cellDesc}>{row.med_desc || row.descripcion || '—'}</td>
+                    <td className={styles.cellTipo}>{row.med_tipo || row.tipo_medida || '—'}</td>
                     <td>
                       <span className={`${styles.badge} ${styles[st.className] || ''}`}>
                         {st.label || row.med_est || row.estado}
@@ -347,6 +350,7 @@ const TablaMedidas = ({ onEditar }) => {
                   </div>
                   <p className={styles.mobileName}>{row.med_nom || row.nombre}</p>
                   <p className={styles.mobileDesc}>{row.med_desc || row.descripcion || '—'}</p>
+                  <p className={styles.mobileTipo}><strong>Tipo:</strong> {row.med_tipo || row.tipo_medida || '—'}</p>
                   <div className={styles.mobileActions}>
                     <button className={styles.mobileActionBtn} onClick={() => onEditar(row)}>
                       <FiEdit2 /> Editar

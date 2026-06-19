@@ -5,10 +5,12 @@
 // ================================================================
 
 import { useState, useEffect, useCallback } from 'react';
-import { FiDollarSign, FiCalendar, FiUser, FiCheckCircle } from 'react-icons/fi';
-import { getPagosByVenta, createPagoVenta } from '../../../pedidos/services/pagosService';
+import { FiDollarSign, FiXCircle, FiCheckCircle, FiAlertTriangle } from 'react-icons/fi';
+import { getPagosByVenta, createPagoVenta, rechazarPago } from '../../../../services/pagosService';
 import { getStoredUser } from '../../../../utils/session';
+import { formatDate } from '../../../../utils/format';
 import LoadingOverlay from '../../../../components/ui/feedback/LoadingOverlay';
+import Alert from '../../../../components/ui/feedback/Alert';
 import styles from './pagos-venta.module.css';
 
 // ── Constantes ──────────────────────────────────────────
@@ -17,21 +19,30 @@ const METODOS_PAGO = [
   { id: 'efectivo',     label: 'Efectivo',     icono: 'ti ti-cash' },
   { id: 'transferencia',label: 'Transferencia',icono: 'ti ti-building-bank' },
   { id: 'tarjeta',      label: 'Tarjeta',      icono: 'ti ti-credit-card' },
-  { id: 'nequi',        label: 'Nequi',        icono: 'ti ti-device-mobile' },
-  { id: 'daviplata',    label: 'Daviplata',    icono: 'ti ti-device-mobile-vibration' },
-  { id: 'otro',         label: 'Otro',         icono: 'ti ti-circle-dashed' },
 ];
 
 const fmtCOP = (val) =>
   Number(val || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
 
+// Mapeo de métodos de pago (backend → frontend)
+const METHOD_MAP = {
+  EFECTIVO:       { id: 'efectivo',      label: 'Efectivo',      icono: 'ti ti-cash' },
+  TRANSFERENCIA:  { id: 'transferencia', label: 'Transferencia', icono: 'ti ti-building-bank' },
+  TARJETA:        { id: 'tarjeta',       label: 'Tarjeta',       icono: 'ti ti-credit-card' },
+};
+
 const methodClassMap = {
   efectivo:      styles.methodEfectivo,
   transferencia: styles.methodTransferencia,
   tarjeta:       styles.methodTarjeta,
-  nequi:         styles.methodNequi,
-  daviplata:     styles.methodDaviplata,
-  otro:          styles.methodOtro,
+};
+
+// Mapeo de estados
+const STATUS_MAP = {
+  COMPLETADO: { label: 'Completado', className: 'statusCompletado' },
+  RECHAZADO:  { label: 'Rechazado',  className: 'statusRechazado' },
+  PENDIENTE:  { label: 'Pendiente',  className: 'statusPendiente' },
+  ANULADO:    { label: 'Anulado',    className: 'statusAnulado' },
 };
 
 // ── Componente principal ────────────────────────────────
@@ -49,16 +60,21 @@ const PagosVenta = ({ venta, onPagoRegistrado }) => {
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
 
+  // Estado para anular pago
+  const [anularTarget, setAnularTarget] = useState(null);
+  const [anulando, setAnulando] = useState(false);
+
   const [form, setForm] = useState({
     monto: '',
     metodo: '',
-    metodo_otro: '',
-    fecha: new Date().toISOString().split('T')[0],
-    notas: '',
   });
 
-  // Cálculos
-  const totalPagado = pagos.reduce((sum, p) => sum + Number(p.monto || 0), 0);
+  // Cálculos — excluir pagos rechazados/anulados
+  const totalPagado = pagos.reduce((sum, p) => {
+    const estado = (p.estado || 'COMPLETADO').toUpperCase();
+    if (estado === 'RECHAZADO' || estado === 'ANULADO') return sum;
+    return sum + Number(p.monto || 0);
+  }, 0);
   const saldoRestante = Math.max(0, totalVenta - totalPagado);
   const pctPagado = totalVenta > 0 ? Math.min((totalPagado / totalVenta) * 100, 100) : 0;
   const estaPagadoCompleto = totalPagado >= totalVenta && totalVenta > 0;
@@ -67,19 +83,35 @@ const PagosVenta = ({ venta, onPagoRegistrado }) => {
   const loadPagos = useCallback(async () => {
     setLoading(true);
     try {
-      const ventaId = venta.pedido_id || venta.id;
-      const data = await getPagosByVenta(ventaId);
-      setPagos(data);
+      const data = await getPagosByVenta(venta.id);
+      setPagos(data?.pagos || []);
     } catch {
       // silencio
     } finally {
       setLoading(false);
     }
-  }, [venta.pedido_id, venta.id]);
+  }, [venta.id]);
 
   useEffect(() => {
     loadPagos();
   }, [loadPagos]);
+
+  // ── Anular pago ──
+  const handleAnularPago = useCallback(async () => {
+    if (!anularTarget) return;
+    setAnulando(true);
+    try {
+      await rechazarPago(anularTarget.pago_id);
+      setAnularTarget(null);
+      setSuccessMsg('Pago anulado correctamente');
+      await loadPagos();
+      setTimeout(() => setSuccessMsg(''), 3000);
+    } catch {
+      setErrors({ general: 'Error al anular el pago. Intenta de nuevo.' });
+    } finally {
+      setAnulando(false);
+    }
+  }, [anularTarget, loadPagos]);
 
   // ── Validación ──
   const validate = useCallback((values) => {
@@ -98,19 +130,22 @@ const PagosVenta = ({ venta, onPagoRegistrado }) => {
       errs.metodo = 'Selecciona un método de pago';
     }
 
-    if (values.metodo === 'otro' && !values.metodo_otro.trim()) {
-      errs.metodo_otro = 'Especifica el método de pago';
-    }
-
-    if (!values.fecha) {
-      errs.fecha = 'Selecciona la fecha del pago';
-    }
-
     return errs;
   }, [saldoRestante]);
 
   // ── Handlers ──
   const setField = (name, value) => {
+    if (name === 'monto') {
+      // Solo permitir dígitos — nada de letras (e), signos (-+), ni decimales (.)
+      value = value.replace(/\D/g, '');
+    }
+    // Auto-clamp monto al saldo restante
+    if (name === 'monto' && value) {
+      const num = Number(value);
+      if (num > saldoRestante) {
+        value = String(saldoRestante);
+      }
+    }
     setForm((prev) => ({ ...prev, [name]: value }));
     if (touched[name]) {
       const newForm = { ...form, [name]: value };
@@ -128,7 +163,7 @@ const PagosVenta = ({ venta, onPagoRegistrado }) => {
   const handleSubmit = async () => {
     const newErrors = validate(form);
     setErrors(newErrors);
-    setTouched({ monto: true, metodo: true, metodo_otro: true, fecha: true });
+    setTouched({ monto: true, metodo: true });
 
     if (Object.keys(newErrors).length > 0) return;
 
@@ -139,9 +174,7 @@ const PagosVenta = ({ venta, onPagoRegistrado }) => {
         ? `${user.nombres || ''} ${user.apellidos || ''}`.trim() || 'Admin'
         : 'Admin';
 
-      const ventaId = venta.pedido_id || venta.id;
-
-      await createPagoVenta(ventaId, {
+      await createPagoVenta(venta.id, {
         ...form,
         usuario: nombreUsuario,
       });
@@ -150,9 +183,6 @@ const PagosVenta = ({ venta, onPagoRegistrado }) => {
       setForm({
         monto: '',
         metodo: '',
-        metodo_otro: '',
-        fecha: new Date().toISOString().split('T')[0],
-        notas: '',
       });
       setErrors({});
       setTouched({});
@@ -208,7 +238,12 @@ const PagosVenta = ({ venta, onPagoRegistrado }) => {
           </div>
           <div className={styles.progressLabel}>
             <span>{pctPagado.toFixed(1)}% pagado</span>
-            <span className={styles.progressPct}>{pagos.length} pago{pagos.length !== 1 ? 's' : ''}</span>
+            <span className={styles.progressPct}>
+              {(() => {
+                const activos = pagos.filter(p => !['ANULADO', 'RECHAZADO'].includes(p.estado?.toUpperCase()));
+                return `${activos.length} pago${activos.length !== 1 ? 's' : ''}`;
+              })()}
+            </span>
           </div>
         </div>
       </section>
@@ -249,10 +284,8 @@ const PagosVenta = ({ venta, onPagoRegistrado }) => {
               <div className={`${styles.inputWrap} ${hasError('monto') ? styles.inputWrapErr : ''}`}>
                 <span className={styles.inputSign}>$</span>
                 <input
-                  type="number"
-                  step="1000"
-                  min="1"
-                  max={saldoRestante || 1}
+                  type="text"
+                  inputMode="numeric"
                   className={styles.formInput}
                   placeholder="0"
                   value={form.monto}
@@ -289,58 +322,6 @@ const PagosVenta = ({ venta, onPagoRegistrado }) => {
               {hasError('metodo') && <span className={styles.fieldError}>{errors.metodo}</span>}
             </div>
 
-            {form.metodo === 'otro' && (
-              <div className={styles.formField}>
-                <label className={styles.formLabel}>Especifica el método</label>
-                <div className={`${styles.inputWrap} ${hasError('metodo_otro') ? styles.inputWrapErr : ''}`}>
-                  <i className={`ti ti-edit ${styles.inputIcon}`} />
-                  <input
-                    type="text"
-                    maxLength="50"
-                    className={styles.formInput}
-                    placeholder="Ej: Mercado Pago, Cripto, etc."
-                    value={form.metodo_otro}
-                    onChange={(e) => setField('metodo_otro', e.target.value)}
-                    onBlur={() => handleBlur('metodo_otro')}
-                    disabled={isBlocked}
-                  />
-                </div>
-                {hasError('metodo_otro') && <span className={styles.fieldError}>{errors.metodo_otro}</span>}
-              </div>
-            )}
-
-            <div className={styles.formField}>
-              <label className={styles.formLabel}>Fecha del pago</label>
-              <div className={`${styles.inputWrap} ${hasError('fecha') ? styles.inputWrapErr : ''}`}>
-                <FiCalendar className={styles.inputIcon} />
-                <input
-                  type="date"
-                  className={styles.formInput}
-                  value={form.fecha}
-                  onChange={(e) => setField('fecha', e.target.value)}
-                  onBlur={() => handleBlur('fecha')}
-                  disabled={isBlocked}
-                />
-              </div>
-              {hasError('fecha') && <span className={styles.fieldError}>{errors.fecha}</span>}
-            </div>
-
-            <div className={`${styles.formField} ${styles.formFieldFull}`}>
-              <label className={styles.formLabel}>Notas (opcional)</label>
-              <div className={styles.inputWrap}>
-                <i className={`ti ti-notes ${styles.inputIcon}`} />
-                <input
-                  type="text"
-                  maxLength="255"
-                  className={styles.formInput}
-                  placeholder="Observaciones del pago..."
-                  value={form.notas}
-                  onChange={(e) => setField('notas', e.target.value)}
-                  disabled={isBlocked}
-                />
-              </div>
-            </div>
-
             {!isBlocked && (
               <div className={styles.formActions}>
                 <button
@@ -360,9 +341,6 @@ const PagosVenta = ({ venta, onPagoRegistrado }) => {
                     setForm({
                       monto: '',
                       metodo: '',
-                      metodo_otro: '',
-                      fecha: new Date().toISOString().split('T')[0],
-                      notas: '',
                     });
                     setErrors({});
                     setTouched({});
@@ -399,37 +377,57 @@ const PagosVenta = ({ venta, onPagoRegistrado }) => {
                   <th>Fecha</th>
                   <th>Método</th>
                   <th>Monto</th>
-                  <th>Registrado por</th>
                   <th>Estado</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
                 {[...pagos]
-                  .sort((a, b) => new Date(b.created_at || b.fecha) - new Date(a.created_at || a.fecha))
+                  .sort((a, b) => new Date(b.fecha_registro || b.fecha_creacion || b.created_at) - new Date(a.fecha_registro || a.fecha_creacion || a.created_at))
                   .map((pago) => {
-                    const metodo = METODOS_PAGO.find((m) => m.id === pago.metodo);
-                    const labelMetodo = pago.metodo === 'otro'
-                      ? (pago.metodo_otro || 'Otro')
-                      : (metodo?.label || pago.metodo);
+                    // Mapear método de pago (backend → frontend)
+                    const metodoKey = pago.metodo_pago || pago.metodo || '';
+                    const metodo = METHOD_MAP[metodoKey.toUpperCase()] || { id: metodoKey.toLowerCase(), label: metodoKey, icono: 'ti ti-circle-dashed' };
+
+                    // Formatear fecha
+                    const fechaRaw = pago.fecha_registro || pago.fecha || pago.created_at;
+                    const fechaStr = fechaRaw ? formatDate(fechaRaw) : '—';
+
+                    // Estado
+                    const estadoKey = pago.estado || 'COMPLETADO';
+                    const st = STATUS_MAP[estadoKey.toUpperCase()] || { label: estadoKey, className: 'statusCompletado' };
+
+                    const puedeAnular = estadoKey.toUpperCase() === 'COMPLETADO';
+
                     return (
-                      <tr key={pago.pago_id}>
-                        <td className={styles.cellFecha}>{pago.fecha}</td>
+                      <tr key={pago.pago_id || pago.id}>
+                        <td className={styles.cellFecha}>{fechaStr}</td>
                         <td className={styles.cellMetodo}>
-                          <span className={`${styles.methodBadge} ${methodClassMap[pago.metodo] || styles.methodOtro}`}>
-                            <i className={metodo?.icono || 'ti ti-circle-dashed'} />
-                            {labelMetodo}
+                          <span className={`${styles.methodBadge} ${methodClassMap[metodo.id] || styles.methodOtro}`}>
+                            <i className={metodo.icono} />
+                            {metodo.label}
                           </span>
                         </td>
                         <td className={styles.cellMonto}>{fmtCOP(pago.monto)}</td>
-                        <td className={styles.cellUsuario}>
-                          <FiUser style={{ marginRight: 4, verticalAlign: 'middle' }} />
-                          {pago.usuario || '—'}
-                        </td>
                         <td className={styles.cellStatus}>
-                          <span className={styles.statusCompletado}>
-                            <FiCheckCircle size={12} />
-                            Completado
+                          <span className={styles[st.className] || styles.statusCompletado}>
+                            {estadoKey.toUpperCase() === 'COMPLETADO' ? <FiCheckCircle size={12} /> :
+                             estadoKey.toUpperCase() === 'RECHAZADO' ? <FiXCircle size={12} /> :
+                             <FiAlertTriangle size={12} />}
+                            {st.label}
                           </span>
+                        </td>
+                        <td>
+                          {puedeAnular && (
+                            <button
+                              className={styles.btnAnular}
+                              onClick={(e) => { e.stopPropagation(); setAnularTarget(pago); }}
+                              title="Anular pago"
+                            >
+                              <FiXCircle size={13} />
+                              Anular
+                            </button>
+                          )}
                         </td>
                       </tr>
                     );
@@ -449,6 +447,19 @@ const PagosVenta = ({ venta, onPagoRegistrado }) => {
           </div>
         )}
       </section>
+
+      {/* Confirmación anular pago */}
+      {anularTarget && (
+        <Alert
+          type="confirm"
+          title="¿Anular este pago?"
+          message={`Se anulará el pago de ${fmtCOP(anularTarget.monto)}. Esta acción no se puede deshacer.`}
+          onCancel={() => setAnularTarget(null)}
+          onConfirm={handleAnularPago}
+        />
+      )}
+
+      {anulando && <LoadingOverlay title="Anulando pago…" message="Procesando la solicitud" />}
     </div>
   );
 };

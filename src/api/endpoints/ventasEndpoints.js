@@ -11,6 +11,9 @@ export const VENTAS_ENDPOINTS = {
   /** PATCH /ventas/:id/estado — cambiar estado */
   CHANGE_STATUS: (id) => `/ventas/${id}/estado`,
 
+  /** DELETE /ventas/:id — anular/eliminar venta */
+  DELETE: (id) => `/ventas/${id}`,
+
   /** GET /ventas/reportes/mensual?mes=&anio= */
   REPORTE_MENSUAL: "/ventas/reportes/mensual",
 

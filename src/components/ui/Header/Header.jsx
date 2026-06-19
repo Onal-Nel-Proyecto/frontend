@@ -37,7 +37,7 @@ const Header = ({ onMenuClick }) => {
 
       <div className={styles.actions}>
         <NotificationsDropdown />
-        <HeaderButton icon={<FiHelpCircle />} title="Ayuda / Help" />
+        <HeaderButton icon={<FiHelpCircle />} title="Ayuda / Help" onClick={() => window.open('https://manuales-tecnico-usuario-pyt-onal-n.vercel.app/usuario/primeros-pasos', '_blank')} />
         <HeaderButton
           icon={theme === 'light' ? <FiMoon /> : <FiSun />}
           title={theme === 'light' ? 'Modo oscuro' : 'Modo claro'}

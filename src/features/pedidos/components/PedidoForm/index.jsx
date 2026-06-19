@@ -11,9 +11,9 @@ import Drawer from '../../../../components/common/Drawer';
 import Alert from '../../../../components/ui/feedback/Alert';
 import LoadingOverlay from '../../../../components/ui/feedback/LoadingOverlay';
 import ClienteSearch from '../ClienteSearch';
-import NewClientPanel from '../../../../page/RegisterClient';
+import NewClientPanel from '../../../../features/Clientes/pages/RegisterClient';
 import { createPedido, updatePedido } from '../../services/pedidosService';
-import { createCliente } from '../../../../api/clientesService';
+import { createCliente } from '../../../../features/Clientes/services/clientesService';
 import { getServerDate } from '../../../../utils/serverDate';
 import styles from './PedidoForm.module.css';
 
@@ -209,6 +209,13 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
     return local.toISOString().split('T')[0];
   });
 
+  const maxDate = (() => {
+    const d = new Date();
+    d.setFullYear(d.getFullYear() + 1);
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().split('T')[0];
+  })();
+
   useEffect(() => {
     getServerDate().then(setMinDate);
   }, [isOpen]);
@@ -297,23 +304,47 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
                 className={styles.input}
                 value={form.fecha_entrega_estimada}
                 onChange={handleChange}
-                min={minDate} />
+                min={minDate}
+                max={(() => {
+                  const d = new Date();
+                  d.setFullYear(d.getFullYear() + 1);
+                  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+                  return d.toISOString().split('T')[0];
+                })()}
+                onBlur={() => {
+                  if (!form.fecha_entrega_estimada) return;
+                  const selected = form.fecha_entrega_estimada;
+                  if (selected < minDate) {
+                    setForm((p) => ({ ...p, fecha_entrega_estimada: minDate }));
+                  } else {
+                    const d = new Date();
+                    d.setFullYear(d.getFullYear() + 1);
+                    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+                    const maxStr = d.toISOString().split('T')[0];
+                    if (selected > maxStr) {
+                      setForm((p) => ({ ...p, fecha_entrega_estimada: maxStr }));
+                    }
+                  }
+                }} />
             </div>
           </div>
 
           <div className={styles.field}>
             <label className={styles.label}>Recordatorio</label>
             <div className={styles.switchRow}>
-              <label className={styles.switch}>
+              <label className={styles.switch} style={{ opacity: !form.fecha_entrega_estimada ? 0.5 : 1 }}>
                 <input
                   type="checkbox"
+                  disabled={!form.fecha_entrega_estimada}
                   checked={form.recordatorio_activo}
                   onChange={() => setForm((p) => ({ ...p, recordatorio_activo: !p.recordatorio_activo }))} />
                 <span className={styles.slider} />
               </label>
               <span
                 className={styles.switchLabel}>
-                {form.recordatorio_activo ? 'Activado' : 'Desactivado'}
+                {!form.fecha_entrega_estimada
+                  ? 'Selecciona una fecha de entrega primero'
+                  : form.recordatorio_activo ? 'Activado' : 'Desactivado'}
               </span>
             </div>
             {form.recordatorio_activo && (

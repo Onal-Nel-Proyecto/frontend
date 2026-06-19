@@ -29,8 +29,8 @@ import {
   exportReporteMensualExcel,
   exportReportePeriodoPDF,
   exportReportePeriodoExcel,
-} from '../../../../api/ventasService';
-import { formatCurrency, pad } from '../../../../utils/format';
+} from '../../services/ventasService';
+import { formatCurrency, formatDate, pad } from '../../../../utils/format';
 import styles from './reportes.module.css';
 
 // ═══════════════════════════════════════════════════════════════
@@ -164,10 +164,8 @@ const ReportesVentas = () => {
       // Mostrar como "dia/mes" → ej. "01/07"
       label = `${pad(item.dia)}/${pad(mes)}`;
     } else if (item.fecha) {
-      // Período: el backend retorna { fecha: "2026-05-01", totalDia: … }
-      // Mostrar fecha completa → ej. "01/05/2026"
-      const [y, m, d] = item.fecha.split('-');
-      label = `${pad(d)}/${pad(m)}/${y}`;
+      // Período: el backend retorna { fecha: "2026-05-13T05:00:00.000Z", totalDia: … }
+      label = formatDate(item.fecha);
     } else {
       label = '';
     }

@@ -10,8 +10,8 @@ import PublicRoute from "./publicRoute";
 import AdminRoute from "./adminRoute";
 import NotFound from "../page/NotFount";
 import MainLayout from "../layout/MainLayout/mainLayout";
-import ClientDirectory from "../page/ClientDirectory";
-import VentaSeleccionada from "../features/ventas/pages/VentaSeleccionada";
+import ClientDirectory from "../features/Clientes/pages/ClientDirectory";
+import VentaSeleccionada from "../features/Ventas/pages/VentaSeleccionada";
 import Pedidos from "../features/pedidos/pages/Pedidos";
 import PedidoSeleccionado from "../features/pedidos/pages/PedidoSeleccionado";
 import DetallePedido from "../features/pedidos/components/DetallePedido";
@@ -24,12 +24,12 @@ import Entregas from "../features/pedidos/pages/Entregas";
 // ─── Rutas pesadas → lazy loading ───
 const DashboardPedidos = lazy(() => import("../features/pedidos/pages/Dashboard"));
 const GestionPersonal = lazy(() => import("../page/GestionPersonal"));
-const InventarioPage = lazy(() => import("../page/Inventario/InventarioPage"));
-const VentasPage = lazy(() => import("../page/Ventas/VentasPage"));
+const InventarioPage = lazy(() => import("../features/Inventario/pages/InventarioPage"));
+const VentasPage = lazy(() => import("../features/Ventas/pages/VentasPage"));
 const Config = lazy(() => import("../page/Config"));
 const CategoriaPage = lazy(() => import("../page/categoria/CategoriaPage"));
 const MedidasPage = lazy(() => import("../page/medidas/MedidasPage"));
-const ReportesVentas = lazy(() => import("../features/ventas/pages/Reportes"));
+const ReportesVentas = lazy(() => import("../features/Ventas/pages/Reportes"));
 
 const LoadingFallback = () => (
   <div style={{ padding: '2rem' }}>
@@ -58,7 +58,7 @@ const AppRoutes = () => {
           <Route path="/dashboard" element={<Home />} />
 
           {/* Clientes */}
-          <Route path="/gestion-clientes" element={<ClientDirectory />} />
+          <Route path="/gestion-personal/clientes" element={<ClientDirectory />} />
 
           {/* Pedidos */}
           <Route path="/pedidos/dash" element={<DashboardPedidos />} />
@@ -87,7 +87,7 @@ const AppRoutes = () => {
         {/* RUTAS SOLO ADMIN */}
         <Route element={<AdminRoute />}>
         <Route path="/" element={<MainLayout />}>
-          <Route path="/gestion-usuarios" element={<GestionUsuarios />} />
+          <Route path="/gestion-personal/usuarios" element={<GestionUsuarios />} />
           <Route path="/config" element={<Config />} />
           <Route path="/ventas/reportes" element={<ReportesVentas />} />
           <Route path="/config/categorias" element={<CategoriaPage />} />

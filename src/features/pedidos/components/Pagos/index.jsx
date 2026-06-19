@@ -6,10 +6,12 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { FiDollarSign, FiPlus, FiUser, FiCheckCircle } from 'react-icons/fi';
-import { getPagosByPedido, createPagoPedido } from '../../services/pagosService';
+import { FiDollarSign, FiXCircle, FiCheckCircle, FiAlertTriangle } from 'react-icons/fi';
+import { getPagosByPedido, createPagoPedido, rechazarPago } from '../../../../services/pagosService';
 import { getStoredUser } from '../../../../utils/session';
+import { formatDate } from '../../../../utils/format';
 import LoadingOverlay from '../../../../components/ui/feedback/LoadingOverlay';
+import Alert from '../../../../components/ui/feedback/Alert';
 import styles from './pagos.module.css';
 
 // ── Constantes ──────────────────────────────────────────
@@ -23,10 +25,25 @@ const METODOS_PAGO = [
 const fmtCOP = (val) =>
   Number(val || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
 
+// Mapeo de métodos de pago (backend → frontend)
+const METHOD_MAP = {
+  EFECTIVO:       { id: 'efectivo',      label: 'Efectivo',      icono: 'ti ti-cash' },
+  TRANSFERENCIA:  { id: 'transferencia', label: 'Transferencia', icono: 'ti ti-building-bank' },
+  TARJETA:        { id: 'tarjeta',       label: 'Tarjeta',       icono: 'ti ti-credit-card' },
+};
+
 const methodClassMap = {
   efectivo:      styles.methodEfectivo,
   transferencia: styles.methodTransferencia,
   tarjeta:       styles.methodTarjeta,
+};
+
+// Mapeo de estados
+const STATUS_MAP = {
+  COMPLETADO: { label: 'Completado', className: 'statusCompletado' },
+  RECHAZADO:  { label: 'Rechazado',  className: 'statusRechazado' },
+  PENDIENTE:  { label: 'Pendiente',  className: 'statusPendiente' },
+  ANULADO:    { label: 'Anulado',    className: 'statusAnulado' },
 };
 
 // ── Componente principal ────────────────────────────────
@@ -35,8 +52,9 @@ const Pagos = () => {
   const { pedido } = useOutletContext();
   const user = getStoredUser();
 
-  // Datos del pedido
-  const totalGeneral = Number(pedido.total_general) || 0;
+  // Datos del pedido — prioriza precio_total (campo principal del backend)
+  const totalGeneral = Number(pedido.precio_total ?? pedido.total_general ?? 0);
+  
   const detalles = pedido.detalles_pedido || [];
   const ventaId = pedido.venta_id || null;
 
@@ -47,11 +65,16 @@ const Pagos = () => {
 
   // ── State ──
   const [pagos, setPagos] = useState([]);
+  const [resumen, setResumen] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
+
+  // Estado para anular pago
+  const [anularTarget, setAnularTarget] = useState(null);
+  const [anulando, setAnulando] = useState(false);
 
   // Formulario
   const [form, setForm] = useState({
@@ -59,18 +82,28 @@ const Pagos = () => {
     metodo: '',
   });
 
-  // Cálculos
-  const totalPagado = pagos.reduce((sum, p) => sum + Number(p.monto || 0), 0);
-  const saldoRestante = Math.max(0, totalCalculado - totalPagado);
-  const pctPagado = totalCalculado > 0 ? Math.min((totalPagado / totalCalculado) * 100, 100) : 0;
-  const estaPagadoCompleto = totalPagado >= totalCalculado && totalCalculado > 0;
+  // Cálculos — usa resumen del backend solo para pagos registrados,
+  // el total siempre del pedido (evita que una venta asociada
+  // con distinto total sobreescriba el valor)
+  const totalPagado = resumen ? Number(resumen.total_pagado || 0) : pagos.reduce((sum, p) => sum + Number(p.monto || 0), 0);
+  const totalBackend = totalCalculado;
+  const saldoRestante = Math.max(0, totalBackend - totalPagado);
+  const pctPagado = totalBackend > 0 ? Math.min((totalPagado / totalBackend) * 100, 100) : 0;
+  const estaPagadoCompleto = totalPagado >= totalBackend && totalBackend > 0;
+
+  // Verificar si el pedido tiene precio definido
+  const precioTotal = Number(pedido.precio_total ?? pedido.total_general ?? 0);
+  const sinPrecio = precioTotal <= 0;
 
   // ── Cargar pagos ──
   const loadPagos = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await getPagosByPedido(pedido.pedido_id, ventaId);
-      setPagos(Array.isArray(data) ? data : []);
+      const result = await getPagosByPedido(pedido.pedido_id, ventaId);
+      setPagos(result.pagos || []);
+      if (result.resumen) {
+        setResumen(result.resumen);
+      }
     } catch {
       // silencio
     } finally {
@@ -81,6 +114,23 @@ const Pagos = () => {
   useEffect(() => {
     loadPagos();
   }, [loadPagos]);
+
+  // ── Anular pago ──
+  const handleAnularPago = useCallback(async () => {
+    if (!anularTarget) return;
+    setAnulando(true);
+    try {
+      await rechazarPago(anularTarget.pago_id);
+      setAnularTarget(null);
+      setSuccessMsg('Pago anulado correctamente');
+      await loadPagos();
+      setTimeout(() => setSuccessMsg(''), 3000);
+    } catch {
+      setErrors({ general: 'Error al anular el pago. Intenta de nuevo.' });
+    } finally {
+      setAnulando(false);
+    }
+  }, [anularTarget, loadPagos]);
 
   // ── Validación ──
   const validate = useCallback((values) => {
@@ -104,6 +154,10 @@ const Pagos = () => {
 
   // ── Handlers ──
   const setField = (name, value) => {
+    if (name === 'monto') {
+      // Solo permitir dígitos — nada de letras (e), signos (-+), ni decimales (.)
+      value = value.replace(/\D/g, '');
+    }
     // Auto-clamp monto al saldo restante
     if (name === 'monto' && value) {
       const num = Number(value);
@@ -162,7 +216,7 @@ const Pagos = () => {
 
   // ── Render ──
   const hasError = (field) => touched[field] && errors[field];
-  const isBlocked = estaPagadoCompleto;
+  const isBlocked = estaPagadoCompleto || sinPrecio;
 
   return (
     <div className={styles.pagosContent}>
@@ -176,7 +230,7 @@ const Pagos = () => {
         <div className={styles.resumenGrid}>
           <div className={styles.resumenItem}>
             <span className={styles.resumenLabel}>Total del pedido</span>
-            <span className={styles.resumenValue}>{fmtCOP(totalCalculado)}</span>
+            <span className={styles.resumenValue}>{fmtCOP(totalBackend)}</span>
           </div>
           <div className={styles.resumenItem}>
             <span className={styles.resumenLabel}>Total abonado</span>
@@ -196,7 +250,14 @@ const Pagos = () => {
           </div>
           <div className={styles.progressLabel}>
             <span>{pctPagado.toFixed(1)}% pagado</span>
-            <span className={styles.progressPct}>{pagos.length} pago{pagos.length !== 1 ? 's' : ''}</span>
+            <span className={styles.progressPct}>
+              {(() => {
+                const activos = pagos.filter(p => !['ANULADO', 'RECHAZADO'].includes(p.estado?.toUpperCase()));
+                console.log(activos);
+                
+                return `${activos.length} pago${activos.length !== 1 ? 's' : ''}`;
+              })()}
+            </span>
           </div>
         </div>
       </section>
@@ -211,8 +272,8 @@ const Pagos = () => {
         {isBlocked && (
           <div className={styles.blockedOverlay}>
             <div className={styles.blockedBadge}>
-              <FiCheckCircle />
-              Pedido pagado completamente
+              {sinPrecio ? <FiAlertTriangle /> : <FiCheckCircle />}
+              {sinPrecio ? 'El pedido no tiene un precio definido' : 'Pedido pagado completamente'}
             </div>
           </div>
         )}
@@ -238,10 +299,8 @@ const Pagos = () => {
               <div className={`${styles.inputWrap} ${hasError('monto') ? styles.inputWrapErr : ''}`}>
                 <span className={styles.inputSign}>$</span>
                 <input
-                  type="number"
-                  step="1000"
-                  min="1"
-                  max={saldoRestante || 1}
+                  type="text"
+                  inputMode="numeric"
                   className={styles.formInput}
                   placeholder="0"
                   value={form.monto}
@@ -327,7 +386,7 @@ const Pagos = () => {
           )}
         </h3>
 
-        {loading ? (
+        {loading && pagos.length === 0 ? (
           <LoadingOverlay title="Cargando pagos…" message="Obteniendo historial" />
         ) : pagos.length > 0 ? (
           <div className={styles.tableWrap}>
@@ -337,35 +396,57 @@ const Pagos = () => {
                   <th>Fecha</th>
                   <th>Método</th>
                   <th>Monto</th>
-                  <th>Registrado por</th>
                   <th>Estado</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>
                 {[...pagos]
-                  .sort((a, b) => new Date(b.created_at || b.fecha) - new Date(a.created_at || a.fecha))
+                  .sort((a, b) => new Date(b.fecha_registro || b.fecha_creacion || b.created_at) - new Date(a.fecha_registro || a.fecha_creacion || a.created_at))
                   .map((pago) => {
-                    const metodo = METODOS_PAGO.find((m) => m.id === pago.metodo);
-                    const labelMetodo = metodo?.label || pago.metodo;
+                    // Mapear método de pago (backend → frontend)
+                    const metodoKey = pago.metodo_pago || pago.metodo || '';
+                    const metodo = METHOD_MAP[metodoKey.toUpperCase()] || { id: metodoKey.toLowerCase(), label: metodoKey, icono: 'ti ti-circle-dashed' };
+
+                    // Formatear fecha
+                    const fechaRaw = pago.fecha_registro || pago.fecha || pago.created_at;
+                    const fechaStr = fechaRaw ? formatDate(fechaRaw) : '—';
+
+                    // Estado
+                    const estadoKey = pago.estado || 'COMPLETADO';
+                    const st = STATUS_MAP[estadoKey.toUpperCase()] || { label: estadoKey, className: 'statusCompletado' };
+
+                    const puedeAnular = estadoKey.toUpperCase() === 'COMPLETADO';
+
                     return (
                       <tr key={pago.pago_id || pago.id}>
-                        <td className={styles.cellFecha}>{pago.fecha}</td>
+                        <td className={styles.cellFecha}>{fechaStr}</td>
                         <td className={styles.cellMetodo}>
-                          <span className={`${styles.methodBadge} ${methodClassMap[pago.metodo] || styles.methodOtro}`}>
-                            <i className={metodo?.icono || 'ti ti-circle-dashed'} />
-                            {labelMetodo}
+                          <span className={`${styles.methodBadge} ${methodClassMap[metodo.id] || styles.methodOtro}`}>
+                            <i className={metodo.icono} />
+                            {metodo.label}
                           </span>
                         </td>
                         <td className={styles.cellMonto}>{fmtCOP(pago.monto)}</td>
-                        <td className={styles.cellUsuario}>
-                          <FiUser style={{ marginRight: 4, verticalAlign: 'middle' }} />
-                          {pago.usuario || '—'}
-                        </td>
                         <td className={styles.cellStatus}>
-                          <span className={styles.statusCompletado}>
-                            <FiCheckCircle size={12} />
-                            Completado
+                          <span className={styles[st.className] || styles.statusCompletado}>
+                            {estadoKey.toUpperCase() === 'COMPLETADO' ? <FiCheckCircle size={12} /> :
+                             estadoKey.toUpperCase() === 'RECHAZADO' ? <FiXCircle size={12} /> :
+                             <FiAlertTriangle size={12} />}
+                            {st.label}
                           </span>
+                        </td>
+                        <td>
+                          {puedeAnular && (
+                            <button
+                              className={styles.btnAnular}
+                              onClick={(e) => { e.stopPropagation(); setAnularTarget(pago); }}
+                              title="Anular pago"
+                            >
+                              <FiXCircle size={13} />
+                              Anular
+                            </button>
+                          )}
                         </td>
                       </tr>
                     );
@@ -385,6 +466,18 @@ const Pagos = () => {
           </div>
         )}
       </section>
+      {/* Confirmación anular pago */}
+      {anularTarget && (
+        <Alert
+          type="confirm"
+          title="¿Anular este pago?"
+          message={`Se anulará el pago de ${fmtCOP(anularTarget.monto)}. Esta acción no se puede deshacer.`}
+          onCancel={() => setAnularTarget(null)}
+          onConfirm={handleAnularPago}
+        />
+      )}
+
+      {anulando && <LoadingOverlay title="Anulando pago…" message="Procesando la solicitud" />}
     </div>
   );
 };

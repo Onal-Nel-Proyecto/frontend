@@ -14,6 +14,67 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* ── Action bar ── */
+.actionBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.25rem 0;
+  transition: color var(--transition-fast);
+  font-family: inherit;
+}
+
+.backBtn:hover {
+  color: var(--text-primary);
+}
+
+.backBtn svg {
+  font-size: 1rem;
+}
+
+.btnInvoice {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: var(--radius-xs);
+  background: var(--accent-gold-subtle);
+  color: var(--accent-gold);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: all var(--transition-base);
+  border: 1px solid rgba(201, 162, 61, 0.15);
+}
+
+.btnInvoice:hover {
+  background: var(--accent-gold);
+  color: #1a1a1a;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-gold);
+}
+
+.btnInvoice i {
+  font-size: 1rem;
+}
+
 .cardSection {
   background: var(--bg-glass);
   border: 1px solid var(--border-glass);

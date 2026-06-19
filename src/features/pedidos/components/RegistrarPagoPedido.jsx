@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { FiDollarSign } from 'react-icons/fi'
 import Drawer from '../../../../components/common/Drawer'
-import { createPagoPedido } from '../services/pagosService'
+import { createPagoPedido } from '../../../services/pagosService'
 import './RegistrarPagoPedido.css'
 
 const METODOS = [

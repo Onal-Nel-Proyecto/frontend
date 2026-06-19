@@ -235,14 +235,17 @@ const Entregas = () => {
               : '—',
             monto: Number(p.monto ?? p.monto_pagado ?? p.valor ?? 0),
             metodo: p.metodo || p.metodo_pago || '—',
+            estado: p.estado || p.estado_pago || 'COMPLETADO',
           }));
         }
       } catch {
         // Si falla la carga de pagos, mostrar sin pagos
       }
 
-      // 3. Calcular total pagado y saldo pendiente
-      const totalPagado = pagos.reduce((sum, p) => sum + Number(p.monto ?? 0), 0);
+      // 3. Calcular total pagado (solo COMPLETADO) y saldo pendiente
+      const totalPagado = pagos
+        .filter(p => (p.estado || 'COMPLETADO').toUpperCase() === 'COMPLETADO')
+        .reduce((sum, p) => sum + Number(p.monto ?? 0), 0);
 
       setSelectedEntrega((prev) => {
         const totalPedido = pedidoData.precio_total ?? pedidoData.total ?? prev.total ?? 0;
@@ -334,7 +337,7 @@ const Entregas = () => {
           <h2 className={styles.title}>Entregas</h2>
           <p className={styles.subtitle}>Historial de pedidos entregados y terminados</p>
         </div>
-        <button className={styles.btnNew} onClick={() => navigate('/pedidos')}>
+        <button className={styles.btnNew} onClick={() => navigate('/pedidos', { state: { openForm: true } })}>
           <FiPackage className={styles.btnIcon} />
           Nuevo Pedido
         </button>
@@ -537,7 +540,7 @@ const Entregas = () => {
                               <button className={styles.actionBtn} title="Ver detalle" onClick={() => verDetalle(entrega)}>
                                 <FiEye />
                               </button>
-                              <button className={styles.actionBtn} title={entrega.venta_id ? "Ver venta asociada" : "Ver pedido"} onClick={() => navigate(entrega.venta_id ? `/ventas/reportes` : `/pedidos/${idDisplay}`)}>
+                              <button className={styles.actionBtn} title={entrega.venta_id ? "Ver venta asociada" : "Ver pedido"} onClick={() => navigate(entrega.venta_id ? `/ventas/${entrega.venta_id}` : `/pedidos/${idDisplay}`)}>
                                 <FiExternalLink />
                               </button>
                               {entrega.estado === 'TERMINADO' && (
