@@ -447,6 +447,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
     try {
       await addAbastecimiento(data)
       setShowDrawerAbs(false)
+      setAlertState({ type: 'success', title: 'Éxito', message: 'Abastecimiento registrado correctamente', onClose: () => setAlertState(null) })
     } catch (err) {
       const msg = err?.response?.data?.error || err?.response?.data?.message || err?.message || 'Error desconocido'
       setAlertState({ type: 'error', title: 'Error al registrar', message: msg, onClose: () => setAlertState(null) })
