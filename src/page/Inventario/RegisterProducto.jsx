@@ -17,6 +17,8 @@ const validate = (form) => {
   else if (nom.length > 70) errs.nombre = 'Máximo 70 caracteres'
   else if (!SOLO_LETRAS.test(nom)) errs.nombre = 'Solo letras y espacios, sin números'
 
+  if (!form.tipoProducto) errs.tipoProducto = 'Selecciona el tipo de producto'
+
   const precioStr = form.precio?.toString().trim()
   if (precioStr === '') errs.precio = 'Ingresa un precio válido'
   else if (!/^\d+(\.\d{1,2})?$/.test(precioStr)) errs.precio = 'Solo números (máx 2 decimales)'
@@ -24,16 +26,6 @@ const validate = (form) => {
     const precio = parseFloat(precioStr)
     if (precio <= 0) errs.precio = 'El precio debe ser mayor a $0'
     else if (precio > 999999999999) errs.precio = 'Máximo $999,999,999,999'
-  }
-
-  const umbralStr = form.umbralMinimo?.toString().trim()
-  if (umbralStr !== '' && umbralStr) {
-    if (!/^\d+$/.test(umbralStr)) errs.umbralMinimo = 'Solo números enteros'
-    else {
-      const n = parseInt(umbralStr, 10)
-      if (n < 0) errs.umbralMinimo = 'No puede ser negativo'
-      else if (n > 300) errs.umbralMinimo = 'Máximo 300'
-    }
   }
 
   const tallaStr = form.talla?.trim()
@@ -47,12 +39,12 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
 
   const [form, setForm] = useState({
     nombre: initialData?.name || '',
+    tipoProducto: 'INVENTARIO',
     tipoPrenda: initialData?.tipo_prenda || '',
     categoria: initialData?.categoria || '',
     genero: initialData?.genero === 'Femenino' ? 'F' : initialData?.genero === 'Masculino' ? 'M' : initialData?.genero === 'Unisex' ? 'U' : initialData?.genero || '',
     talla: initialData?.talla || '',
     precio: initialData?.price?.toString() || '',
-    umbralMinimo: initialData?.minStock?.toString() || '',
   })
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
@@ -75,21 +67,21 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
     if (isEditing && Object.keys(newErrors).length === 0) {
       const orig = {
         nombre: initialData?.name?.trim() || '',
+        tipoProducto: 'INVENTARIO',
         tipoPrenda: initialData?.tipo_prenda || '',
         categoria: initialData?.categoria || '',
         genero: initialData?.genero === 'Femenino' ? 'F' : initialData?.genero === 'Masculino' ? 'M' : initialData?.genero === 'Unisex' ? 'U' : initialData?.genero || '',
         talla: initialData?.talla?.trim() || '',
         precio: initialData?.price?.toString() || '',
-        umbralMinimo: initialData?.minStock?.toString() || '',
       }
       const sinCambios =
         orig.nombre === form.nombre.trim() &&
+        orig.tipoProducto === form.tipoProducto &&
         orig.tipoPrenda === form.tipoPrenda &&
         orig.categoria === form.categoria &&
         orig.genero === form.genero &&
         orig.talla === form.talla.trim() &&
-        orig.precio === form.precio?.toString().trim() &&
-        orig.umbralMinimo === form.umbralMinimo?.toString().trim()
+        orig.precio === form.precio?.toString().trim()
       if (sinCambios) {
         newErrors._general = 'No se detectaron cambios para guardar'
       }
@@ -104,12 +96,12 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
       await onSave({
         id: initialData?.id,
         nombre: form.nombre.trim(),
+        tipoProducto: form.tipoProducto,
         tipoPrenda: form.tipoPrenda,
         categoria: form.categoria,
         genero: form.genero,
         talla: form.talla.trim(),
         precio: parseFloat(form.precio) || 0,
-        umbralMinimo: parseInt(form.umbralMinimo, 10) || 0,
       })
     } finally {
       setSaving(false)
@@ -186,6 +178,18 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
 
         <div className="rp-row">
           <div className="rp-group">
+            <label className="rp-label" htmlFor="rp-tipoProducto">Tipo de producto <span className="rp-required">*</span></label>
+            <div className="rp-input-wrap">
+              <i className="ti ti-tag" />
+              <select id="rp-tipoProducto" name="tipoProducto" className={`rp-input rp-select ${hasError('tipoProducto') ? 'rp-input-wrap--err' : ''}`}
+                value={form.tipoProducto} onChange={handleChange} onBlur={handleBlur}>
+                <option value="INVENTARIO">Inventario</option>
+                <option value="PERSONALIZADO">Personalizado</option>
+              </select>
+            </div>
+            {hasError('tipoProducto') && <p className="rp-err">{errors.tipoProducto}</p>}
+          </div>
+          <div className="rp-group">
             <label className="rp-label" htmlFor="rp-genero">Género</label>
             <div className="rp-input-wrap">
               <i className="ti ti-gender-male" />
@@ -225,16 +229,6 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
           </div>
         </div>
 
-        <div className="rp-row">
-          <div className="rp-group rp-group--full">
-            <label className="rp-label" htmlFor="rp-umbralMinimo">Stock mínimo <span style={{fontSize:'0.65rem',color:'var(--text-muted)',fontWeight:400}}>(opcional)</span></label>
-            <div className="rp-input-wrap">
-              <i className="ti ti-alert-triangle" />
-              <input id="rp-umbralMinimo" name="umbralMinimo" type="text" inputMode="numeric" maxLength="3" className="rp-input"
-                placeholder="0" value={form.umbralMinimo} onChange={handleChange} onBlur={handleBlur} />
-            </div>
-          </div>
-        </div>
       </form>
     </Drawer>
   )

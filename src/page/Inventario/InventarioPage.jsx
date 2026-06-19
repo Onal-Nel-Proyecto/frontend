@@ -362,12 +362,16 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
       if (data.id) {
         await updateMaterial(data.id, {
           nombre: data.nombre,
+          descripcion: data.descripcion,
+          umbralMinimo: data.umbralMinimo || 0,
           unidadMedida: data.unidadMedida,
           tipoMaterial: data.tipoMaterial,
         })
       } else {
         await createMaterial({
           nombre: data.nombre,
+          descripcion: data.descripcion,
+          umbralMinimo: data.umbralMinimo || 0,
           unidadMedida: data.unidadMedida,
           tipoMaterial: data.tipoMaterial,
         })
@@ -409,22 +413,22 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
       if (data.id) {
         await updateProducto(data.id, {
           nombre: data.nombre,
+          tipoProducto: data.tipoProducto,
           precioUnitario: data.precio || 0,
           genero: data.genero,
           tipoPrenda: data.tipoPrenda,
           categoria: data.categoria,
           talla: data.talla,
-          umbralMinimo: data.umbralMinimo || 0,
         })
       } else {
         await createProducto({
           nombre: data.nombre,
+          tipoProducto: data.tipoProducto,
           precioUnitario: data.precio || 0,
           genero: data.genero,
           tipoPrenda: data.tipoPrenda,
           categoria: data.categoria,
           talla: data.talla,
-          umbralMinimo: data.umbralMinimo || 0,
         })
       }
       setShowDrawerProd(false)
