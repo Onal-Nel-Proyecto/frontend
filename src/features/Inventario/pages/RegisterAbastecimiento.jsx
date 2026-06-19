@@ -134,7 +134,7 @@ const RegisterAbastecimiento = ({ isOpen, onClose, proveedores = [], onSave }) =
       provIdFk: form.provIdFk,
       detalles: form.detalles.map((d) => ({
         detAbsTip: d.tipo,
-        detAbsRefId: d.refId,
+        detAbsRefId: String(d.refId),
         detAbsCant: parseInt(d.cantidad, 10),
         detAbsCos: d.costo !== '' && d.costo !== null ? parseFloat(d.costo) : 0,
       })),
