@@ -347,7 +347,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
       onConfirm: async () => {
         setAlertState(null)
         try {
-          await changeMaterialEstado(item.id, 'ELIMINADO')
+          await changeMaterialEstado(item.id, 3)
           await loadMateriales()
         } catch (err) {
           setAlertState({ type: 'error', title: 'Error', message: err?.response?.data?.message || err?.message, onClose: () => setAlertState(null) })
@@ -398,7 +398,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
       onConfirm: async () => {
         setAlertState(null)
         try {
-          await changeProductoEstado(item.id, 'ELIMINADO')
+          await changeProductoEstado(item.id, 3)
           await loadProductos()
         } catch (err) {
           setAlertState({ type: 'error', title: 'Error', message: err?.response?.data?.message || err?.message, onClose: () => setAlertState(null) })
@@ -528,7 +528,9 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
       <td>
         <div className={`inv-actions ${hovered ? 'inv-actions--visible' : ''}`}>
           <button className="inv-action-btn" title="Editar" onClick={() => handleEditMaterial(m)}><i className="ti ti-edit" /></button>
-          <button className="inv-action-btn inv-action-btn--danger" title="Desactivar" onClick={() => handleDeleteMaterial(m)}><i className="ti ti-trash" /></button>
+          {m.status !== 'eliminado' && (
+            <button className="inv-action-btn inv-action-btn--danger" title="Desactivar" onClick={() => handleDeleteMaterial(m)}><i className="ti ti-trash" /></button>
+          )}
         </div>
       </td>
     </>
@@ -577,7 +579,9 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
       <td>
         <div className={`inv-actions ${hovered ? 'inv-actions--visible' : ''}`}>
           <button className="inv-action-btn" title="Editar" onClick={() => handleEditProduct(p)}><i className="ti ti-edit" /></button>
-          <button className="inv-action-btn inv-action-btn--danger" title="Desactivar" onClick={() => handleDeleteProduct(p)}><i className="ti ti-trash" /></button>
+          {p.status !== 'eliminado' && (
+            <button className="inv-action-btn inv-action-btn--danger" title="Desactivar" onClick={() => handleDeleteProduct(p)}><i className="ti ti-trash" /></button>
+          )}
         </div>
       </td>
     </>
