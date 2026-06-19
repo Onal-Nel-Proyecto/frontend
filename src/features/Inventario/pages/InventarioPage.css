@@ -73,6 +73,7 @@
 .inv-stat-icon--blue  { background: var(--accent-violet-subtle); color: var(--accent-violet); }
 .inv-stat-icon--red   { background: rgba(239,68,68,0.1); color: #f87171; }
 .inv-stat-icon--green { background: var(--accent-emerald-subtle); color: var(--accent-emerald); }
+.inv-stat-icon--gold  { background: var(--accent-gold-subtle); color: var(--accent-gold); }
 
 .inv-stat-value { font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin: 0; line-height: 1.15; }
 .inv-stat-value--red { color: #f87171; }
@@ -122,7 +123,7 @@
   background: var(--bg-glass); border: 1px solid var(--border-glass);
   border-radius: var(--radius-md); overflow: hidden;
 }
-.inv-table { width: 100%; border-collapse: collapse; }
+.inv-table { width: 100%; table-layout: fixed; border-collapse: collapse; }
 .inv-table thead tr { background: var(--bg-glass); }
 .inv-table th {
   padding: 0.85rem 1rem; font-size: 0.68rem; font-weight: 600;
@@ -133,6 +134,28 @@
   padding: 0.85rem 1rem; font-size: var(--text-xs); color: var(--text-secondary);
   border-bottom: 1px solid var(--border-glass); vertical-align: middle;
   transition: background var(--transition-fast);
+  overflow: hidden;
+}
+
+/* Columnas de ancho fijo para evitar superposición Stock ↔ Estado */
+/* Stock = 3ra desde el final, Estado = 2da desde el final */
+.inv-table th:nth-last-child(3),
+.inv-table td:nth-last-child(3) {
+  width: 130px;
+  min-width: 130px;
+}
+.inv-table th:nth-last-child(2),
+.inv-table td:nth-last-child(2) {
+  width: 120px;
+  min-width: 120px;
+}
+
+/* Texto largo se trunca con ellipsis en vez de empujar otras columnas */
+.inv-table td:nth-child(1),
+.inv-table td:nth-child(2) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .inv-table tbody tr:last-child td { border-bottom: none; }
 .inv-table tbody tr:hover td { background: var(--bg-glass-hover); }
@@ -148,7 +171,7 @@
 .inv-cell-unit { font-weight: 400; font-size: 0.68rem; color: var(--text-muted); margin-left: 2px; }
 
 /* ── Stock Bar ── */
-.inv-stockbar-track { display: flex; align-items: center; gap: 0.5rem; min-width: 120px; }
+.inv-stockbar-track { display: flex; align-items: center; gap: 0.5rem; }
 .inv-stockbar-fill {
   height: 6px; border-radius: 999px; flex: 1; background: var(--bg-glass);
   position: relative; overflow: hidden;
@@ -168,6 +191,7 @@
   display: inline-flex; align-items: center; gap: 5px;
   padding: 4px 12px; border-radius: 20px;
   font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
+  white-space: nowrap;
 }
 .inv-badge i { font-size: 0.8rem; }
 .inv-badge--ok    { background: var(--accent-emerald-subtle); color: var(--accent-emerald); }
@@ -176,14 +200,19 @@
 .inv-badge--warn  { background: rgba(245,158,11,0.1); color: #f59e0b; }
 
 /* ── Acciones ── */
-.inv-actions { display: flex; gap: 4px; justify-content: flex-end; opacity: 0; transform: translateX(8px); transition: all 0.2s ease; }
-.inv-actions--visible { opacity: 1; transform: translateX(0); }
+/* Reservar espacio para la columna de acciones (2 botones de 2rem + gap) */
+/* 6.5rem = 2 botones (2rem c/u) + gap (4px) + padding horizontal (2rem) */
+.inv-table th:last-child,
+.inv-table td:last-child { width: 6.5rem; white-space: nowrap; text-align: right; }
+.inv-actions { display: flex; gap: 4px; justify-content: flex-end; opacity: 0.55; transition: opacity 0.15s ease; }
+.inv-actions--visible { opacity: 1; }
+.inv-actions:hover { opacity: 1; }
 .inv-action-btn {
   width: 2rem; height: 2rem; border: none; border-radius: var(--radius-xs);
   background: transparent; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   font-size: 1rem; color: var(--text-muted);
-  transition: all var(--transition-fast);
+  transition: all var(--transition-fast); flex-shrink: 0;
 }
 .inv-action-btn:hover { background: var(--bg-glass-hover); color: var(--text-primary); }
 .inv-action-btn--danger:hover { background: rgba(239,68,68,0.12); color: #f87171; }

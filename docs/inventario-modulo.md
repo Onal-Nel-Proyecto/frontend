@@ -4,15 +4,16 @@
 
 ```
 src/
-├── page/Inventario/
-│   ├── InventarioPage.jsx       ← Página principal (tabs)
-│   ├── InventarioPage.css        ← Estilos de la página
-│   ├── RegisterMaterial.jsx      ← Formulario de Materiales
-│   ├── RegisterMaterial.css
-│   ├── RegisterProducto.jsx      ← Formulario de Productos
-│   ├── RegisterProducto.css
-│   ├── RegisterAbastecimiento.jsx ← Formulario de Abastecimiento
-│   └── RegisterAbastecimiento.css
+├── features/Inventario/
+│   ├── pages/
+│   │   ├── InventarioPage.jsx       ← Página principal (tabs)
+│   │   ├── InventarioPage.css        ← Estilos de la página
+│   │   ├── RegisterMaterial.jsx      ← Formulario de Materiales
+│   │   ├── RegisterMaterial.css
+│   │   ├── RegisterProducto.jsx      ← Formulario de Productos
+│   │   ├── RegisterProducto.css
+│   │   ├── RegisterAbastecimiento.jsx ← Formulario de Abastecimiento
+│   │   └── RegisterAbastecimiento.css
 ├── hooks/
 │   └── useAbastecimiento.js      ← Hook de abastecimiento (CRUD)
 ├── api/
