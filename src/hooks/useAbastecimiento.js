@@ -52,10 +52,10 @@ const PROVEEDORES_EJEMPLO = [
 
 // ── Mapear ítem de API a formato tabla ──
 const mapearAbastecimiento = (item) => ({
-  id: item.id,
-  fecha: item.fecha,
-  estado: item.estado,
-  observacion: item.observacion || "",
+  id: item.id ?? item.absId,
+  fecha: item.fecha ?? item.absFec,
+  estado: item.estado ?? item.absEst,
+  observacion: (item.observacion || item.absObs) ?? "",
   proveedorId: item.provIdFk,
   proveedorNombre: item.proveedor_nombre,
   usuarioId: item.usuIdFk,
