@@ -1,0 +1,76 @@
+/* ═══════════════════════════════════════════
+   RegisterProducto — Formulario para Drawer
+   ═══════════════════════════════════════════ */
+
+.rp-form { display: flex; flex-direction: column; gap: 0.65rem; width: 100%; }
+.rp-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; width: 100%; }
+.rp-group { display: flex; flex-direction: column; gap: 0.2rem; width: 100%; }
+.rp-group--full { grid-column: span 2; }
+
+.rp-label { font-size: var(--text-xs); font-weight: 600; color: var(--text-secondary); letter-spacing: 0.2px; }
+
+.rp-input-wrap {
+  display: flex; align-items: center; gap: 0.6rem;
+  background: var(--bg-glass); border: 1px solid var(--border-glass);
+  border-radius: var(--radius-sm); padding: 0 0.85rem;
+  width: 100%; box-sizing: border-box;
+  transition: all var(--transition-fast);
+}
+.rp-input-wrap:focus-within { border-color: var(--accent-violet); box-shadow: 0 0 0 4px var(--accent-violet-subtle); }
+.rp-input-wrap i { font-size: 1rem; color: var(--text-muted); flex-shrink: 0; transition: color var(--transition-fast); }
+.rp-input-wrap:focus-within i { color: var(--accent-violet-light); }
+
+.rp-input-wrap--err { border-color: #e74c3c !important; box-shadow: 0 0 0 4px rgba(231,76,60,0.1) !important; }
+.rp-input-wrap--err i { color: #e74c3c !important; }
+.rp-err {
+  font-size: 0.72rem; color: #f87171; margin: 0.2rem 0 0; line-height: 1.4;
+  display: flex; align-items: center; gap: 4px;
+}
+.rp-err--general {
+  padding: 0.55rem 0.75rem; margin-bottom: 0.25rem;
+  background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
+  border-radius: var(--radius-sm); font-size: var(--text-xs); font-weight: 500;
+}
+.rp-err--general::before { content: none; }
+.rp-err::before {
+  content: '!'; display: inline-flex; align-items: center; justify-content: center;
+  width: 14px; height: 14px; background: #e74c3c; color: #fff;
+  border-radius: 50%; font-size: 9px; font-weight: 700; flex-shrink: 0;
+}
+
+.rp-input {
+  flex: 1; width: 100%; padding: 0.6rem 0;
+  font-size: var(--text-sm); font-family: inherit; color: var(--text-primary);
+  background: transparent; border: none; outline: none;
+}
+.rp-input::placeholder { color: var(--text-muted); font-size: var(--text-xs); }
+.rp-select { cursor: pointer; appearance: auto; width: 100%; }
+.rp-select option { background: var(--bg-elevated); color: var(--text-primary); }
+
+/* ── Botones ── */
+.rp-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+  padding: 0.75rem 1.25rem; font-size: var(--text-sm); font-weight: 600;
+  border-radius: var(--radius-sm); cursor: pointer;
+  transition: all var(--transition-base); flex: 1; font-family: inherit;
+}
+.rp-btn--primary { background: var(--accent-gold); color: #1a1a1a; border: none; box-shadow: var(--shadow-gold); }
+.rp-btn--primary:hover { background: var(--accent-gold-light); transform: translateY(-1px); box-shadow: var(--shadow-gold-lg); }
+.rp-btn--primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+.rp-btn--outline { background: transparent; color: var(--accent-gold); border: 1.5px solid var(--accent-gold); }
+.rp-btn--outline:hover { background: var(--accent-gold-subtle); border-color: var(--accent-gold-light); color: var(--accent-gold-light); transform: translateY(-1px); }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .rp-form { gap: 0.8rem; }
+  .rp-row { gap: 0.8rem; }
+  .rp-label { font-size: 0.7rem; }
+  .rp-input { font-size: var(--text-xs); padding: 0.55rem 0; }
+  .rp-input-wrap { padding: 0 0.7rem; }
+}
+
+@media (max-width: 480px) {
+  .rp-row { grid-template-columns: 1fr; }
+  .rp-group--full { grid-column: span 1; }
+  .rp-btn { font-size: var(--text-xs); padding: 0.65rem 1rem; }
+}

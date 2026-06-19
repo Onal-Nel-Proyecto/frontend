@@ -96,5 +96,5 @@
 .rpv-btn--primary { background: var(--accent-gold); color: #1a1a1a; border: none; box-shadow: var(--shadow-gold); }
 .rpv-btn--primary:hover { background: var(--accent-gold-light); transform: translateY(-1px); box-shadow: var(--shadow-gold-lg); }
 .rpv-btn--primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
-.rpv-btn--outline { background: transparent; color: var(--text-secondary); border: 1px solid var(--border-glass); }
-.rpv-btn--outline:hover { background: var(--bg-glass-hover); color: var(--text-primary); }
+.rpv-btn--outline { background: transparent; color: var(--accent-gold); border: 1.5px solid var(--accent-gold); }
+.rpv-btn--outline:hover { background: var(--accent-gold-subtle); border-color: var(--accent-gold-light); color: var(--accent-gold-light); transform: translateY(-1px); }

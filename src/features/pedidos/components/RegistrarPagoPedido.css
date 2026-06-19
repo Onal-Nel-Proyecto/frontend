@@ -55,8 +55,8 @@
 .rpp-btn--primary { background: var(--accent-gold); color: #1a1a1a; border: none; box-shadow: var(--shadow-gold); }
 .rpp-btn--primary:hover { background: var(--accent-gold-light); transform: translateY(-1px); }
 .rpp-btn--primary:disabled { opacity: 0.4; cursor: not-allowed; }
-.rpp-btn--outline { background: transparent; color: var(--text-secondary); border: 1px solid var(--border-glass); }
-.rpp-btn--outline:hover { background: var(--bg-glass-hover); color: var(--text-primary); }
+.rpp-btn--outline { background: transparent; color: var(--accent-gold); border: 1.5px solid var(--accent-gold); }
+.rpp-btn--outline:hover { background: var(--accent-gold-subtle); border-color: var(--accent-gold-light); color: var(--accent-gold-light); transform: translateY(-1px); }
 
 @media (max-width: 480px) {
   .rpp-metodos { grid-template-columns: 1fr; }

@@ -153,8 +153,8 @@
 .pagos-btn--primary { background: var(--accent-gold); color: #1a1a1a; border: none; box-shadow: var(--shadow-gold); }
 .pagos-btn--primary:hover { background: var(--accent-gold-light); transform: translateY(-1px); box-shadow: var(--shadow-gold-lg); }
 .pagos-btn--primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
-.pagos-btn--outline { background: transparent; color: var(--text-secondary); border: 1px solid var(--border-glass); }
-.pagos-btn--outline:hover { background: var(--bg-glass-hover); color: var(--text-primary); }
+.pagos-btn--outline { background: transparent; color: var(--accent-gold); border: 1.5px solid var(--accent-gold); }
+.pagos-btn--outline:hover { background: var(--accent-gold-subtle); border-color: var(--accent-gold-light); color: var(--accent-gold-light); transform: translateY(-1px); }
 
 @media (max-width: 480px) {
   .pagos-modal { max-width: 100%; border-radius: var(--radius-lg); margin: 10px; }

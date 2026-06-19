@@ -26,6 +26,7 @@ import {
 import Card from "../../components/common/Card";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { isAdmin } from "../../utils/session.js";
+import { formatDate } from "../../utils/format";
 import { getDashboardResumen } from "../../api/endpoints/dashboardEndpoints";
 import styles from "./home.module.css";
 

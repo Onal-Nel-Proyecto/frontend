@@ -1,46 +1,35 @@
 import { useState } from 'react'
 import { FiTag } from 'react-icons/fi'
 import Drawer from '../../../components/common/Drawer'
+import './RegisterProducto.css'
 
 const SOLO_LETRAS = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/
 
+/** Opciones predefinidas para el campo Categoría */
+const CATEGORIAS = ['Ropa de Dama', 'Ropa de Caballero', 'Accesorios', 'Uniformes', 'Otro']
+
 const validate = (form) => {
   const errs = {}
-  
+
   const nom = form.nombre.trim()
   if (!nom) errs.nombre = 'El nombre del producto es obligatorio'
   else if (nom.length < 3) errs.nombre = 'Mínimo 3 caracteres'
-  else if (nom.length > 100) errs.nombre = 'Máximo 100 caracteres'
+  else if (nom.length > 70) errs.nombre = 'Máximo 70 caracteres'
   else if (!SOLO_LETRAS.test(nom)) errs.nombre = 'Solo letras y espacios, sin números'
 
-  const ref = form.referencia.trim()
-  if (!ref) errs.referencia = 'La referencia es obligatoria'
-  else if (ref.length < 3) errs.referencia = 'Mínimo 3 caracteres'
-  else if (ref.length > 30) errs.referencia = 'Máximo 30 caracteres'
-  else if (!/^[A-Z0-9-]+$/i.test(ref)) errs.referencia = 'Solo letras, números y guiones'
+  if (!form.tipoProducto) errs.tipoProducto = 'Selecciona el tipo de producto'
 
-  if (!form.tipo_prenda) errs.tipo_prenda = 'Selecciona el tipo de prenda'
-  if (!form.genero) errs.genero = 'Selecciona el género'
-
-  const precioStr = form.precio.trim()
+  const precioStr = form.precio?.toString().trim()
   if (precioStr === '') errs.precio = 'Ingresa un precio válido'
   else if (!/^\d+(\.\d{1,2})?$/.test(precioStr)) errs.precio = 'Solo números (máx 2 decimales)'
   else {
     const precio = parseFloat(precioStr)
     if (precio <= 0) errs.precio = 'El precio debe ser mayor a $0'
-    else if (precio > 99999999) errs.precio = 'Precio demasiado alto'
+    else if (precio > 999999999999) errs.precio = 'Máximo $999,999,999,999'
   }
 
-  // Stock es opcional
-  const stockStr = form.stock.trim()
-  if (stockStr !== '') {
-    if (!/^\d+$/.test(stockStr)) errs.stock = 'Solo números enteros'
-    else {
-      const stock = parseInt(stockStr, 10)
-      if (stock < 0) errs.stock = 'No puede ser negativo'
-      else if (stock > 999999) errs.stock = 'Stock demasiado alto'
-    }
-  }
+  const tallaStr = form.talla?.trim()
+  if (tallaStr.length > 10) errs.talla = 'Máximo 10 caracteres'
 
   return errs
 }
@@ -50,13 +39,12 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
 
   const [form, setForm] = useState({
     nombre: initialData?.name || '',
-    referencia: initialData?.ref || '',
-    descripcion: initialData?.descripcion || '',
-    tipo_prenda: initialData?.tipo_prenda || '',
-    genero: initialData?.genero || '',
+    tipoProducto: 'INVENTARIO',
+    tipoPrenda: initialData?.tipo_prenda || '',
+    categoria: initialData?.categoria || '',
+    genero: initialData?.genero === 'Femenino' ? 'F' : initialData?.genero === 'Masculino' ? 'M' : initialData?.genero === 'Unisex' ? 'U' : initialData?.genero || '',
     talla: initialData?.talla || '',
     precio: initialData?.price?.toString() || '',
-    stock: initialData?.stock?.toString() || '',
   })
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
@@ -68,34 +56,56 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
   }
 
   const handleBlur = (e) => {
-    const { name } = e.target
-    setTouched((prev) => ({ ...prev, [name]: true }))
+    setTouched((prev) => ({ ...prev, [e.target.name]: true }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const newErrors = validate(form)
+
+    // Si es edición y no hay cambios, bloquear el guardado
+    if (isEditing && Object.keys(newErrors).length === 0) {
+      const orig = {
+        nombre: initialData?.name?.trim() || '',
+        tipoProducto: 'INVENTARIO',
+        tipoPrenda: initialData?.tipo_prenda || '',
+        categoria: initialData?.categoria || '',
+        genero: initialData?.genero === 'Femenino' ? 'F' : initialData?.genero === 'Masculino' ? 'M' : initialData?.genero === 'Unisex' ? 'U' : initialData?.genero || '',
+        talla: initialData?.talla?.trim() || '',
+        precio: initialData?.price?.toString() || '',
+      }
+      const sinCambios =
+        orig.nombre === form.nombre.trim() &&
+        orig.tipoProducto === form.tipoProducto &&
+        orig.tipoPrenda === form.tipoPrenda &&
+        orig.categoria === form.categoria &&
+        orig.genero === form.genero &&
+        orig.talla === form.talla.trim() &&
+        orig.precio === form.precio?.toString().trim()
+      if (sinCambios) {
+        newErrors._general = 'No se detectaron cambios para guardar'
+      }
+    }
+
     setErrors(newErrors)
-    setTouched({ nombre: true, referencia: true, descripcion: true, tipo_prenda: true, genero: true, talla: true, precio: true, stock: true })
+    setTouched({ nombre: true, precio: true, talla: true })
     if (Object.keys(newErrors).length > 0) return
+
     setSaving(true)
-    setTimeout(() => {
-      const stockNum = parseInt(form.stock, 10) || 0
-      const saved = {
+    try {
+      await onSave({
         id: initialData?.id,
-        name: form.nombre.trim(),
-        ref: form.referencia.trim(),
-        descripcion: form.descripcion.trim(),
-        tipo_prenda: form.tipo_prenda,
+        nombre: form.nombre.trim(),
+        tipoProducto: form.tipoProducto,
+        tipoPrenda: form.tipoPrenda,
+        categoria: form.categoria,
         genero: form.genero,
         talla: form.talla.trim(),
-        price: parseFloat(form.precio) || 0,
-        stock: stockNum,
-        status: stockNum === 0 ? 'agotado' : 'disponible',
-      }
-      onSave?.(saved)
+        precio: parseFloat(form.precio) || 0,
+      })
+    } finally {
       setSaving(false)
-    }, 800)
+    }
   }
 
   const hasError = (field) => touched[field] && errors[field]
@@ -117,12 +127,13 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
       }
     >
       <form id="rp-form" className="rp-form" onSubmit={handleSubmit} noValidate>
+        {errors._general && <div className="rp-err rp-err--general"><i className="ti ti-alert-triangle" /> {errors._general}</div>}
         <div className="rp-row">
           <div className="rp-group rp-group--full">
             <label className="rp-label" htmlFor="rp-nombre">Nombre del Producto</label>
             <div className={`rp-input-wrap ${hasError('nombre') ? 'rp-input-wrap--err' : ''}`}>
               <i className="ti ti-tag" />
-              <input id="rp-nombre" name="nombre" type="text" maxLength="100" className="rp-input"
+              <input id="rp-nombre" name="nombre" type="text" maxLength="70" className="rp-input"
                 placeholder="Ej: Vestido de Noche Seda" value={form.nombre}
                 onChange={handleChange} onBlur={handleBlur} />
             </div>
@@ -132,70 +143,73 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
 
         <div className="rp-row">
           <div className="rp-group">
-            <label className="rp-label" htmlFor="rp-referencia">Referencia</label>
-            <div className={`rp-input-wrap ${hasError('referencia') ? 'rp-input-wrap--err' : ''}`}>
-              <i className="ti ti-barcode" />
-              <input id="rp-referencia" name="referencia" type="text" maxLength="30" className="rp-input"
-                placeholder="Ej: VNS-001" value={form.referencia}
-                onChange={handleChange} onBlur={handleBlur} />
+            <label className="rp-label" htmlFor="rp-tipoPrenda">Tipo de prenda</label>
+            <div className="rp-input-wrap">
+              <i className="ti ti-tag" />
+              <select id="rp-tipoPrenda" name="tipoPrenda" className="rp-input rp-select"
+                value={form.tipoPrenda} onChange={handleChange} onBlur={handleBlur}>
+                <option value="">Seleccione...</option>
+                <option value="VESTIDO">Vestido</option>
+                <option value="BLAZER">Blazer</option>
+                <option value="CORBATA">Corbata</option>
+                <option value="PAÑUELO">Pañuelo</option>
+                <option value="CAMISA">Camisa</option>
+                <option value="PANTALON">Pantalón</option>
+                <option value="FALDA">Falda</option>
+                <option value="CHAQUETA">Chaqueta</option>
+                <option value="OTRO">Otro</option>
+              </select>
             </div>
-            {hasError('referencia') && <p className="rp-err">{errors.referencia}</p>}
           </div>
-          <div className="rp-group rp-group--full">
-            <label className="rp-label" htmlFor="rp-descripcion">Descripción</label>
-            <div className={`rp-input-wrap ${hasError('descripcion') ? 'rp-input-wrap--err' : ''}`}>
-              <i className="ti ti-list-details" />
-              <input id="rp-descripcion" name="descripcion" type="text" maxLength="255" className="rp-input"
-                placeholder="Ej: Vestido largo de seda natural con encaje" value={form.descripcion}
-                onChange={handleChange} onBlur={handleBlur} />
+          <div className="rp-group">
+            <label className="rp-label" htmlFor="rp-categoria">Categoría</label>
+            <div className="rp-input-wrap">
+              <i className="ti ti-category" />
+              <select id="rp-categoria" name="categoria" className="rp-input rp-select"
+                value={form.categoria} onChange={handleChange} onBlur={handleBlur}>
+                <option value="">Seleccione...</option>
+                {CATEGORIAS.map((cat) => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
             </div>
-            {hasError('descripcion') && <p className="rp-err">{errors.descripcion}</p>}
           </div>
         </div>
 
         <div className="rp-row">
           <div className="rp-group">
-            <label className="rp-label" htmlFor="rp-tipo_prenda">Tipo de prenda</label>
-            <div className={`rp-input-wrap ${hasError('tipo_prenda') ? 'rp-input-wrap--err' : ''}`}>
+            <label className="rp-label" htmlFor="rp-tipoProducto">Tipo de producto <span className="rp-required">*</span></label>
+            <div className="rp-input-wrap">
               <i className="ti ti-tag" />
-              <select id="rp-tipo_prenda" name="tipo_prenda" className="rp-input rp-select"
-                value={form.tipo_prenda} onChange={handleChange} onBlur={handleBlur}>
-                <option value="">Seleccione...</option>
-                <option value="Vestido">Vestido</option>
-                <option value="Blazer">Blazer</option>
-                <option value="Corbata">Corbata</option>
-                <option value="Pañuelo">Pañuelo</option>
-                <option value="Camisa">Camisa</option>
-                <option value="Pantalón">Pantalón</option>
-                <option value="Falda">Falda</option>
-                <option value="Chaqueta">Chaqueta</option>
-                <option value="Otro">Otro</option>
+              <select id="rp-tipoProducto" name="tipoProducto" className={`rp-input rp-select ${hasError('tipoProducto') ? 'rp-input-wrap--err' : ''}`}
+                value={form.tipoProducto} onChange={handleChange} onBlur={handleBlur}>
+                <option value="INVENTARIO">Inventario</option>
+                <option value="PERSONALIZADO">Personalizado</option>
               </select>
             </div>
-            {hasError('tipo_prenda') && <p className="rp-err">{errors.tipo_prenda}</p>}
+            {hasError('tipoProducto') && <p className="rp-err">{errors.tipoProducto}</p>}
           </div>
           <div className="rp-group">
             <label className="rp-label" htmlFor="rp-genero">Género</label>
-            <div className={`rp-input-wrap ${hasError('genero') ? 'rp-input-wrap--err' : ''}`}>
+            <div className="rp-input-wrap">
               <i className="ti ti-gender-male" />
               <select id="rp-genero" name="genero" className="rp-input rp-select"
                 value={form.genero} onChange={handleChange} onBlur={handleBlur}>
                 <option value="">Seleccione...</option>
-                <option value="Femenino">Femenino</option>
-                <option value="Masculino">Masculino</option>
-                <option value="Unisex">Unisex</option>
+                <option value="F">Femenino</option>
+                <option value="M">Masculino</option>
+                <option value="U">Unisex</option>
               </select>
             </div>
-            {hasError('genero') && <p className="rp-err">{errors.genero}</p>}
           </div>
         </div>
 
         <div className="rp-row">
           <div className="rp-group rp-group--full">
             <label className="rp-label" htmlFor="rp-talla">Talla</label>
-            <div className={`rp-input-wrap ${hasError('talla') ? 'rp-input-wrap--err' : ''}`}>
+            <div className="rp-input-wrap">
               <i className="ti ti-ruler" />
-              <input id="rp-talla" name="talla" type="text" maxLength="10" className="rp-input"
+              <input id="rp-talla" name="talla" type="text" maxLength="10" className={`rp-input ${hasError('talla') ? 'rp-input-wrap--err' : ''}`}
                 placeholder="Ej: XS, S, M, L, XL, 38, 60, 90" value={form.talla}
                 onChange={handleChange} onBlur={handleBlur} />
             </div>
@@ -208,25 +222,12 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
             <label className="rp-label" htmlFor="rp-precio">Precio de venta ($)</label>
             <div className={`rp-input-wrap ${hasError('precio') ? 'rp-input-wrap--err' : ''}`}>
               <i className="ti ti-currency-dollar" />
-              <input id="rp-precio" name="precio" type="number" step="1" min="0" className="rp-input"
-                placeholder="0" value={form.precio} onChange={handleChange} onBlur={handleBlur} />
+              <input id="rp-precio" name="precio" type="text" inputMode="decimal" className="rp-input"
+                placeholder="0" value={form.precio} onChange={handleChange} onBlur={handleBlur} maxLength="15" />
             </div>
             {hasError('precio') && <p className="rp-err">{errors.precio}</p>}
           </div>
         </div>
-
-        <div className="rp-row">
-          <div className="rp-group rp-group--full">
-            <label className="rp-label" htmlFor="rp-stock">Stock inicial <span style={{fontSize:'0.65rem',color:'var(--text-muted)',fontWeight:400}}>(opcional)</span></label>
-            <div className={`rp-input-wrap ${hasError('stock') ? 'rp-input-wrap--err' : ''}`}>
-              <i className="ti ti-stack" />
-              <input id="rp-stock" name="stock" type="number" min="0" className="rp-input"
-                placeholder="0" value={form.stock} onChange={handleChange} onBlur={handleBlur} />
-            </div>
-            {hasError('stock') && <p className="rp-err">{errors.stock}</p>}
-          </div>
-        </div>
-
 
       </form>
     </Drawer>

@@ -57,6 +57,20 @@ export const AuthProvider = ({ children }) => {
     return () => { cancelled = true; };
   }, []);
 
+  // Sincronizar con clearSession() del interceptor de axios
+  // Cuando el interceptor limpia la sesión (sessionStorage.removeItem("user") + dispatchEvent("userUpdate")),
+  // esto asegura que AuthContext se entere y PrivateRoute redirija al login.
+  useEffect(() => {
+    const handleUserUpdate = () => {
+      const raw = sessionStorage.getItem("user");
+      if (!raw) {
+        setUser(null);
+      }
+    };
+    window.addEventListener("userUpdate", handleUserUpdate);
+    return () => window.removeEventListener("userUpdate", handleUserUpdate);
+  }, []);
+
   /**
    * Login: el backend setea la httpOnly cookie,
    * nosotros solo guardamos los datos del usuario en contexto.
