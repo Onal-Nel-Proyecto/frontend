@@ -204,9 +204,7 @@
 /* 6.5rem = 2 botones (2rem c/u) + gap (4px) + padding horizontal (2rem) */
 .inv-table th:last-child,
 .inv-table td:last-child { width: 6.5rem; white-space: nowrap; text-align: right; }
-.inv-actions { display: flex; gap: 4px; justify-content: flex-end; opacity: 0.55; transition: opacity 0.15s ease; }
-.inv-actions--visible { opacity: 1; }
-.inv-actions:hover { opacity: 1; }
+.inv-actions { display: flex; gap: 4px; justify-content: flex-end; }
 .inv-action-btn {
   width: 2rem; height: 2rem; border: none; border-radius: var(--radius-xs);
   background: transparent; cursor: pointer;
