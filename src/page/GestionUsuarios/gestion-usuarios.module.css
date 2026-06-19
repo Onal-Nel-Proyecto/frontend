@@ -582,6 +582,67 @@
   font-size: 1.2rem;
 }
 
+/* ── Back button (compartido con GestionProveedores) ── */
+.backButton {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--bg-glass);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.backButton:hover {
+  background: var(--bg-glass-hover);
+  color: var(--text-primary);
+}
+
+/* ── Create button (compartido con GestionProveedores) ── */
+.createButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent-gold);
+  color: #1a1a1a;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 1.5rem;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  letter-spacing: 0.2px;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-gold);
+  font-family: inherit;
+}
+
+.createButton:hover {
+  background: var(--accent-gold-light);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-gold-lg);
+}
+
+/* ── Note (compartido con GestionProveedores) ── */
+.note {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.75rem 1rem;
+  background: var(--accent-emerald-subtle);
+  border: 1px solid rgba(52, 211, 153, 0.2);
+  border-radius: var(--radius-xs);
+  color: var(--accent-emerald);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
 /* ── Responsive ── */
 @media (max-width: 1200px) {
   .stats {
