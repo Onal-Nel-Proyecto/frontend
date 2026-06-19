@@ -362,18 +362,14 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
       if (data.id) {
         await updateMaterial(data.id, {
           nombre: data.nombre,
-          umbralMinimo: data.umbralMinimo || 0,
           unidadMedida: data.unidadMedida,
           tipoMaterial: data.tipoMaterial,
-          stock: data.cantidadDisponible || 0,
         })
       } else {
         await createMaterial({
           nombre: data.nombre,
-          umbralMinimo: data.umbralMinimo || 0,
           unidadMedida: data.unidadMedida,
           tipoMaterial: data.tipoMaterial,
-          stock: data.cantidadDisponible || 0,
         })
       }
       setShowDrawerMat(false)
