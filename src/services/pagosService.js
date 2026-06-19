@@ -23,8 +23,8 @@ const BASE = "/pagos";
  */
 export const getPagos = async ({ pedidoId = null, ventaId = null } = {}) => {
   const params = {};
+  if (pedidoId) params.pedido_id = pedidoId;
   if (ventaId) params.venta_id = ventaId;
-  else if (pedidoId) params.pedido_id = pedidoId;
 
   const res = await axiosInstance.get(BASE, { params });
   return {
@@ -61,8 +61,8 @@ export const createPago = async ({ pedidoId = null, ventaId = null, monto, metod
     monto: Number(monto),
     metodo_pago: metodo,
   };
+  if (pedidoId) payload.pedido_id = pedidoId;
   if (ventaId) payload.venta_id = ventaId;
-  else if (pedidoId) payload.pedido_id = pedidoId;
 
   const res = await axiosInstance.post(BASE, payload);
   return res.data;

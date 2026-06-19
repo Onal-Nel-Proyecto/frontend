@@ -2,10 +2,11 @@ import axiosInstance from "../../../api/axiosInstance";
 import { VENTAS_ENDPOINTS } from "../../../api/endpoints/ventasEndpoints";
 
 // ── GET /ventas — lista paginada con filtros ──
-export const getVentas = async ({ pagina = 1, limite = 15, busqueda, estado } = {}) => {
+export const getVentas = async ({ pagina = 1, limite = 15, busqueda, estado, fechaRegistro } = {}) => {
   const params = { pagina, limite };
   if (busqueda?.trim()) params.cliente = busqueda.trim();
   if (estado) params.estado = estado;
+  if (fechaRegistro) params.fecha_registro = fechaRegistro;
   const response = await axiosInstance.get(VENTAS_ENDPOINTS.GET_ALL, { params });
   return response.data;
 };
