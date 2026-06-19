@@ -149,15 +149,15 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
               <select id="rp-tipoPrenda" name="tipoPrenda" className="rp-input rp-select"
                 value={form.tipoPrenda} onChange={handleChange} onBlur={handleBlur}>
                 <option value="">Seleccione...</option>
-                <option value="Vestido">Vestido</option>
-                <option value="Blazer">Blazer</option>
-                <option value="Corbata">Corbata</option>
-                <option value="Pañuelo">Pañuelo</option>
-                <option value="Camisa">Camisa</option>
-                <option value="Pantalón">Pantalón</option>
-                <option value="Falda">Falda</option>
-                <option value="Chaqueta">Chaqueta</option>
-                <option value="Otro">Otro</option>
+                <option value="VESTIDO">Vestido</option>
+                <option value="BLAZER">Blazer</option>
+                <option value="CORBATA">Corbata</option>
+                <option value="PAÑUELO">Pañuelo</option>
+                <option value="CAMISA">Camisa</option>
+                <option value="PANTALON">Pantalón</option>
+                <option value="FALDA">Falda</option>
+                <option value="CHAQUETA">Chaqueta</option>
+                <option value="OTRO">Otro</option>
               </select>
             </div>
           </div>
