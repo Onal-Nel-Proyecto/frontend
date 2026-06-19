@@ -1,33 +1,74 @@
+/* ───────────────────────────────────────
+   Login Header — Logo "ona&nel"
+   ─────────────────────────────────────── */
+
 .logoSection {
-    margin-bottom: 30px;
+  margin-bottom: 1.75rem;
+  position: relative;
+  z-index: 1;
 }
 
 .logoText {
-    font-family: 'Playfair Display', serif;
-    font-style: italic;
-    font-size: 2.5rem;
-    font-weight: bold;
-    display: block;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 2.75rem;
+  font-weight: 700;
+  display: block;
+  background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-gold-light) 50%, #F5D580 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 1px;
+  line-height: 1;
 }
 
 .logoSubtext {
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    color: var(--text-gray);
-    margin-top: 5px;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+  font-weight: 500;
 }
 
+/* ── Divider ── */
+
+.logoDivider {
+  width: 60px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent-gold), transparent);
+  margin: 1.25rem auto 0;
+  border-radius: 2px;
+}
+
+/* ── Welcome ── */
+
 .welcomeHeader {
-    margin-bottom: 35px;
+  margin-bottom: 2rem;
+  margin-top: 1.75rem;
+  position: relative;
+  z-index: 1;
 }
 
 .welcomeHeader h1 {
-    font-size: 1.5rem;
-    margin-bottom: 10px;
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .welcomeHeader p {
-    color: var(--text-gray);
-    font-size: 0.9rem;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+@media (max-width: 480px) {
+  .logoText {
+    font-size: 2.25rem;
+  }
+  .welcomeHeader h1 {
+    font-size: 1.3rem;
+  }
 }

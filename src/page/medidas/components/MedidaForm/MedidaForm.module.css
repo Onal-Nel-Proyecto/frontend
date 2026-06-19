@@ -1,0 +1,161 @@
+/* ═══════════════════════════════════════════
+   MedidaForm — Estilos (replica CategoriaForm)
+   ═══════════════════════════════════════════ */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.inputWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 12px;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  pointer-events: none;
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  padding: 0.6rem 0.85rem;
+  border: 0.5px solid var(--border-glass);
+  border-radius: 10px;
+  background: var(--bg-elevated);
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  transition: border-color 0.2s ease;
+  font-family: inherit;
+}
+
+.input {
+  padding-left: 2.2rem;
+}
+
+.select {
+  padding-left: 0.85rem;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  cursor: pointer;
+}
+
+.textarea {
+  padding-left: 0.85rem;
+  resize: vertical;
+  min-height: 60px;
+  max-height: 120px;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: none;
+  border-color: var(--border-glass-hover);
+  background: var(--bg-elevated);
+}
+
+.inputError {
+  border-color: #dc2626;
+  background: #fef2f2;
+}
+
+.fieldError {
+  font-size: 0.72rem;
+  color: #dc2626;
+}
+
+.charCount {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-align: right;
+  margin-top: 0.15rem;
+}
+
+/* ── Botones del footer ── */
+
+.btnOutline {
+  flex: 1;
+  padding: 0.6rem 1rem;
+  border: 0.5px solid var(--border-glass);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btnOutline:hover {
+  background: var(--bg-glass);
+}
+
+.btnPrimary {
+  flex: 1;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 10px;
+  background: var(--accent-gold);
+  color: #1a1a1a;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-gold);
+}
+
+.btnPrimary:hover {
+  background: var(--accent-gold-light);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-gold-lg);
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 480px) {
+  .form {
+    gap: 0.85rem;
+  }
+
+  .input,
+  .select,
+  .textarea {
+    padding: 0.65rem 0.75rem;
+    font-size: 16px;
+  }
+
+  .input {
+    padding-left: 2rem;
+  }
+
+  .textarea {
+    padding-left: 0.75rem;
+    min-height: 56px;
+  }
+
+  .label {
+    font-size: 0.75rem;
+  }
+}

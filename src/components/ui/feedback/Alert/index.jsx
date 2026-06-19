@@ -12,7 +12,8 @@
 //   />
 // ================================================================
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect } from 'react';
+import { motion } from 'framer-motion';
 import {
   FiCheckCircle,
   FiAlertCircle,
@@ -29,24 +30,31 @@ const icons = {
 
 const Alert = ({ type = 'success', title, message, children, onConfirm, onCancel, onClose }) => {
   const isConfirm = type === 'confirm';
+  const handleClose = onClose || (() => {});
+  const handleCancel = onCancel || (() => {});
+
+  // Bloquear scroll del body mientras la alerta está abierta
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
 
   return (
-    <AnimatePresence>
+    <motion.div
+      className={styles.overlay}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      onClick={isConfirm ? handleCancel : handleClose}
+    >
       <motion.div
-        className={styles.overlay}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={isConfirm ? onCancel : onClose}
+        className={`${styles.card} ${styles[type]}`}
+        initial={{ opacity: 0, scale: 0.92, y: 30 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ type: 'spring', damping: 22, stiffness: 300 }}
+        onClick={(e) => e.stopPropagation()}
       >
-        <motion.div
-          className={`${styles.card} ${styles[type]}`}
-          initial={{ opacity: 0, scale: 0.92, y: 30 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.92, y: 30 }}
-          transition={{ type: 'spring', damping: 22, stiffness: 300 }}
-          onClick={(e) => e.stopPropagation()}
-        >
           {/* Icono */}
           <div className={styles.iconWrapper}>
             {icons[type]}
@@ -63,7 +71,7 @@ const Alert = ({ type = 'success', title, message, children, onConfirm, onCancel
           <div className={styles.actions}>
             {isConfirm ? (
               <>
-                <button className={styles.btnCancel} onClick={onCancel}>
+                <button className={styles.btnCancel} onClick={handleCancel}>
                   Cancelar
                 </button>
                 <button className={styles.btnConfirm} onClick={onConfirm}>
@@ -71,14 +79,13 @@ const Alert = ({ type = 'success', title, message, children, onConfirm, onCancel
                 </button>
               </>
             ) : (
-              <button className={styles.btnClose} onClick={onClose}>
+              <button className={styles.btnClose} onClick={handleClose}>
                 <FiX /> Cerrar
               </button>
             )}
           </div>
-        </motion.div>
       </motion.div>
-    </AnimatePresence>
+    </motion.div>
   );
 };
 

@@ -13,6 +13,9 @@ import {
   FiUserCheck,
   FiGrid,
   FiHardDrive,
+  FiPackage,
+  FiDollarSign,
+  FiBarChart2,
 } from 'react-icons/fi';
 import { TfiRulerPencil } from "react-icons/tfi";
 import { isAdmin } from '../../../utils/session.js';
@@ -27,23 +30,21 @@ const modules = [
       { label: 'Entregas',  to: '/pedidos/entregas', icon: <FiTruck /> },
     ],
   },
-  // {
-  //   path: '/gestion-personal',
-  //   tabs: [
-  //     { label: 'Inicio',    to: '/gestion-personal',  icon: <FiHome /> },
-  //     { label: 'Clientes',  to: '/gestion-clientes',  icon: <FiUsers /> },
-  //     { label: 'Usuarios',  to: '/gestion-usuarios',  icon: <FiUserCheck />, adminOnly: true },
-  //   ],
-  // },
-  // {
-  //   path: '/config',
-  //   tabs: [
-  //     { label: 'Inicio',          to: '/config',               icon: <FiHome /> },
-  //     { label: 'Categorías',      to: '/config/categorias',     icon: <FiGrid /> },
-  //     { label: 'Copia Seguridad', to: '/config/copia-seguridad', icon: <FiHardDrive /> },
-  //     { label: 'Medidas',         to: '/config/medidas',        icon: <TfiRulerPencil /> },
-  //   ],
-  // },
+  {
+    path: '/inventario',
+    tabs: [
+      { label: 'Materiales',     to: '/inventario/materiales',     icon: <FiPackage /> },
+      { label: 'Productos',      to: '/inventario/productos',      icon: <FiShoppingBag /> },
+      { label: 'Abastecimiento', to: '/inventario/abastecimiento', icon: <FiTruck /> },
+    ],
+  },
+  {
+    path: '/ventas',
+    tabs: [
+      { label: 'Ventas',   to: '/ventas', icon: <FiDollarSign />, matchPattern: /^\/ventas\/(?!reportes).+/ },
+      { label: 'Reportes', to: '/ventas/reportes', icon: <FiBarChart2 />, adminOnly: true },
+    ],
+  },
 ];
 
 const NavTabs = ({ className = '' }) => {

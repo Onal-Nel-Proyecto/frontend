@@ -35,7 +35,7 @@ const GestionPersonal = () => {
     {
       title: 'Gestionar Clientes',
       icon: <FiUsers />,
-      path: '/gestion-clientes',
+      path: '/gestion-personal/clientes',
       iconClass: styles.blueIcon
     },
     {
@@ -50,7 +50,7 @@ const GestionPersonal = () => {
     options.push({
       title: 'Gestionar Usuarios',
       icon: <FiUserCheck />,
-      path: '/gestion-usuarios',
+      path: '/gestion-personal/usuarios',
       iconClass: styles.violetIcon
     });
   }

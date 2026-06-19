@@ -1,0 +1,136 @@
+/* ── Buscador de productos (reutiliza patrón de ClienteSearch) ── */
+
+.wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+.inputWrap {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 12px;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.input {
+  width: 100%;
+  padding: 0.6rem 0.85rem 0.6rem 2.2rem;
+  border: 0.5px solid var(--border-glass);
+  border-radius: 10px;
+  background: var(--bg-elevated);
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  transition: border-color 0.2s ease, border-radius 0.2s ease;
+  font-family: inherit;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--border-glass-hover);
+  background: var(--bg-elevated);
+}
+
+.inputOpen {
+  border-radius: 10px 10px 0 0;
+  border-color: var(--border-glass-hover);
+  background: var(--bg-elevated);
+}
+
+/* ─── Botón cerrar buscador ─── */
+.closeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 0.5px solid var(--border-glass);
+  border-radius: 10px;
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.closeBtn:hover {
+  background: var(--bg-glass-hover);
+  color: var(--text-primary);
+}
+
+/* ── Desplegable ── */
+.dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 240px;
+  overflow-y: auto;
+  background: var(--bg-elevated);
+  border: 0.5px solid var(--border-glass);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.option {
+  padding: 0.55rem 0.85rem;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  border-bottom: 1px solid var(--border-glass);
+}
+
+.option:last-child {
+  border-bottom: none;
+}
+
+.option:hover,
+.optionHighlighted {
+  background: var(--bg-glass-hover);
+}
+
+.optionNombre {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.optionMeta {
+  display: flex;
+  gap: 0.6rem;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.optionMeta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.noResults {
+  padding: 0.75rem 0.85rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}

@@ -1,159 +1,76 @@
-.page {
-  display: flex;
-  flex-direction: column;
+/* ───────────────────────────────────────
+   Gestión Personal — Dark
+   ─────────────────────────────────────── */
 
-  gap: 2.5rem;
-}
+.page { display: flex; flex-direction: column; gap: 2.5rem; }
+.header { display: flex; flex-direction: column; gap: 0.5rem; }
+.title { font-size: var(--text-2xl); font-weight: 700; letter-spacing: -0.03em; color: var(--text-primary); }
+.subtitle { color: var(--text-muted); line-height: 1.6; }
 
-.header {
-  display: flex;
-  flex-direction: column;
-
-  gap: .5rem;
-}
-
-.title {
-  font-size: 2rem;
-  font-weight: 700;
-
-  letter-spacing: -0.03em;
-
-  color: var(--text-dark);
-}
-
-.subtitle {
-  color: var(--text-soft);
-
-  line-height: 1.6;
-}
-
-.grid {
-  display: grid;
-
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-
-  gap: 2rem;
-}
+.grid { display: grid; grid-template-columns: repeat(1, minmax(0, 1fr)); gap: 2rem; }
 
 .card {
-  border: none;
-
-  cursor: pointer;
-
-  padding: 2.5rem;
-
-  border-radius: 2rem;
-
-  background: rgba(255,255,255,.75);
-
-  backdrop-filter: blur(10px);
-
-  text-align: left;
-
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-
-  box-shadow: 0 4px 14px rgba(0,0,0,.04);
-
-  transition:
-    transform .3s ease,
-    box-shadow .3s ease,
-    background .3s ease;
+  border: 1px solid var(--border-glass); cursor: pointer;
+  padding: 2.5rem; border-radius: var(--radius-xl);
+  background: var(--bg-glass); backdrop-filter: var(--blur-glass);
+  text-align: left; display: flex; flex-direction: column; align-items: flex-start;
+  transition: all var(--transition-base);
 }
-
-.card:hover {
-  transform: translateY(-6px);
-
-  box-shadow: 0 14px 32px rgba(0,0,0,.08);
-
-  background: rgba(255,255,255,.9);
-}
+.card:hover { transform: translateY(-6px); box-shadow: var(--shadow-xl); background: var(--bg-glass-hover); border-color: var(--border-glass-hover); }
 
 .iconWrapper {
-  width: 4rem;
-  height: 4rem;
+  width: 4rem; height: 4rem; margin-bottom: 1.5rem;
+  border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center;
+  font-size: 2rem; transition: transform var(--transition-base);
+}
+.card:hover .iconWrapper { transform: scale(1.08); }
 
-  margin-bottom: 1.5rem;
+.blueIcon { background: var(--accent-blue-subtle); color: var(--accent-blue); }
+.violetIcon { background: var(--accent-violet-subtle); color: var(--accent-violet); }
 
-  border-radius: 1.2rem;
+.cardTitle { margin-bottom: 0.75rem; font-size: var(--text-xl); font-weight: 700; color: var(--text-primary); }
+.cardDescription { margin-bottom: 2rem; line-height: 1.6; color: var(--text-muted); }
+.action { display: flex; align-items: center; gap: 0.5rem; font-weight: 700; color: var(--accent-gold); transition: gap var(--transition-base); }
+.card:hover .action { gap: 1rem; }
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  font-size: 2rem;
-
-  transition: transform .3s ease;
-
-  box-shadow: 0 2px 10px rgba(0,0,0,.04);
+@media (min-width: 768px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 768px) {
+  .title { font-size: var(--text-xl); }
+  .card { padding: 2rem; }
 }
 
-.card:hover .iconWrapper {
-  transform: scale(1.08);
-}
-
-.blueIcon {
-  background: rgba(96, 165, 250, .15);
-
-  color: #3b82f6;
-}
-
-.violetIcon {
-  background: rgba(167, 139, 250, .15);
-
-  color: #8b5cf6;
-}
-
-.cardTitle {
-  margin-bottom: .75rem;
-
-  font-size: 1.5rem;
-  font-weight: 700;
-
-  color: var(--text-dark);
-}
-
-.cardDescription {
-  margin-bottom: 2rem;
-
-  line-height: 1.6;
-
-  color: var(--text-soft);
-}
-
-.action {
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-
-  font-weight: 700;
-
-  color: var(--text-dark);
-
-  transition: gap .3s ease;
-}
-
-.card:hover .action {
-  gap: 1rem;
-}
-
-@media (min-width: 768px) {
-
-  .grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+@media (max-width: 480px) {
+  .page {
+    gap: 1.25rem;
   }
 
-}
-
-@media (max-width: 768px) {
-
   .title {
-    font-size: 1.8rem;
+    font-size: 1.4rem;
   }
 
   .card {
-    padding: 2rem;
+    padding: 1.25rem;
+    border-radius: 1.25rem;
   }
 
+  .iconWrapper {
+    width: 2.75rem;
+    height: 2.75rem;
+    font-size: 1.3rem;
+    margin-bottom: 0.85rem;
+    border-radius: 0.85rem;
+  }
+
+  .cardTitle {
+    font-size: 1.15rem;
+  }
+
+  .cardDescription {
+    font-size: 0.85rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .grid {
+    gap: 1rem;
+  }
 }
