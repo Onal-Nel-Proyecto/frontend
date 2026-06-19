@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { FiTag } from 'react-icons/fi'
-import Drawer from '../../components/common/Drawer'
+import Drawer from '../../../components/common/Drawer'
 import './RegisterProducto.css'
 
 const SOLO_LETRAS = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/
