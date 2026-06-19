@@ -623,7 +623,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
             {a.estado === 'PENDIENTE' && (
               <>
                 <button className="inv-action-btn inv-action-btn--success" title="Completar" onClick={() => handleCompletarAbastecimiento(a)}><i className="ti ti-circle-check" /></button>
-                <button className="inv-action-btn inv-action-btn--danger" title="Cancelar" onClick={() => handleCancelarAbastecimiento(a)}><i className="ti ti-x-circle" /></button>
+                <button className="inv-action-btn inv-action-btn--danger" title="Cancelar" onClick={() => handleCancelarAbastecimiento(a)}><i className="ti ti-trash" /></button>
               </>
             )}
           </div>
