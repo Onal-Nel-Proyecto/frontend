@@ -7,19 +7,17 @@ const UsuarioFiltroDrawer = ({ isOpen, onClose, filters, setFilters }) => {
   const [local, setLocal] = useState({
     estado: filters?.estado || '',
     rol: filters?.rol || '',
-    correo: filters?.correo || '',
   });
 
   useEffect(() => {
     setLocal({
       estado: filters?.estado || '',
       rol: filters?.rol || '',
-      correo: filters?.correo || '',
     });
   }, [filters]);
 
   const handleClear = () => {
-    const empty = { estado: '', rol: '', correo: '' };
+    const empty = { estado: '', rol: '' };
     setLocal(empty);
     setFilters(empty);
   };
@@ -80,18 +78,6 @@ const UsuarioFiltroDrawer = ({ isOpen, onClose, filters, setFilters }) => {
           </select>
         </div>
 
-        {/* Correo */}
-        <div className={styles.filterGroup}>
-          <label className={styles.label}>Correo</label>
-
-          <input
-            type="text"
-            className={styles.input}
-            placeholder="Ej: gmail.com"
-            value={local.correo}
-            onChange={(e) => setLocal({ ...local, correo: e.target.value })}
-          />
-        </div>
 
       </div>
     </Drawer>

@@ -4,14 +4,14 @@ import Drawer from '../../../../components/common/Drawer';
 import styles from './ProveedorFiltroDrawer.module.css';
 
 const ProveedorFiltroDrawer = ({ isOpen, onClose, filters, setFilters }) => {
-  const [local, setLocal] = useState({ estado: filters?.estado || '', suministro: filters?.suministro || '', nombre: filters?.nombre || '' });
+  const [local, setLocal] = useState({ estado: filters?.estado || '', suministro: filters?.suministro || '' });
 
   useEffect(() => {
-    setLocal({ estado: filters?.estado || '', suministro: filters?.suministro || '', nombre: filters?.nombre || '' });
+    setLocal({ estado: filters?.estado || '', suministro: filters?.suministro || '' });
   }, [filters]);
 
   const handleClear = () => {
-    const empty = { estado: '', suministro: '', nombre: '' };
+    const empty = { estado: '', suministro: '' };
     setLocal(empty);
     setFilters(empty);
   };
@@ -50,14 +50,14 @@ const ProveedorFiltroDrawer = ({ isOpen, onClose, filters, setFilters }) => {
           </select>
         </div>
 
-        <div className={styles.filterGroup}>
+          <div className={styles.filterGroup}>
           <label className={styles.label}>Suministro</label>
-          <input className={styles.input} placeholder="Ej: Materia prima" value={local.suministro} onChange={(e) => setLocal({ ...local, suministro: e.target.value })} />
-        </div>
-
-        <div className={styles.filterGroup}>
-          <label className={styles.label}>Nombre</label>
-          <input className={styles.input} placeholder="Ej: Proveedor SA" value={local.nombre} onChange={(e) => setLocal({ ...local, nombre: e.target.value })} />
+          <select className={styles.select} value={local.suministro} onChange={(e) => setLocal({ ...local, suministro: e.target.value })}>
+            <option value="">Todos</option>
+            <option value="Materia prima">Materia prima</option>
+            <option value="Envases">Envases</option>
+            <option value="Accesorios">Accesorios</option>
+          </select>
         </div>
       </div>
     </Drawer>

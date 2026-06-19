@@ -102,6 +102,54 @@
   background: #fef2f2;
 }
 
+.chipContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: 999px;
+  background: #f5f3ef;
+  color: #333;
+  font-size: 0.78rem;
+}
+
+.chipRemove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: #a00;
+  cursor: pointer;
+  padding: 0;
+}
+
+.addButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.7rem 1rem;
+  border: none;
+  border-radius: 10px;
+  background: #695b58;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.addButton:hover {
+  background: #5a4d4a;
+  transform: translateY(-1px);
+}
+
 .fieldError {
   font-size: 0.72rem;
   color: #dc2626;

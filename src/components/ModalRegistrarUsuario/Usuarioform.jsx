@@ -10,7 +10,10 @@ import {
   FiMail,
   FiLock,
   FiShield,
-  FiUsers,
+  FiEye,
+  FiEyeOff,
+  FiUsers, 
+  FiKey
 } from 'react-icons/fi';
 
 import Drawer from '../common/Drawer';
@@ -33,7 +36,10 @@ const UsuarioForm = ({
 }) => {
 
   const isEdit = !!usuario;
-
+const usuarioSesion = JSON.parse(
+  sessionStorage.getItem("user")
+);
+console.log("Usuario sesión:", usuarioSesion);
   // ─────────────────────────────────────────
   // Estados
   // ─────────────────────────────────────────
@@ -47,14 +53,21 @@ const UsuarioForm = ({
   usuPassHash: '',
   usuPassHashConfirm: '',
   usuRol: usuario?.rol || 'USUARIO',
-  usuSupFk: '',
+  usuSupFk: usuarioSesion?.user_id || '',
   usuEst: usuario?.estado === 1 ? 'Activo' : 'Bloqueado',
 });
-
+  const [showPassword, setShowPassword] = useState(false);
   const [alert,      setAlert]      = useState(null);
   const [loading,    setLoading]    = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errors,     setErrors]     = useState({});
+
+  // Password modal state
+  const [showPwModal, setShowPwModal] = useState(false);
+  const [newPass, setNewPass] = useState('');
+  const [newPassConfirm, setNewPassConfirm] = useState('');
+  const [pwErrors, setPwErrors] = useState({});
+  const [pwSubmitting, setPwSubmitting] = useState(false);
 
  useEffect(() => {
 
@@ -69,7 +82,7 @@ const UsuarioForm = ({
       usuPassHash: '',
       usuPassHashConfirm: '',
       usuRol: usuario.rol || 'USUARIO',
-      usuSupFk: '',
+      usuSupFk: usuarioSesion?.user_id || '',
       usuEst: usuario.estado === 1
         ? 'Activo'
         : 'Bloqueado',
@@ -86,7 +99,7 @@ const UsuarioForm = ({
       usuPassHash: '',
       usuPassHashConfirm: '',
       usuRol: 'USUARIO',
-      usuSupFk: '',
+      usuSupFk: usuarioSesion?.user_id || '',
       usuEst: 'Activo',
     });
 
@@ -272,7 +285,7 @@ const UsuarioForm = ({
 
     // Payload al backend
         const payload = {
-      id:           Number(form.usuId),
+      id:           form.usuId,
       nombres:      form.usuNom,
       apellidos:    form.usuApe,
       telefono:     form.usuTel,
@@ -325,6 +338,17 @@ const UsuarioForm = ({
   console.error('Error completo:', err);
 
   if (err.response) {
+    console.log('======================');
+    console.log('STATUS:', err.response.status);
+    console.log('DATA:', err.response.data);
+    console.log(
+      'DATA JSON:',
+      JSON.stringify(err.response.data, null, 2)
+    );
+    console.log('======================');
+  }
+
+  if (err.response) {
     console.log('Status:', err.response.status);
     console.log('Mensaje:', err.response.data);
   }
@@ -357,6 +381,46 @@ const UsuarioForm = ({
         setLoading(false);
         setSubmitting(false);
 
+    }
+  };
+
+  // ─────────────────────────────────────────
+  // Password change handler
+  // ─────────────────────────────────────────
+
+  const handleChangePassword = async (e) => {
+    if (e?.preventDefault) e.preventDefault();
+    const newErrors = {};
+    if (!newPass || newPass.length < 6) newErrors.newPass = 'Mínimo 6 caracteres';
+    if (newPass !== newPassConfirm) newErrors.newPassConfirm = 'Las contraseñas no coinciden';
+    if (Object.keys(newErrors).length) {
+      setPwErrors(newErrors);
+      return;
+    }
+    setPwSubmitting(true);
+    setLoading(true);
+    try {
+      await updateUsuario(usuario.id, {
+        id: Number(form.usuId),
+        nombres: form.usuNom,
+        apellidos: form.usuApe,
+        telefono: form.usuTel,
+        correo: form.usuCor,
+        password: newPass,
+        rolId: form.usuRol === 'ADMINISTRADOR' ? 1 : 2,
+        supervisorId: form.usuSupFk || null,
+      });
+      setAlert({ type: 'success', title: 'Contraseña actualizada', message: 'La contraseña se actualizó correctamente', onClose: () => setAlert(null) });
+      if (onSuccess) onSuccess();
+      setShowPwModal(false);
+      setNewPass('');
+      setNewPassConfirm('');
+    } catch (err) {
+      console.error('Error cambiando contraseña', err);
+      setAlert({ type: 'error', title: 'Error', message: err?.response?.data?.message || 'No se pudo cambiar la contraseña', onClose: () => setAlert(null) });
+    } finally {
+      setLoading(false);
+      setPwSubmitting(false);
     }
   };
 
@@ -591,75 +655,62 @@ const UsuarioForm = ({
 
           </div>
 
-          {/* PASSWORD */}
+          {!isEdit ? (
+            <>
+              {/* PASSWORD */}
+              <div className={styles.field}>
+                <label className={styles.label}>
+                  Contraseña *
+                </label>
 
-          <div className={styles.field}>
+                <div className={styles.inputWrap}>
+                  <FiLock className={styles.inputIcon} />
+                  <input
+                    type="password"
+                    name="usuPassHash"
+                    className={`${styles.input} ${errors.usuPassHash ? styles.inputError : ''}`}
+                    placeholder="Mínimo 6 caracteres"
+                    value={form.usuPassHash}
+                    onChange={handleChange}
+                  />
+                </div>
 
-            <label className={styles.label}>
-              Contraseña {!isEdit && '*'}
-            </label>
-
-            <div className={styles.inputWrap}>
-
-              <FiLock className={styles.inputIcon} />
-
-              <input
-                type="password"
-                name="usuPassHash"
-                className={`${styles.input} ${
-                  errors.usuPassHash
-                    ? styles.inputError
-                    : ''
-                }`}
-                placeholder="Mínimo 6 caracteres"
-                value={form.usuPassHash}
-                onChange={handleChange}
-              />
-
-            </div>
-
-            {errors.usuPassHash && (
-              <span className={styles.fieldError}>
-                {errors.usuPassHash}
-              </span>
-            )}
-
-          </div>
-
-          {/* CONFIRMAR CONTRASEÑA */}
-
-          {!isEdit && form.usuPassHash && (
-            <div className={styles.field}>
-
-              <label className={styles.label}>
-                Confirmar contraseña *
-              </label>
-
-              <div className={styles.inputWrap}>
-
-                <FiLock className={styles.inputIcon} />
-
-                <input
-                  type="password"
-                  name="usuPassHashConfirm"
-                  className={`${styles.input} ${
-                    errors.usuPassHashConfirm
-                      ? styles.inputError
-                      : ''
-                  }`}
-                  placeholder="Repetir contraseña"
-                  value={form.usuPassHashConfirm}
-                  onChange={handleChange}
-                />
-
+                {errors.usuPassHash && (
+                  <span className={styles.fieldError}>{errors.usuPassHash}</span>
+                )}
               </div>
 
-              {errors.usuPassHashConfirm && (
-                <span className={styles.fieldError}>
-                  {errors.usuPassHashConfirm}
-                </span>
+              {/* CONFIRMAR CONTRASEÑA */}
+              {form.usuPassHash && (
+                <div className={styles.field}>
+                  <label className={styles.label}>Confirmar contraseña *</label>
+                  <div className={styles.inputWrap}>
+                    <FiLock className={styles.inputIcon} />
+                    <input
+                      type="password"
+                      name="usuPassHashConfirm"
+                      className={`${styles.input} ${errors.usuPassHashConfirm ? styles.inputError : ''}`}
+                      placeholder="Repetir contraseña"
+                      value={form.usuPassHashConfirm}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  {errors.usuPassHashConfirm && (
+                    <span className={styles.fieldError}>{errors.usuPassHashConfirm}</span>
+                  )}
+                </div>
               )}
-
+            </>
+          ) : (
+            <div style={{ marginTop: 8 }}>
+              <button
+                type="button"
+                className={styles.changePasswordButton}
+                onClick={() => setShowPwModal(true)}
+              >
+                <FiKey />
+                Cambiar contraseña
+              </button>
             </div>
           )}
 
@@ -704,41 +755,104 @@ const UsuarioForm = ({
           {/* SUPERVISOR */}
 
           <div className={styles.field}>
-
             <label className={styles.label}>
               Supervisor
             </label>
 
             <div className={styles.inputWrap}>
-
               <FiUsers className={styles.inputIcon} />
 
-              <select
-                name="usuSupFk"
-                className={styles.select}
-                value={form.usuSupFk}
-                onChange={handleChange}
-              >
-                <option value="">
-                  Seleccione supervisor
-                </option>
-
-                {usuarios.map((u) => (
-                  <option
-                    key={u.id}
-                    value={u.id}
-                  >
-                    {u.nombres} {u.apellidos}
-                  </option>
-                ))}
-              </select>
-
+              <input
+                type="text"
+                className={styles.input}
+                value={`${usuarioSesion?.nombres || ''} ${usuarioSesion?.apellidos || ''}`}
+                disabled
+              />
             </div>
-
           </div>
 
         </form>
 
+      </Drawer>
+
+      {/* Password modal */}
+
+      <Drawer
+        isOpen={showPwModal}
+        onClose={() => setShowPwModal(false)}
+        title="Cambiar contraseña"
+        subtitle="Ingresa la nueva contraseña y verifica"
+        icon={<FiLock />}
+        footer={
+          <>
+            <button className={styles.btnOutline} type="button" onClick={() => setShowPwModal(false)} disabled={pwSubmitting}>
+              Cancelar
+            </button>
+            <button className={styles.btnPrimary} type="button" onClick={handleChangePassword} disabled={pwSubmitting}>
+              {pwSubmitting ? 'Cambiando...' : 'Cambiar'}
+            </button>
+          </>
+        }
+      >
+        <div className={styles.form}>
+          <div className={styles.field}>
+            <label className={styles.label}>Contraseña nueva</label>
+            <div className={styles.inputWrap}>
+              <FiLock className={styles.inputIcon} />
+
+              <input
+                type={showPassword ? 'text' : 'password'}
+                name="newPass"
+                className={`${styles.input} ${pwErrors.newPass ? styles.inputError : ''}`}
+                placeholder="Mínimo 6 caracteres"
+                value={newPass}
+                onChange={(e) => {
+                  setNewPass(e.target.value);
+
+                  if (pwErrors.newPass) {
+                    setPwErrors((prev) => ({
+                      ...prev,
+                      newPass: '',
+                    }));
+                  }
+                }}
+              />
+
+              <button
+                type="button"
+                className={styles.eyeButton}
+                onClick={() =>
+                  setShowPassword(!showPassword)
+                }
+              >
+                {showPassword ? (
+                  <FiEyeOff />
+                ) : (
+                  <FiEye />
+                )}
+              </button>
+            </div>
+            {pwErrors.newPass && <span className={styles.fieldError}>{pwErrors.newPass}</span>}
+          </div>
+          <div className={styles.field}>
+            <label className={styles.label}>Verificar contraseña</label>
+            <div className={styles.inputWrap}>
+              <FiLock className={styles.inputIcon} />
+              <input
+                type="password"
+                name="newPassConfirm"
+                className={`${styles.input} ${pwErrors.newPassConfirm ? styles.inputError : ''}`}
+                placeholder="Repetir contraseña"
+                value={newPassConfirm}
+                onChange={(e) => {
+                  setNewPassConfirm(e.target.value);
+                  if (pwErrors.newPassConfirm) setPwErrors((prev) => ({ ...prev, newPassConfirm: '' }));
+                }}
+              />
+            </div>
+            {pwErrors.newPassConfirm && <span className={styles.fieldError}>{pwErrors.newPassConfirm}</span>}
+          </div>
+        </div>
       </Drawer>
 
       {/* LOADING */}

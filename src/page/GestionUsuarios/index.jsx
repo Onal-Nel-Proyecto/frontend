@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { FiArrowLeft } from 'react-icons/fi';
 import {FiPlus, FiUserCheck, } from 'react-icons/fi';
 import { useAuth } from '../../features/auth/hooks/usuAuth.js';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
@@ -18,9 +20,20 @@ const GestionUsuarios = () => {
   const isAdmin =
     user?.rol === 'ADMINISTRADOR';
   // ─── Estados ───────────────────────────────────────────
+    const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
     const [users,               setUsers]               = useState([]);
     const [showForm,            setShowForm]             = useState(false);
     const [usuarioSeleccionado, setUsuarioSeleccionado]  = useState(null);
+
+
+    const [search, setSearch] = useState(
+  () => searchParams.get('search') || ''
+);
+    const [filters, setFilters] = useState(() => ({
+  estado: searchParams.get('estado') || '',
+  rol: searchParams.get('rol') || '',
+}));
 
      const loadUsuarios = async () => {
   try {
@@ -50,6 +63,20 @@ const GestionUsuarios = () => {
   loadUsuarios();
 
 }, []);
+useEffect(() => {
+  const params = {};
+
+  if (search) params.search = search;
+  if (filters.estado) params.estado = filters.estado;
+  if (filters.rol) params.rol = filters.rol;
+
+  setSearchParams(params, {
+    replace: true,
+  });
+
+}, [search, filters, setSearchParams]);
+
+
 
   // ─── Abrir crear ──────────────────────────────────────
 
@@ -79,27 +106,31 @@ const GestionUsuarios = () => {
     setUsuarioSeleccionado(null);
   };
 
-  // ─── Eliminar usuario ────────────────────────────────
+  // ─── Cambiar estado / desbloquear usuario ───────────
 
-  const handleDelete = async (usuario) => {
-  if (!usuario) return;
+  const handleToggleEstado = async (usuario) => {
+    if (!usuario) return;
 
-  const confirmed = window.confirm(
-    `¿Eliminar al usuario ${usuario.nombres} ${usuario.apellidos}?`
-  );
+    const targetEstado = usuario.estado === 1 ? 2 : 1;
+    const action = targetEstado === 1 ? 'desbloquear' : 'bloquear';
 
-  if (!confirmed) return;
+    const confirmed = window.confirm(
+      `¿Desea ${action} al usuario ${usuario.nombres} ${usuario.apellidos}?`
+    );
 
-  try {
-    await changeEstadoUsuario(usuario.id, 2);
+    if (!confirmed) return;
 
-  setUsers((prev) =>
-    prev.filter((u) => u.id !== usuario.id)
-  );
-  } catch (error) {
-    console.error(error);
-  }
-};
+    try {
+      await changeEstadoUsuario(usuario.id, targetEstado);
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === usuario.id ? { ...u, estado: targetEstado } : u
+        )
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  };
  
   // ─── Guard ────────────────────────────────────────────
 
@@ -135,13 +166,18 @@ const GestionUsuarios = () => {
 
       <div className={styles.header}>
 
-        <div>
+      <div className={styles.headerLeft}>
+        <button
+          className={styles.backButton}
+          onClick={() => navigate(-1)}
+        >
+          <FiArrowLeft />
+        </button>
 
-          <h2 className={styles.title}>
-            Gestión de Usuarios
-          </h2>
-
-        </div>
+        <h2 className={styles.title}>
+          Gestión de Usuarios
+        </h2>
+      </div>
 
         <button
           className={styles.createButton}
@@ -172,7 +208,11 @@ const GestionUsuarios = () => {
         usuarios={users}
         isAdmin={isAdmin}
         openEdit={openEdit}
-        handleDelete={handleDelete}
+        onToggleEstado={handleToggleEstado}
+        search={search}
+        onSearchChange={setSearch}
+        filters={filters}
+        setFilters={setFilters}
       />
 
       {/* Nota */}

@@ -9,7 +9,8 @@ import {
   FiMoreVertical,
   FiEdit3,
   FiFilter,
-  FiTrash2,
+  FiLock,
+  FiUnlock,
 } from 'react-icons/fi';
 
 import styles from './TablaUsuarios.module.css';
@@ -21,7 +22,7 @@ const AccionesMenu = ({
   usuario,
   isAdmin,
   onEdit,
-  onDelete,
+  onToggleEstado,
 }) => {
 
   const [open, setOpen] = useState(false);
@@ -87,11 +88,11 @@ const AccionesMenu = ({
             disabled={!isAdmin}
             onClick={() => {
               setOpen(false);
-              onDelete(usuario);
+              onToggleEstado(usuario);
             }}
           >
-            <FiTrash2 />
-            Eliminar
+            {usuario.estado === 1 ? <FiLock /> : <FiUnlock />}
+            {usuario.estado === 1 ? 'Bloquear' : 'Desbloquear'}
           </button>
 
         </div>
@@ -107,30 +108,21 @@ const TablaUsuarios = ({
   usuarios,
   isAdmin,
   openEdit,
-  handleDelete,
+  onToggleEstado,
+  search,
+  onSearchChange,
+  filters,
+  setFilters,
 }) => {
 
-  const [search, setSearch] = useState('');
-  
-  const [isFilterOpen, setIsFilterOpen] =
-    useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  const [filters, setFilters] =
-    useState({
-      estado: '',
-      rol: '',
-      correo: '',
-    });
-
-  const activeFilters =
-    Object.values(filters)
-      .filter(Boolean)
-      .length;
+  const activeFilters = Object.values(filters).filter(Boolean).length;
 
   // ─── Filtro ────────────────────────────────────────────
 
   const filtered = usuarios.filter((u) => {
-    const term = search.toLowerCase();
+    const term = (search || '').toLowerCase();
 
     const matchesSearch =
       String(u.id ?? '').toLowerCase().includes(term) ||
@@ -141,7 +133,7 @@ const TablaUsuarios = ({
     if (!matchesSearch) return false;
 
     // Estado filter: 'Activo' means estado === 1
-    if (filters.estado) {
+    if (filters?.estado) {
       if (filters.estado === 'Activo' && u.estado !== 1) return false;
       if (filters.estado === 'Inactivo' && u.estado === 1) return false;
     }
@@ -149,11 +141,6 @@ const TablaUsuarios = ({
     // Rol filter (case-insensitive exact match)
     if (filters.rol) {
       if ((u.rol || '').toLowerCase() !== filters.rol.toLowerCase()) return false;
-    }
-
-    // Correo filter (contains)
-    if (filters.correo) {
-      if (!u.correo?.toLowerCase().includes(filters.correo.toLowerCase())) return false;
     }
 
     return true;
@@ -166,7 +153,7 @@ const TablaUsuarios = ({
 
       <div className={styles.header}>
 
-        <div className={styles.searchBox}>
+          <div className={styles.searchBox}>
 
           <FiSearch className={styles.searchIcon} />
 
@@ -175,11 +162,8 @@ const TablaUsuarios = ({
             placeholder="Buscar usuario..."
             className={styles.searchInput}
             value={search}
-            onChange={(e) =>
-              setSearch(e.target.value)
-            }
+            onChange={(e) => onSearchChange?.(e.target.value)}
           />
-
 
         </div>
         <button
@@ -294,7 +278,7 @@ const TablaUsuarios = ({
                       usuario={usuario}
                       isAdmin={isAdmin}
                       onEdit={openEdit}
-                      onDelete={handleDelete}
+                      onToggleEstado={onToggleEstado}
                     />
 
                   </td>
@@ -359,7 +343,7 @@ const TablaUsuarios = ({
                   usuario={usuario}
                   isAdmin={isAdmin}
                   onEdit={openEdit}
-                  onDelete={handleDelete}
+                  onToggleEstado={onToggleEstado}
                 />
 
               </div>
@@ -373,9 +357,7 @@ const TablaUsuarios = ({
       </div>
         <UsuarioFiltroDrawer
           isOpen={isFilterOpen}
-          onClose={() =>
-            setIsFilterOpen(false)
-          }
+          onClose={() => setIsFilterOpen(false)}
           filters={filters}
           setFilters={setFilters}
         />

@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
-import { FiPlus } from 'react-icons/fi';
+import { useEffect, useState, useCallback } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { FiPlus, FiArrowLeft } from 'react-icons/fi';
 import { useAuth } from '../../features/auth/hooks/usuAuth.js';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import ProveedorForm from '../../components/ModalRegistrarProveedor/ProveedorForm.jsx';
@@ -8,38 +9,95 @@ import { getProveedores, deleteProveedor } from '../../features/proveedores/serv
 
 import styles from '../GestionUsuarios/gestion-usuarios.module.css';
 
+
+
 const GestionProveedores = () => {
 	useDocumentTitle('Gestión de Proveedores');
+
+	const navigate = useNavigate();
 
 	const { user } = useAuth();
 
 	const isAdmin = user?.rol === 'ADMINISTRADOR';
-
+    const [searchParams, setSearchParams] = useSearchParams();
 	const [proveedores, setProveedores] = useState([]);
 	const [showForm, setShowForm] = useState(false);
 	const [proveedorSeleccionado, setProveedorSeleccionado] = useState(null);
+	const [search, setSearch] = useState(
+	() => searchParams.get('search') || ''
+);
 
-	// Mostrar aviso temporal al cargar la página
-	const [showWarning, setShowWarning] = useState(true);
+	const [filters, setFilters] = useState(() => ({
+		estado: searchParams.get('estado') || '',
+		suministro: searchParams.get('suministro') || '',
+	}));
+	const [loading, setLoading] = useState(false);
+	
 
-	useEffect(() => {
-		const timer = setTimeout(() => setShowWarning(false), 50000); // 50 segundos
-		return () => clearTimeout(timer);
-	}, []);
+	const loadProveedores = useCallback(async ({ nombre, suministro, estado } = {}) => {
+	setLoading(true);
 
-	const loadProveedores = async () => {
-		try {
-			const data = await getProveedores();
-			// backend returns { meta, data } or array
-			setProveedores(Array.isArray(data) ? data : data?.data ?? data);
-		} catch (error) {
-			console.error(error);
-		}
-	};
+	try {
+		const params = {};
 
-	useEffect(() => {
-		loadProveedores();
-	}, []);
+		const filtroNombre =
+			nombre !== undefined ? nombre : search;
+
+		const filtroSuministro =
+			suministro !== undefined
+				? suministro
+				: filters.suministro;
+
+		const filtroEstado =
+			estado !== undefined
+				? estado
+				: filters.estado;
+
+		if (filtroNombre)
+			params.prov_nombre = filtroNombre;
+
+		if (filtroSuministro)
+			params.prov_tipo_suministro = filtroSuministro;
+
+		if (filtroEstado)
+			params.estado = filtroEstado;
+
+		const data = await getProveedores(params);
+
+		console.log('DATA API:', data);
+
+		const resultado = Array.isArray(data) ? data : data?.data ?? data;
+
+		console.log('SET PROVEEDORES:', resultado);
+
+		setProveedores(resultado);
+
+	} catch (error) {
+		console.error(error);
+	} finally {
+		setLoading(false);
+	}
+}, [search, filters]);
+
+useEffect(() => {
+	const params = {};
+
+	if (search) params.search = search;
+	if (filters.estado) params.estado = filters.estado;
+	if (filters.suministro) params.suministro = filters.suministro;
+
+	setSearchParams(params, {
+		replace: true,
+	});
+}, [search, filters, setSearchParams]);
+
+useEffect(() => {
+	loadProveedores({
+		nombre: search,
+		suministro: filters.suministro,
+		estado: filters.estado,
+	});
+}, [search, filters.suministro, filters.estado, loadProveedores]);
 
 	const openCreate = () => {
 		setProveedorSeleccionado(null);
@@ -83,28 +141,44 @@ const GestionProveedores = () => {
 	return (
 		<div className={styles.page}>
 			<div className={styles.header}>
-				<div>
-					<h2 className={styles.title}>Gestión de Proveedores</h2>
-				</div>
+				<div className={styles.headerLeft}>
+					<button
+						className={styles.backButton}
+						onClick={() => navigate(-1)}
+					>
+						<FiArrowLeft />
+					</button>
 
+					<h2 className={styles.title}>
+						Gestión de Proveedores
+					</h2>
+					</div>
 				<button className={styles.createButton} onClick={openCreate}>
 					<FiPlus />
 					Registrar proveedor
 				</button>
 			</div>
 
-			{/** Aviso temporal: se oculta automáticamente después de 50 segundos */}
-			{showWarning && (
-				<div className={styles.warningBox}>
-					Todos los usuarios pueden crear, editar y deshabilitar proveedores en esta página.
-				</div>
-			)}
-
-			<TablaProveedores proveedores={proveedores} isAdmin={isAdmin} openEdit={openEdit} handleDelete={handleDelete} />
+			<TablaProveedores
+				proveedores={proveedores}
+				search={search}
+				onSearchChange={setSearch}
+				filters={filters}
+				setFilters={setFilters}
+				isAdmin={isAdmin}
+				openEdit={openEdit}
+				handleDelete={handleDelete}
+				loading={loading}
+			/>
 
 			<div className={styles.note}>Conectado al backend correctamente.</div>
 
-			<ProveedorForm isOpen={showForm} onClose={closeForm} proveedor={proveedorSeleccionado} onSuccess={loadProveedores} />
+			<ProveedorForm
+				isOpen={showForm}
+				onClose={closeForm}
+				proveedor={proveedorSeleccionado}
+				onSuccess={() => loadProveedores({ nombre: search, suministro: filters.suministro, estado: filters.estado })}
+			/>
 		</div>
 	);
 };

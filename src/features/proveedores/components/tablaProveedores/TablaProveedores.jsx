@@ -25,54 +25,55 @@ const AccionesMenu = ({ proveedor, onEdit, onDelete }) => {
             Editar
           </button>
 
-          <button
-            className={styles.actionItem}
-            onClick={() => {
-              setOpen(false);
-              onDelete(proveedor);
-            }}
-          >
-            <FiTrash2 />
-            Deshabilitar
-          </button>
+          {proveedor.pro_estado === 'ACTIVO' && (
+            <button
+              className={styles.actionItem}
+              onClick={() => {
+                setOpen(false);
+                onDelete(proveedor);
+              }}
+            >
+              <FiTrash2 />
+              Deshabilitar
+            </button>
+          )}
         </div>
       )}
     </div>
   );
 };
 
-const TablaProveedores = ({ proveedores = [], openEdit, handleDelete }) => {
-  const [search, setSearch] = useState('');
+const TablaProveedores = ({ proveedores = [], search = '', onSearchChange, filters = { estado: '', suministro: '', nombre: '' }, setFilters, openEdit, handleDelete, loading }) => {
+  console.log('PROVEEDORES TABLA:', proveedores);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [filters, setFilters] = useState({ estado: '', suministro: '', nombre: '' });
 
   const activeFilters = Object.values(filters).filter(Boolean).length;
 
   const filtered = (proveedores || []).filter((p) => {
-    const term = search.toLowerCase();
-    const matchesSearch =
-      String(p.prov_id ?? '').toLowerCase().includes(term) ||
-      (p.prov_nombre || '').toLowerCase().includes(term) ||
-      (p.prov_correo || '').toLowerCase().includes(term) ||
-      (p.prov_telefono || '').toLowerCase().includes(term);
-    if (!matchesSearch) return false;
+  const matchEstado =
+    !filters.estado || p.pro_estado === filters.estado;
 
-    if (filters.estado) {
-      if (filters.estado === 'ACTIVO' && (p.pro_estado || '').toUpperCase() !== 'ACTIVO') return false;
-      if (filters.estado === 'INACTIVO' && (p.pro_estado || '').toUpperCase() !== 'INACTIVO') return false;
-    }
+  const matchSuministro =
+    !filters.suministro ||
+    (p.prov_suministro || []).includes(filters.suministro);
 
-    if (filters.suministro) {
-      const suministros = (p.prov_suministro || []).map((s) => s.toLowerCase());
-      if (!suministros.some((s) => s.includes(filters.suministro.toLowerCase()))) return false;
-    }
+  const matchSearch =
+    !search ||
+    p.prov_nombre?.toLowerCase().includes(search.toLowerCase()) ||
+    p.prov_id?.toString().includes(search);
 
-    if (filters.nombre) {
-      if (!p.prov_nombre?.toLowerCase().includes(filters.nombre.toLowerCase())) return false;
-    }
+  return matchEstado && matchSuministro && matchSearch;
+});
 
-    return true;
-  });
+  console.log('TOTAL PROVEEDORES:', proveedores.length);
+console.log('FILTERED:', filtered.length);
+console.log('FILTROS:', filters);
+
+if (proveedores.length > 0) {
+  console.log('PRIMER PROVEEDOR:', proveedores[0]);
+  console.log('ESTADO:', proveedores[0].pro_estado);
+  console.log('SUMINISTRO:', proveedores[0].prov_suministro);
+}
 
   return (
     <div className={styles.card}>
@@ -84,7 +85,7 @@ const TablaProveedores = ({ proveedores = [], openEdit, handleDelete }) => {
             placeholder="Buscar proveedor..."
             className={styles.searchInput}
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => onSearchChange?.(e.target.value)}
           />
         </div>
 
@@ -113,7 +114,13 @@ const TablaProveedores = ({ proveedores = [], openEdit, handleDelete }) => {
           </thead>
 
           <tbody>
-            {filtered.length === 0 ? (
+            {loading ? (
+              <tr>
+                <td colSpan={7} className={styles.loadingText}>
+                  Cargando proveedores...
+                </td>
+              </tr>
+            ) : filtered.length === 0 ? (
               <tr>
                 <td colSpan={7} className={styles.loadingText}>
                   No se encontraron proveedores
