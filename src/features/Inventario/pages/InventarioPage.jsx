@@ -320,7 +320,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
   useEffect(() => {
     const params = { limite: 100 }
     if (matFilters.search) params.nombre = matFilters.search
-    if (matFilters.status) params.estado = matFilters.status === 'disponible' ? 1 : matFilters.status === 'agotado' ? 2 : 0
+    if (matFilters.status) params.estado = matFilters.status.toUpperCase()
     if (matFilters.category) params.tipoMaterial = matFilters.category
     loadMateriales(params)
   }, [loadMateriales, debouncedMatSearch, matFilters.status, matFilters.category])
@@ -329,7 +329,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
   useEffect(() => {
     const params = { limite: 100 }
     if (prodFilters.search) params.nombre = prodFilters.search
-    if (prodFilters.status) params.estado = prodFilters.status === 'disponible' ? 1 : prodFilters.status === 'agotado' ? 2 : 0
+    if (prodFilters.status) params.estado = prodFilters.status === 'disponible' ? 1 : prodFilters.status === 'agotado' ? 2 : 3
     if (prodFilters.category) params.categoria = prodFilters.category
     loadProductos(params)
   }, [loadProductos, debouncedProdSearch, prodFilters.status, prodFilters.category])
@@ -417,7 +417,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
           precioUnitario: data.precio || 0,
           genero: data.genero,
           tipoPrenda: data.tipoPrenda,
-          categoria: data.categoria,
+          categoriaId: data.categoriaId,
           talla: data.talla,
         })
       } else {
@@ -427,7 +427,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
           precioUnitario: data.precio || 0,
           genero: data.genero,
           tipoPrenda: data.tipoPrenda,
-          categoria: data.categoria,
+          categoriaId: data.categoriaId,
           talla: data.talla,
         })
       }

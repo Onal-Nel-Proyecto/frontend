@@ -127,10 +127,16 @@
 .ra-item-remove:hover { background: rgba(239,68,68,0.1); }
 
 .ra-item-row {
-  display: grid;
-  grid-template-columns: 1fr 1.5fr 0.8fr 0.8fr;
-  gap: 0.5rem; align-items: start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: flex-start;
 }
+
+.ra-group--tipo  { flex: 1 1 100px; min-width: 80px; }
+.ra-group--ref   { flex: 2 1 160px; min-width: 120px; }
+.ra-group--cant  { flex: 1 1 90px;  min-width: 70px; }
+.ra-group--costo { flex: 1 1 90px;  min-width: 70px; }
 
 /* ── Botones ── */
 .ra-btn {
@@ -146,9 +152,7 @@
 .ra-btn--outline:hover { background: var(--accent-gold-subtle); border-color: var(--accent-gold-light); color: var(--accent-gold-light); transform: translateY(-1px); }
 
 /* ── Responsive ── */
-@media (max-width: 1100px) {
-  .ra-item-row { grid-template-columns: 1fr 1fr; }
-}
+
 
 @media (max-width: 768px) {
   .ra-form { gap: 0.8rem; }
