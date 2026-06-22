@@ -5,13 +5,15 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { FiArrowLeft, FiShoppingCart, FiDollarSign } from 'react-icons/fi';
+import { FiArrowLeft, FiShoppingCart, FiDollarSign, FiXCircle } from 'react-icons/fi';
 import { useDocumentTitle } from '../../../../hooks/useDocumentTitle';
 import { useVentas } from '../../hooks/useVentas';
 import { getStoredUser } from '../../../../utils/session';
 import { getFacturaPdfBlob } from '../../services/ventasService';
 import DetalleVenta from '../../components/DetalleVenta';
 import PagosVenta from '../../components/PagosVenta';
+import Alert from '../../../../components/ui/feedback/Alert';
+import LoadingOverlay from '../../../../components/ui/feedback/LoadingOverlay';
 import styles from './venta_seleccionada.module.css';
 
 const fmtCOP = (val) =>
@@ -169,7 +171,7 @@ const VentaSeleccionada = () => {
   const location = useLocation();
   useDocumentTitle(`Venta #${id}`);
 
-  const { getVenta } = useVentas();
+  const { getVenta, anularVenta } = useVentas();
 
   // Buscar venta por ID
   const [venta, setVenta] = useState(null);
@@ -193,6 +195,14 @@ const VentaSeleccionada = () => {
   const [loadingFactura, setLoadingFactura] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
+  // Anular venta
+  const [anularTarget, setAnularTarget] = useState(null);
+  const [anularLoading, setAnularLoading] = useState(false);
+  const [anularResult, setAnularResult] = useState(null);
+
+  // Pago exitoso
+  const [showPagoSuccess, setShowPagoSuccess] = useState(false);
+
   const handleDescargarFactura = async () => {
     setLoadingFactura(true);
     try {
@@ -213,7 +223,53 @@ const VentaSeleccionada = () => {
   };
 
   const handlePagoRegistrado = () => {
+    setShowPagoSuccess(true);
+  };
+
+  const handlePagoSuccessClose = async () => {
+    setShowPagoSuccess(false);
+    // Re-fetch the venta data to refresh totals
+    try {
+      const data = await getVenta(id);
+      setVenta(data);
+    } catch {
+      // ignore
+    }
     setRefreshKey((k) => k + 1);
+  };
+
+  // ── Anular venta ──
+  const iniciarAnulacion = () => {
+    setAnularTarget(venta);
+  };
+
+  const confirmarAnulacion = async () => {
+    if (!anularTarget) return;
+    const idVenta = anularTarget.id;
+    setAnularTarget(null);
+    setAnularLoading(true);
+    try {
+      await anularVenta(idVenta);
+      setAnularLoading(false);
+      setAnularResult({
+        type: 'success',
+        title: 'Venta anulada',
+        message: `La venta #${idVenta} ha sido anulada correctamente.`,
+        onClose: () => navigate('/ventas'),
+      });
+    } catch (err) {
+      setAnularLoading(false);
+      setAnularResult({
+        type: 'error',
+        title: 'Error',
+        message: err?.response?.data?.error || 'No se pudo anular la venta',
+        onClose: () => setAnularResult(null),
+      });
+    }
+  };
+
+  const cancelarAnulacion = () => {
+    setAnularTarget(null);
   };
 
   if (loadingVenta) {
@@ -269,6 +325,7 @@ const VentaSeleccionada = () => {
           onRegresar={() => navigate('/ventas')}
           onDescargarFactura={handleDescargarFactura}
           loadingFactura={loadingFactura}
+          onAnularVenta={iniciarAnulacion}
         />
       </main>
 
@@ -304,6 +361,30 @@ const VentaSeleccionada = () => {
       <main className={styles.content} key={refreshKey}>
         <PagosVenta venta={venta} onPagoRegistrado={handlePagoRegistrado} />
       </main>
+
+      {/* ── Anular venta ── */}
+      {anularTarget && (
+        <Alert
+          type="confirm"
+          title="¿Anular venta?"
+          message={`Estás a punto de anular la venta #${anularTarget.id} de ${anularTarget.cliente}. Esta acción no se puede deshacer.`}
+          onCancel={cancelarAnulacion}
+          onConfirm={confirmarAnulacion}
+        />
+      )}
+
+      {anularLoading && <LoadingOverlay title="Anulando venta…" message="Procesando la solicitud" />}
+      {anularResult && <Alert type={anularResult.type} title={anularResult.title} message={anularResult.message} onClose={anularResult.onClose} />}
+
+      {/* ── Éxito pago registrado ── */}
+      {showPagoSuccess && (
+        <Alert
+          type="success"
+          title="Pago registrado"
+          message="El pago se ha registrado correctamente."
+          onClose={handlePagoSuccessClose}
+        />
+      )}
     </div>
   );
 };

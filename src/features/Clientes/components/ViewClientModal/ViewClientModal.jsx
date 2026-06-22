@@ -95,9 +95,18 @@ const ViewClientModal = ({ cliente, onClose }) => {
 
   const navigate = useNavigate()
 
+  // Formatear teléfonos desde el array de la API
+  const formatPhones = (telefonos) => {
+    if (!telefonos || !Array.isArray(telefonos) || telefonos.length === 0) return cliente.phone || '—'
+    return telefonos
+      .map((t) => (typeof t === "string" ? t : t.numero_telefono || t.numero || t.telefono || ''))
+      .filter(Boolean)
+      .join(', ')
+  }
+
   // Combinar datos: lo que ya teníamos + lo que trajo la API
-  const email = fullCliente?.cliente_email || cliente.phone || '—'
-  const phone = fullCliente?.cliente_telefono || '—'
+  const email = fullCliente?.cliente_email || cliente.email || '—'
+  const phone = formatPhones(fullCliente?.cliente_telefonos)
   const address = fullCliente?.cliente_direccion || cliente.address || '—'
   const createdAt = fullCliente?.created_at || fullCliente?.fecha_creacion || cliente.lastOrder || null
 

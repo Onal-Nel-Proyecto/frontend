@@ -226,6 +226,11 @@
   border-color: var(--text-muted);
 }
 
+.itemInputError {
+  border-color: #dc2626 !important;
+  background: rgba(220, 38, 38, 0.08);
+}
+
 .itemTotal {
   font-weight: 600;
   color: var(--accent-gold);

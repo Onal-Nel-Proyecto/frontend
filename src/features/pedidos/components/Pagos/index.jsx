@@ -139,11 +139,16 @@ const Pagos = () => {
   const validate = useCallback((values) => {
     const errs = {};
     const monto = parseFloat(values.monto);
+    const minimo = Math.min(100, saldoRestante);
 
     if (!values.monto || isNaN(monto)) {
       errs.monto = 'Ingresa un monto válido';
     } else if (monto <= 0) {
       errs.monto = 'El monto debe ser mayor a $0';
+    } else if (monto < minimo) {
+      errs.monto = saldoRestante < 100
+        ? `El saldo pendiente (${fmtCOP(saldoRestante)}) es menor a $100, debe pagar el total restante`
+        : `El monto mínimo es ${fmtCOP(100)}`;
     } else if (monto > saldoRestante) {
       errs.monto = `El monto no puede superar ${fmtCOP(saldoRestante)}`;
     }
@@ -178,6 +183,18 @@ const Pagos = () => {
 
   const handleBlur = (name) => {
     setTouched((prev) => ({ ...prev, [name]: true }));
+
+    // Monto mínimo: 100, o el saldoRestante si es menor
+    if (name === 'monto' && form.monto) {
+      const montoNum = Number(form.monto);
+      const minimo = Math.min(100, saldoRestante);
+      if (montoNum < minimo) {
+        setForm((prev) => ({ ...prev, monto: String(minimo) }));
+        setErrors((prev) => ({ ...prev, monto: undefined }));
+        return;
+      }
+    }
+
     const newErrors = validate(form);
     setErrors((prev) => ({ ...prev, [name]: newErrors[name] || undefined }));
   };

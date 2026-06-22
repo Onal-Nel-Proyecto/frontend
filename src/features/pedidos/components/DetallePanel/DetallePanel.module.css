@@ -332,6 +332,14 @@
   box-shadow: var(--shadow-gold);
 }
 
+.charCounter {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-align: right;
+  margin-top: 0.1rem;
+}
+
 /* ── Botón "Usar plantilla" ── */
 
 .productoNombreRow {

@@ -151,12 +151,36 @@ const ProduccionForm = ({ isOpen, onClose, detalles, onSuccess }) => {
           <div className={styles.field}>
             <label className={styles.label}>Cantidad a producir</label>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
               className={styles.input}
               value={form.cantidad}
-              onChange={(e) => setForm((p) => ({ ...p, cantidad: Number(e.target.value) }))}
-              min={1}
-              max={Math.min(detalleSeleccionado?.pendiente || 1, 99999)}
+              onChange={(e) => {
+                // Solo dígitos, sin signos ni letras
+                const digits = e.target.value.replace(/[^0-9]/g, '');
+                // Eliminar ceros a la izquierda (ej: "011" → "11")
+                const cleaned = digits.replace(/^0+(?!$)/, '');
+                if (cleaned === '') {
+                  setForm((p) => ({ ...p, cantidad: '' }));
+                  return;
+                }
+                const num = Number(cleaned);
+                const max = Math.min(detalleSeleccionado?.pendiente || 1, 99999);
+                setForm((p) => ({ ...p, cantidad: Math.min(num, max) }));
+              }}
+              onBlur={() => {
+                setForm((p) => {
+                  let val = p.cantidad;
+                  if (val === '' || val === 0 || isNaN(Number(val)) || Number(val) < 1) {
+                    val = 1;
+                  }
+                  const max = Math.min(detalleSeleccionado?.pendiente || 1, 99999);
+                  if (Number(val) > max) {
+                    val = max;
+                  }
+                  return { ...p, cantidad: val };
+                });
+              }}
             />
             {detalleSeleccionado && (
               <span className={styles.hint}>

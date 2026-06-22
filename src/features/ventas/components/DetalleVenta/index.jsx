@@ -3,13 +3,13 @@
 // Muestra cliente, número, fecha, productos, totales y estado
 // ================================================================
 
-import { FiArrowLeft, FiDownload, FiPackage, FiShoppingCart } from 'react-icons/fi';
+import { FiArrowLeft, FiDownload, FiPackage, FiShoppingCart, FiXCircle } from 'react-icons/fi';
 import styles from './detalle-venta.module.css';
 
 const fmtCOP = (val) =>
   Number(val || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
 
-const DetalleVenta = ({ venta, onRegresar, onDescargarFactura, loadingFactura }) => {
+const DetalleVenta = ({ venta, onRegresar, onDescargarFactura, loadingFactura, onAnularVenta }) => {
   if (!venta) return null;
 
   const productos = venta.productos || venta.items || [];
@@ -44,6 +44,16 @@ const DetalleVenta = ({ venta, onRegresar, onDescargarFactura, loadingFactura })
               <FiDownload />
             )}
             {loadingFactura ? 'Generando…' : 'Generar Factura'}
+          </button>
+        )}
+        {onAnularVenta && (
+          <button
+            className={styles.btnAnular}
+            onClick={onAnularVenta}
+            title="Anular venta"
+          >
+            <FiXCircle />
+            Anular venta
           </button>
         )}
       </div>

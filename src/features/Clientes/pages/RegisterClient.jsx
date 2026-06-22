@@ -7,8 +7,9 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
   const [form, setForm] = useState({
     nombres:   clienteEdit?.name?.split(' ')[0] ?? '',
     apellidos: clienteEdit?.name?.split(' ').slice(1).join(' ') ?? '',
-    correo:    clienteEdit?.phone ?? '',
+    correo:    clienteEdit?.email ?? '',
     telefono:  clienteEdit?.telefono ?? '',
+    telefono2: clienteEdit?.telefono2 ?? '',
     direccion: clienteEdit?.address ?? '',
   })
   const [errors, setErrors] = useState({})
@@ -38,7 +39,7 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
 
     // Correo opcional
     const email = form.correo.trim()
-    if (email && email.length > 60) errs.correo = 'Máximo 60 caracteres'
+    if (email && email.length > 254) errs.correo = 'Máximo 254 caracteres'
     else if (email && !EMAIL_RE.test(email)) errs.correo = 'Correo electrónico inválido'
 
     // Teléfono opcional
@@ -93,14 +94,16 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
     setErrorForm(null)
 
     // Mapear el formulario al formato que espera la API
+    const telefonos = []
+    if (form.telefono.trim()) telefonos.push({ numero_telefono: form.telefono.trim() })
+    if (form.telefono2.trim()) telefonos.push({ numero_telefono: form.telefono2.trim() })
+
     const clienteData = {
       cliente_nombre: form.nombres.trim(),
       cliente_apellido: form.apellidos.trim(),
       cliente_email: form.correo.trim(),
       cliente_direccion: form.direccion.trim(),
-      telefono: form.telefono
-        ? [{ numero_telefono: form.telefono.trim() }]
-        : [],
+      telefono: telefonos,
     }
 
     const result = await onGuardar(clienteData)
@@ -189,7 +192,7 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
               <div className={`ncp-input-wrap ${errors.correo && touched.correo ? 'ncp-input-wrap--err' : ''}`}>
                 <i className="ti ti-mail" aria-hidden="true" />
                 <input
-                  id="correo" name="correo" type="email" maxLength="60"
+                  id="correo" name="correo" type="email" maxLength="254"
                   className="ncp-input"
                   placeholder="ejemplo@onaandnel.com"
                   value={form.correo} onChange={handleChange}
@@ -200,7 +203,7 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
             </div>
           </div>
 
-          {/* Teléfono + Dirección */}
+          {/* Teléfono + Teléfono 2 + Dirección */}
           <div className="ncp-row">
             <div className="ncp-group">
               <label className="ncp-label" htmlFor="telefono">Teléfono</label>
@@ -216,6 +219,21 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
               </div>
               {errors.telefono && touched.telefono && <p className="ncp-field-err">{errors.telefono}</p>}
             </div>
+            <div className="ncp-group">
+              <label className="ncp-label" htmlFor="telefono2">Teléfono 2</label>
+              <div className="ncp-input-wrap">
+                <i className="ti ti-phone" aria-hidden="true" />
+                <input
+                  id="telefono2" name="telefono2" type="tel" maxLength="20"
+                  className="ncp-input"
+                  placeholder="+57 300 987 6543"
+                  value={form.telefono2} onChange={handleChange}
+                />
+              <span style={{fontSize:'0.65rem', color:'var(--text-muted)', marginLeft:'auto'}}>Opcional</span>
+              </div>
+            </div>
+          </div>
+          <div className="ncp-row">
             <div className="ncp-group ncp-group--full">
               <label className="ncp-label" htmlFor="direccion">Dirección</label>
               <div className={`ncp-input-wrap ${errors.direccion && touched.direccion ? 'ncp-input-wrap--err' : ''}`}>

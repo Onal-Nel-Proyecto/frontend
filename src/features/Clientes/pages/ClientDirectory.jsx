@@ -46,6 +46,7 @@ const ClientDirectory = () => {
   const [paginaActual, setPaginaActual] = useState(1)
   const [alert, setAlert] = useState(null)
   const [confirmTarget, setConfirmTarget] = useState(null)
+  const [initialLoading, setInitialLoading] = useState(true)
   const isFirstRender = useRef(true)
   const debounceRef = useRef(null)
 
@@ -80,6 +81,11 @@ const ClientDirectory = () => {
     loadClientes(paginaActual, LIMITE, debouncedSearch)
   }, [paginaActual, debouncedSearch]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Cuando loading pasa a false, desactivar initialLoading
+  useEffect(() => {
+    if (!loading) setInitialLoading(false)
+  }, [loading])
+
   // ── Números de página ─────────────────────────────────
   const pageNumbers = useMemo(
     () => getPageNumbers(paginaActual, meta?.paginas_totales || 1),
@@ -108,6 +114,9 @@ const ClientDirectory = () => {
     if (result.ok) {
       setShowRegister(false)
       setClienteEditando(null)
+      setAlert({ type: 'success', title: 'Cliente actualizado', message: result.msg, onClose: () => setAlert(null) })
+    } else {
+      setAlert({ type: 'error', title: 'Error al actualizar', message: result.msg, onClose: () => setAlert(null) })
     }
     return result
   }
@@ -167,6 +176,9 @@ const ClientDirectory = () => {
     const result = await addCliente(clienteData, debouncedSearch)
     if (result.ok) {
       setShowRegister(false)
+      setAlert({ type: 'success', title: 'Cliente registrado', message: result.msg, onClose: () => setAlert(null) })
+    } else {
+      setAlert({ type: 'error', title: 'Error al registrar', message: result.msg, onClose: () => setAlert(null) })
     }
     return result
   }
@@ -212,7 +224,7 @@ const ClientDirectory = () => {
       </div>
 
       {/* Indicador de carga — solo en primera carga */}
-      {loading && clientes.length === 0 && (
+      {initialLoading && loading && (
         <div className="cd-loading">
           <i className="ti ti-loader ti-spin" aria-hidden="true" />
           {' '}Cargando clientes…
@@ -226,6 +238,13 @@ const ClientDirectory = () => {
         </div>
       )}
 
+      {!loading && !error && clientes.length === 0 && (
+        <div className="cd-empty">
+          <i className="ti ti-search-off" aria-hidden="true" />
+          <p>{debouncedSearch ? 'No se encontraron clientes con ese criterio de búsqueda.' : 'No hay clientes registrados.'}</p>
+        </div>
+      )}
+
       {/* Tabla */}
       <div className="cd-table-section">
         <ContactTable
@@ -234,7 +253,7 @@ const ClientDirectory = () => {
           onEdit={handleEditCliente}
           onDelete={handleDeleteCliente}
           onReactivate={handleReactivateCliente}
-          totalClientes={clientes.length}
+          totalClientes={meta?.total || 0}
         />
       </div>
 
