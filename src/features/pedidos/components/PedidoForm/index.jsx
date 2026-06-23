@@ -62,25 +62,43 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
 
   const handleChange = (e) => {
     const { name, value, type } = e.target;
-    if (type === 'number' && value !== '') {
 
-      const numericValue = Number(value);
+    let sanitizedValue = value;
 
-      if (numericValue < 0) return;
-
-      // Validación dinámica contra fecha de entrega
-      if (name === 'recordatorio') {
-        const maxRecordatorio = getMaxRecordatorio();
-        if (maxRecordatorio > 0 && numericValue > maxRecordatorio) return;
-        if (numericValue < 1) return;
+    // Recordatorio: solo dígitos, nada de +-.,e
+    if (name === 'recordatorio' && sanitizedValue !== '') {
+      sanitizedValue = sanitizedValue.replace(/[^0-9]/g, '');
+      const numericValue = Number(sanitizedValue);
+      if (numericValue < 1) {
+        sanitizedValue = '1';
       } else {
-        const max = limits[name];
-        if (max && numericValue > max) return;
+        const maxRecordatorio = getMaxRecordatorio();
+        if (maxRecordatorio > 0 && numericValue > maxRecordatorio) {
+          sanitizedValue = String(maxRecordatorio);
+        }
       }
+    } else if (type === 'number' && sanitizedValue !== '') {
+      const numericValue = Number(sanitizedValue);
+      if (numericValue < 0) return;
+      const max = limits[name];
+      if (max && numericValue > max) return;
     }
-    setForm((prev) => ({ ...prev, [name]: value }));
+
+    setForm((prev) => ({ ...prev, [name]: sanitizedValue }));
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
   };
+
+  // Ajustar recordatorio cuando cambia la fecha de entrega
+  useEffect(() => {
+    if (form.recordatorio_activo && form.fecha_entrega_estimada) {
+      const maxDias = getMaxRecordatorio();
+      if (maxDias <= 0) {
+        setForm((p) => ({ ...p, recordatorio_activo: false }));
+      } else if (form.recordatorio > maxDias) {
+        setForm((p) => ({ ...p, recordatorio: maxDias }));
+      }
+    }
+  }, [form.fecha_entrega_estimada]);
 
   const handleClienteChange = useCallback((cliente) => {
     setForm((prev) => ({ ...prev, cliente_id: cliente.cliente_id }));
@@ -127,16 +145,12 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
       return;
     }
 
-    // Validar recordatorio contra fecha de entrega
+    // Ajustar recordatorio contra fecha de entrega (safety net, el UI ya controla esto)
+    let recordatorio = null;
     if (form.recordatorio_activo && form.fecha_entrega_estimada) {
       const maxRecordatorio = getMaxRecordatorio();
-      if (maxRecordatorio <= 0) {
-        setErrors({ recordatorio: 'La fecha de entrega debe ser posterior a hoy para activar el recordatorio' });
-        return;
-      }
-      if (form.recordatorio > maxRecordatorio) {
-        setErrors({ recordatorio: `El recordatorio no puede superar los ${maxRecordatorio} días antes de la entrega` });
-        return;
+      if (maxRecordatorio > 0) {
+        recordatorio = Math.min(form.recordatorio, maxRecordatorio);
       }
     }
 
@@ -151,7 +165,7 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
       observacion: form.observacion || null,
       tipo_pedido: form.tipo_pedido || null,
       [isEdit ? 'fecha_estimada_entrega' : 'fecha_estimada']: fechaEntrega,
-      recordatorio: form.recordatorio_activo ? form.recordatorio : null,
+      recordatorio,
     };
 
     try {
@@ -329,48 +343,53 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
             </div>
           </div>
 
-          <div className={styles.field}>
-            <label className={styles.label}>Recordatorio</label>
-            <div className={styles.switchRow}>
-              <label className={styles.switch} style={{ opacity: !form.fecha_entrega_estimada ? 0.5 : 1 }}>
-                <input
-                  type="checkbox"
-                  disabled={!form.fecha_entrega_estimada}
-                  checked={form.recordatorio_activo}
-                  onChange={() => setForm((p) => ({ ...p, recordatorio_activo: !p.recordatorio_activo }))} />
-                <span className={styles.slider} />
-              </label>
-              <span
-                className={styles.switchLabel}>
-                {!form.fecha_entrega_estimada
-                  ? 'Selecciona una fecha de entrega primero'
-                  : form.recordatorio_activo ? 'Activado' : 'Desactivado'}
-              </span>
-            </div>
-            {form.recordatorio_activo && (
-              <div className={styles.inputWrap} style={{ marginTop: '0.5rem' }}>
-
-                <input
-                  type="number"
-                  name="recordatorio"
-                  className={`${styles.input} ${errors.recordatorio ? styles.inputError : ''}`}
-                  value={form.recordatorio}
-                  onChange={handleChange}
-                  min={1}
-                  max={getMaxRecordatorio() || 1}
-                />
-                <span className={styles.inputSuffix}>días antes</span>
+          {form.fecha_entrega_estimada && getMaxRecordatorio() > 0 && (
+            <div className={styles.field}>
+              <label className={styles.label}>Recordatorio</label>
+              <div className={styles.switchRow}>
+                <label className={styles.switch}>
+                  <input
+                    type="checkbox"
+                    checked={form.recordatorio_activo}
+                    onChange={() => {
+                      const newActive = !form.recordatorio_activo;
+                      const maxDias = getMaxRecordatorio();
+                      const defaultVal = Math.min(3, maxDias);
+                      setForm((p) => ({
+                        ...p,
+                        recordatorio_activo: newActive,
+                        recordatorio: newActive ? defaultVal : p.recordatorio
+                      }));
+                    }} />
+                  <span className={styles.slider} />
+                </label>
+                <span className={styles.switchLabel}>
+                  {form.recordatorio_activo ? 'Activado' : 'Desactivado'}
+                </span>
               </div>
-            )}
-            {form.recordatorio_activo && form.fecha_entrega_estimada && (
-              <span style={{ fontSize: '0.7rem', color: '#999', marginTop: '0.2rem', display: 'block' }}>
-                Máximo {getMaxRecordatorio()} día{getMaxRecordatorio() !== 1 ? 's' : ''} antes de la entrega
-              </span>
-            )}
-            {errors.recordatorio && (
-              <span className={styles.fieldError}>{errors.recordatorio}</span>
-            )}
-          </div>
+              {form.recordatorio_activo && (
+                <div style={{ marginTop: '0.5rem' }}>
+                  <span className={styles.recordatorioLabel}>Días antes</span>
+                  <div className={styles.inputWrap}>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      name="recordatorio"
+                      className={`${styles.input} ${errors.recordatorio ? styles.inputError : ''}`}
+                      value={form.recordatorio}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <span className={styles.recordatorioHint}>
+                    Máximo {getMaxRecordatorio()} día{getMaxRecordatorio() !== 1 ? 's' : ''} antes de la entrega
+                  </span>
+                  {errors.recordatorio && (
+                    <span className={styles.fieldError}>{errors.recordatorio}</span>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </form>
       </Drawer>
 

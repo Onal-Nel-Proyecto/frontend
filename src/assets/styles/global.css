@@ -79,9 +79,6 @@ input:focus,
 textarea:focus,
 select:focus {
   outline: none !important;
-  border-color: #695B58;
-  border-radius: var(--radius-xs);
-  box-shadow: 0 0 0 3px rgba(105, 91, 88, 0.15) !important;
 }
 
 input:focus-visible,

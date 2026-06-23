@@ -179,7 +179,6 @@ const PagosVenta = ({ venta, onPagoRegistrado }) => {
         usuario: nombreUsuario,
       });
 
-      setSuccessMsg('Pago registrado correctamente');
       setForm({
         monto: '',
         metodo: '',
@@ -193,8 +192,6 @@ const PagosVenta = ({ venta, onPagoRegistrado }) => {
       if (onPagoRegistrado) {
         onPagoRegistrado();
       }
-
-      setTimeout(() => setSuccessMsg(''), 3000);
     } catch {
       setErrors({ general: 'Error al registrar el pago. Intenta de nuevo.' });
     } finally {

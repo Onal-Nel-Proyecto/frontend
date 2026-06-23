@@ -35,16 +35,6 @@ const validate = (form) => {
   const desc = form.descripcion?.trim()
   if (desc.length > 200) errs.descripcion = 'Máximo 200 caracteres'
 
-  const umbral = form.umbralMinimo?.toString().trim()
-  if (umbral !== '' && umbral !== undefined) {
-    if (!/^\d+$/.test(umbral)) errs.umbralMinimo = 'Solo números enteros'
-    else {
-      const n = parseInt(umbral, 10)
-      if (n < 0) errs.umbralMinimo = 'No puede ser negativo'
-      else if (n > 300) errs.umbralMinimo = 'Máximo 300'
-    }
-  }
-
   return errs
 }
 
@@ -56,7 +46,7 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, onSave }) => {
     tipoMaterial: initialData?.tipo_material || '',
     unidadMedida: initialData?.unidad_medida || '',
     descripcion: initialData?.desc || '',
-    umbralMinimo: initialData?.minStock?.toString() || '',
+    stock: isEditing ? (initialData?.stock ?? 0) : 0,
   })
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
@@ -82,22 +72,42 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, onSave }) => {
         tipoMaterial: initialData?.tipo_material || '',
         unidadMedida: initialData?.unidad_medida?.trim() || '',
         descripcion: initialData?.desc?.trim() || '',
-        umbralMinimo: initialData?.minStock?.toString() || '',
       }
       const sinCambios =
         orig.nombre === form.nombre.trim() &&
         orig.tipoMaterial === form.tipoMaterial &&
         orig.unidadMedida === form.unidadMedida.trim() &&
         orig.descripcion === form.descripcion?.trim() &&
-        orig.umbralMinimo === form.umbralMinimo?.toString().trim()
+        (Number(form.stock) || 0) === (initialData?.stock ?? 0)
       if (sinCambios) {
         newErrors._general = 'No se detectaron cambios para guardar'
       }
     }
 
     setErrors(newErrors)
-    setTouched({ nombre: true, tipoMaterial: true, unidadMedida: true, descripcion: true, umbralMinimo: true })
+    setTouched({ nombre: true, tipoMaterial: true, unidadMedida: true, descripcion: true })
     if (Object.keys(newErrors).length > 0) return
+
+    // Validar stock solo en edición
+    if (isEditing) {
+      const stockNum = Number(form.stock);
+      const maxStock = initialData?.stock ?? 0;
+      if (isNaN(stockNum) || form.stock === '' || form.stock === null || form.stock === undefined) {
+        setErrors((prev) => ({ ...prev, stock: 'El stock es obligatorio' }));
+        setTouched((prev) => ({ ...prev, stock: true }));
+        return;
+      }
+      if (stockNum < 0) {
+        setErrors((prev) => ({ ...prev, stock: 'El stock no puede ser negativo' }));
+        setTouched((prev) => ({ ...prev, stock: true }));
+        return;
+      }
+      if (stockNum > maxStock) {
+        setErrors((prev) => ({ ...prev, stock: `No puedes aumentar el stock. Máximo permitido: ${maxStock}` }));
+        setTouched((prev) => ({ ...prev, stock: true }));
+        return;
+      }
+    }
 
     setSaving(true)
     try {
@@ -107,7 +117,8 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, onSave }) => {
         tipoMaterial: form.tipoMaterial.trim() || null,
         unidadMedida: form.unidadMedida.trim(),
         descripcion: form.descripcion.trim(),
-        umbralMinimo: parseInt(form.umbralMinimo, 10) || 0,
+        umbralMinimo: 0,
+        stock: isEditing ? Number(form.stock) : undefined,
       })
     } finally {
       setSaving(false)
@@ -178,6 +189,39 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, onSave }) => {
           </div>
         </div>
 
+        {isEditing && (
+          <div className="rm-row">
+            <div className="rm-group rm-group--full">
+              <label className="rm-label" htmlFor="rm-stock">Stock actual</label>
+              <div className="rm-input-wrap">
+                <i className="ti ti-package rm-input-icon" />
+                <input id="rm-stock" name="stock" type="text" inputMode="numeric"
+                  className={`rm-input ${hasError('stock') ? 'rm-input--error' : ''}`}
+                  value={form.stock}
+                  onChange={(e) => {
+                    const raw = e.target.value.replace(/\D/g, '');
+                    if (raw === '') {
+                      setForm((prev) => ({ ...prev, stock: '' }));
+                      return;
+                    }
+                    const num = parseInt(raw, 10);
+                    if (!isNaN(num) && num >= 0) {
+                      const maxStock = initialData?.stock ?? 0;
+                      setForm((prev) => ({ ...prev, stock: Math.min(num, maxStock) }));
+                    }
+                  }}
+                  onBlur={handleBlur} />
+              </div>
+              {hasError('stock') && <p className="rm-err">{errors.stock}</p>}
+              {!hasError('stock') && (
+                <p className="rm-hint" style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+                  Stock actual: {initialData?.stock ?? 0}. Solo puedes reducir el stock.
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
         <div className="rm-row">
           <div className="rm-group rm-group--full">
             <label className="rm-label" htmlFor="rm-descripcion">Descripción</label>
@@ -193,18 +237,6 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, onSave }) => {
           </div>
         </div>
 
-        <div className="rm-row">
-          <div className="rm-group">
-            <label className="rm-label" htmlFor="rm-umbralMinimo">Stock mínimo de seguridad</label>
-            <div className="rm-input-wrap">
-              <i className="ti ti-alert-triangle rm-input-icon" />
-              <input id="rm-umbralMinimo" name="umbralMinimo" type="text" inputMode="numeric" maxLength="3"
-                className={`rm-input ${hasError('umbralMinimo') ? 'rm-input--error' : ''}`}
-                placeholder="0" value={form.umbralMinimo} onChange={handleChange} onBlur={handleBlur} />
-            </div>
-            {hasError('umbralMinimo') && <p className="rm-err">{errors.umbralMinimo}</p>}
-          </div>
-        </div>
       </form>
     </Drawer>
   )

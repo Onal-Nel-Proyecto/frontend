@@ -3,6 +3,7 @@
 // ================================================================
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { FiShoppingCart, FiPlus, FiTrash2, FiSearch } from 'react-icons/fi';
 import Drawer from '../../../../components/common/Drawer';
 import Alert from '../../../../components/ui/feedback/Alert';
@@ -20,6 +21,12 @@ const fmt = (val) => {
   // Evitar overflow de toLocaleString con números enormes
   const clamped = Math.min(Math.max(num, -FMT_SAFE_MAX), FMT_SAFE_MAX);
   return clamped.toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+};
+
+/** Retorna la fecha local en formato YYYY-MM-DD (no UTC) */
+const toLocalDateStr = (date) => {
+  const d = date || new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 };
 
 const VentaForm = ({ isOpen, onClose }) => {
@@ -120,8 +127,16 @@ const VentaForm = ({ isOpen, onClose }) => {
   };
 
   const addProducto = (producto) => {
-    // Evitar duplicados
-    if (items.some((it) => it.producto_id === producto.id)) return;
+    // Evitar duplicados — mostrar error si ya existe
+    if (items.some((it) => it.producto_id === producto.id)) {
+      setAlert({
+        type: 'error',
+        title: 'Producto duplicado',
+        message: `El producto "${producto.nombre}" ya está agregado. Solo puede haber una línea por producto.`,
+        onClose: () => setAlert(null),
+      });
+      return;
+    }
 
     setItems((prev) => [
       ...prev,
@@ -218,6 +233,10 @@ const VentaForm = ({ isOpen, onClose }) => {
         setAlert({ type: 'error', title: 'Cantidad inválida', message: `"${it.nombre}" no puede exceder 300 unidades`, onClose: () => setAlert(null) });
         return;
       }
+      if (Number(it.cantidad) > Number(it.stock)) {
+        setAlert({ type: 'error', title: 'Stock insuficiente', message: `"${it.nombre}" — la cantidad (${it.cantidad}) supera el stock disponible (${it.stock})`, onClose: () => setAlert(null) });
+        return;
+      }
       if (prec <= 0) {
         setAlert({ type: 'error', title: 'Precio inválido', message: `"${it.nombre}" debe tener un precio mayor a 0`, onClose: () => setAlert(null) });
         return;
@@ -228,6 +247,30 @@ const VentaForm = ({ isOpen, onClose }) => {
       }
       if (prec > 9999999) {
         setAlert({ type: 'error', title: 'Precio inválido', message: `"${it.nombre}" supera el máximo permitido ($9,999,999,999)`, onClose: () => setAlert(null) });
+        return;
+      }
+    }
+
+    // Validar fecha de vencimiento (antes de setSubmitting)
+    const pagoMontoNum = Number(pagoMonto) || 0;
+    const pagoCubreTotal = pagoMontoNum >= total;
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    if (!pagoCubreTotal && !fechaVencimiento) {
+      setAlert({ type: 'error', title: 'Fecha de vencimiento requerida', message: 'Si el pago inicial no cubre el total, debes asignar una fecha de vencimiento', onClose: () => setAlert(null) });
+      return;
+    }
+    if (fechaVencimiento) {
+      const selected = new Date(fechaVencimiento + 'T00:00:00');
+      if (selected < hoy) {
+        setAlert({ type: 'error', title: 'Fecha inválida', message: 'La fecha de vencimiento no puede ser anterior al día de hoy', onClose: () => setAlert(null) });
+        return;
+      }
+      const maxDate = new Date();
+      maxDate.setMonth(maxDate.getMonth() + 2);
+      if (selected > maxDate) {
+        setAlert({ type: 'error', title: 'Fecha inválida', message: 'La fecha de vencimiento no puede superar los 2 meses a partir de hoy', onClose: () => setAlert(null) });
         return;
       }
     }
@@ -244,24 +287,6 @@ const VentaForm = ({ isOpen, onClose }) => {
       })),
       descuento: descuentoNum,
     };
-
-    // Validar fecha de vencimiento
-    const pagoMontoNum = Number(pagoMonto) || 0;
-    const pagoCubreTotal = pagoMontoNum >= total;
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
-
-    if (!pagoCubreTotal && !fechaVencimiento) {
-      setAlert({ type: 'error', title: 'Fecha de vencimiento requerida', message: 'Si el pago inicial no cubre el total, debes asignar una fecha de vencimiento', onClose: () => setAlert(null) });
-      return;
-    }
-    if (fechaVencimiento) {
-      const selected = new Date(fechaVencimiento + 'T00:00:00');
-      if (selected < hoy) {
-        setAlert({ type: 'error', title: 'Fecha inválida', message: 'La fecha de vencimiento no puede ser anterior al día de hoy', onClose: () => setAlert(null) });
-        return;
-      }
-    }
 
     // Si hay pago inicial
     if (pagoMontoNum > 0) {
@@ -403,20 +428,20 @@ const VentaForm = ({ isOpen, onClose }) => {
                       </td>
                       <td>
                         <input
-                          className={styles.itemInput}
-                          type="number"
-                          min={1}
-                          max={300}
+                          className={`${styles.itemInput} ${Number(it.cantidad) > Number(it.stock) ? styles.itemInputError : ''}`}
+                          type="text"
+                          inputMode="numeric"
                           value={it.cantidad}
                           onChange={(e) => {
-                            const raw = e.target.value;
+                            const raw = e.target.value.replace(/\D/g, '');
                             if (raw === '') {
                               updateItem(it.producto_id, 'cantidad', '');
                               return;
                             }
                             const num = parseInt(raw, 10);
                             if (!isNaN(num) && num >= 1) {
-                              updateItem(it.producto_id, 'cantidad', Math.min(num, 300));
+                              const maxVal = Math.max(1, Number(it.stock) || 999);
+                              updateItem(it.producto_id, 'cantidad', Math.min(num, maxVal));
                             }
                           }}
                           onBlur={() => {
@@ -425,17 +450,18 @@ const VentaForm = ({ isOpen, onClose }) => {
                             }
                           }}
                         />
+                        {Number(it.cantidad) > Number(it.stock) && (
+                          <span className={styles.fieldError}>Supera el stock disponible ({it.stock})</span>
+                        )}
                       </td>
                       <td>
                         <input
                           className={styles.itemInput}
-                          type="number"
-                          min={1}
-                          max={9999999999}
-                          step={100}
+                          type="text"
+                          inputMode="numeric"
                           value={it.precio}
                           onChange={(e) => {
-                            const raw = e.target.value;
+                            const raw = e.target.value.replace(/\D/g, '');
                             if (raw === '') {
                               updateItem(it.producto_id, 'precio', '');
                               return;
@@ -575,7 +601,8 @@ const VentaForm = ({ isOpen, onClose }) => {
                 <input
                   className={styles.input}
                   type="date"
-                  min={new Date().toISOString().split('T')[0]}
+                  min={toLocalDateStr()}
+                  max={toLocalDateStr(new Date(new Date().setMonth(new Date().getMonth() + 2)))}
                   value={fechaVencimiento}
                   onChange={(e) => setFechaVencimiento(e.target.value)}
                 />
@@ -595,7 +622,10 @@ const VentaForm = ({ isOpen, onClose }) => {
         onGuardar={handleCreateCliente}
       />
 
-      {loading && <LoadingOverlay title="Registrando venta…" message="Procesando la solicitud" />}
+      {loading && createPortal(
+        <LoadingOverlay title="Registrando venta…" message="Procesando la solicitud" />,
+        document.body
+      )}
       {alert && <Alert type={alert.type} title={alert.title} message={alert.message} onClose={alert.onClose} />}
     </>
   );
