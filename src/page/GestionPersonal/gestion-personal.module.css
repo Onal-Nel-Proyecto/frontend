@@ -27,6 +27,10 @@
 
 .blueIcon { background: var(--accent-blue-subtle); color: var(--accent-blue); }
 .violetIcon { background: var(--accent-violet-subtle); color: var(--accent-violet); }
+.orangeIcon {
+  background: var(--accent-gold-subtle);
+  color: var(--accent-gold);
+}
 
 .cardTitle { margin-bottom: 0.75rem; font-size: var(--text-xl); font-weight: 700; color: var(--text-primary); }
 .cardDescription { margin-bottom: 2rem; line-height: 1.6; color: var(--text-muted); }

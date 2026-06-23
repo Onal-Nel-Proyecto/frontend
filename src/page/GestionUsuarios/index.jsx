@@ -239,7 +239,10 @@ const GestionUsuarios = () => {
         openEdit={openEdit}
         onToggleEstado={handleToggleEstado}
         search={search}
-        onSearchChange={setSearch}
+        onSearchChange={(value) => {
+          console.log('SET SEARCH:', value);
+          setSearch(value);
+        }}
         filters={filters}
         setFilters={setFilters}
       />
