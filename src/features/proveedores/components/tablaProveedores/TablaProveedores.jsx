@@ -4,20 +4,30 @@ import { FiSearch, FiMoreVertical, FiEdit3, FiFilter, FiTrash2 } from 'react-ico
 import styles from './TablaProveedores.module.css';
 import ProveedorFiltroDrawer from '../filtrodrawer/ProveedorFiltroDrawer';
 
-const AccionesMenu = ({ proveedor, onEdit, onDelete }) => {
+const AccionesMenu = ({ proveedor, onEdit, onDelete,   menuAbierto,
+  setMenuAbierto}) => {
   const [open, setOpen] = useState(false);
 
   return (
     <div className={styles.actionsWrapper}>
-      <button className={styles.actionBtn} onClick={() => setOpen((o) => !o)}>
+     <button
+        className={styles.actionBtn}
+        onClick={() =>
+          setMenuAbierto(
+            menuAbierto === proveedor.prov_id
+              ? null
+              : proveedor.prov_id
+          )
+        }
+      >
         <FiMoreVertical />
       </button>
-      {open && (
+      {menuAbierto === proveedor.prov_id && (
         <div className={styles.actionsMenu}>
           <button
             className={styles.actionItem}
             onClick={() => {
-              setOpen(false);
+              setMenuAbierto(null);
               onEdit(proveedor);
             }}
           >
@@ -29,7 +39,7 @@ const AccionesMenu = ({ proveedor, onEdit, onDelete }) => {
             <button
               className={styles.actionItem}
               onClick={() => {
-                setOpen(false);
+                setOpen(null);
                 onDelete(proveedor);
               }}
             >
@@ -46,7 +56,7 @@ const AccionesMenu = ({ proveedor, onEdit, onDelete }) => {
 const TablaProveedores = ({ proveedores = [], search = '', onSearchChange, filters = { estado: '', suministro: '', nombre: '' }, setFilters, openEdit, handleDelete, loading }) => {
   console.log('PROVEEDORES TABLA:', proveedores);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-
+  const [menuAbierto, setMenuAbierto] = useState(null);
   const activeFilters = Object.values(filters).filter(Boolean).length;
 
   const filtered = (proveedores || []).filter((p) => {
@@ -138,7 +148,7 @@ if (proveedores.length > 0) {
                     <span className={p.pro_estado === 'ACTIVO' ? styles.active : styles.blocked}>{p.pro_estado}</span>
                   </td>
                   <td>
-                    <AccionesMenu proveedor={p} onEdit={openEdit} onDelete={handleDelete} />
+                    <AccionesMenu proveedor={p}  onEdit={openEdit}  onDelete={handleDelete}    menuAbierto={menuAbierto} setMenuAbierto={setMenuAbierto}/>
                   </td>
                 </tr>
               ))
@@ -158,7 +168,13 @@ if (proveedores.length > 0) {
               <p className={styles.mobileEmail}>{p.prov_correo}</p>
 
               <div className={styles.mobileFooter}>
-                <AccionesMenu proveedor={p} onEdit={openEdit} onDelete={handleDelete} />
+                <AccionesMenu
+                  proveedor={p}
+                  onEdit={openEdit}
+                  onDelete={handleDelete}
+                  menuAbierto={menuAbierto}
+                  setMenuAbierto={setMenuAbierto}
+                />
               </div>
             </div>
           ))}

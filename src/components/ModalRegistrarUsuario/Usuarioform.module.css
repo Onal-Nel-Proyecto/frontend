@@ -297,7 +297,7 @@ background: var(--bg-glass);
 
   cursor: pointer;
 
-  color: var(--text-primary);
+  color: #8B7A75;
 
   box-shadow: 0 2px 8px rgba(0,0,0,.05);
 
@@ -307,6 +307,6 @@ background: var(--bg-glass);
 .eyeButton:hover {
   background: var(--bg-glass-hover);
   border-color: var(--border-glass-hover);
-
+  color: #695B58;
   transform: translateY(-1px);
 }
