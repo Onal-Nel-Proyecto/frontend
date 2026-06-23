@@ -1,8 +1,10 @@
 .card {
-  background: #fff;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glass);
   border-radius: 24px;
   padding: 1.5rem;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: var(--blur-glass);
 }
 
 .header {
@@ -17,16 +19,17 @@
   display: flex;
   align-items: center;
   gap: .5rem;
-  background: #f3f3f3;
+  background: var(--surface-secondary);
+  border: 1px solid var(--border-glass);
   border-radius: 999px;
   padding: .55rem 1rem;
 }
 
 .searchIcon {
-  color: #999;
+  color: var(--text-muted);
 }
 .filterIcon {
-  color: #999;
+  color: var(--text-muted);
   font-size: 0.9rem;
   cursor: pointer;
   transition: color 0.2s ease;
@@ -42,6 +45,10 @@
   outline: none;
   width: 100%;
   font-size: .85rem;
+  color: var(--text-primary);
+}
+.searchInput::placeholder {
+  color: var(--text-muted);
 }
 
 .tableWrapper {
@@ -59,18 +66,19 @@
 .table thead th {
   padding: .85rem;
   text-align: left;
-  background: #f7f7f7;
+  background: var(--surface-secondary);
   font-size: .72rem;
-  color: #888;
+  color: var(--text-muted);
 }
 
 .table tbody td {
   padding: 1rem .85rem;
-  border-bottom: 1px solid #f0f0f0;;
+  border-bottom: 1px solid var(--border-glass);
+  color: var(--text-primary);
 }
 
 .table tbody tr:hover {
-  background: #f8f8f8;
+  background: var(--surface-secondary);
   transition: background 0.15s ease;
 }
 
@@ -115,8 +123,10 @@
   top: 0;
    z-index: 9999;
   background: #ffffff;
+  border: 1px solid #e5e7eb;
+  backdrop-filter: var(--blur-glass);
   border-radius: 12px;
-  box-shadow: 0 6px 24px rgba(0,0,0,0.15);
+  box-shadow: 0 10px 25px rgba(0,0,0,.15);
   padding: 0.5rem;
   min-width: 160px;
   z-index: 20;
@@ -132,15 +142,37 @@
   gap: .5rem;
   border-radius: 8px;
   cursor: pointer;
+  color: var(--text-primary);
 }
 
 .actionItem:hover {
-  background: #f5f5f5;
+  background: var(--surface-secondary);
 }
 
 .actionItem:disabled {
   opacity: .5;
   cursor: not-allowed;
+}
+/* EDITAR */
+
+.actionItem:first-child {
+  color: #3b82f6;
+}
+
+.actionItem:first-child:hover {
+    background: rgba(59, 130, 246, 0.30);
+  box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.45);
+}
+
+/* DESHABILITAR */
+
+.actionItem:last-child {
+  color: #ef4444;
+}
+
+.actionItem:last-child:hover {
+  background: rgba(239, 68, 68, 0.30);
+  box-shadow: inset 0 0 0 1px rgba(239, 68, 68, 0.45);
 }
 
 .mobileList {
@@ -148,7 +180,8 @@
 }
 
 .mobileCard {
-  background: #fafafa;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glass);
   border-radius: 16px;
   padding: 1rem;
   display: flex;
@@ -167,7 +200,19 @@
 
 .mobileEmail {
   font-size: .85rem;
-  color: #666;
+  color: var(--text-muted);
+}
+.actionBtn {
+  color: var(--text-primary);
+}
+
+.loadingText {
+  color: var(--text-muted);
+}
+
+.cellId,
+.cellName {
+  color: var(--text-primary);
 }
 
 .mobileFooter {

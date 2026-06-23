@@ -23,6 +23,7 @@ import LoadingOverlay from '../../components/ui/feedback/LoadingOverlay';
 import {
   createUsuario,
   updateUsuario,
+  updatePassword,
 } from '../../features/usuarios/services/user.services.js';
 
 import styles from './UsuarioForm.module.css';
@@ -82,7 +83,7 @@ console.log("Usuario sesión:", usuarioSesion);
       usuPassHash: '',
       usuPassHashConfirm: '',
       usuRol: usuario.rol || 'USUARIO',
-      usuSupFk: usuarioSesion?.user_id || '',
+      usuSupFk: usuario?.supervisorId || '',
       usuEst: usuario.estado === 1
         ? 'Activo'
         : 'Bloqueado',
@@ -99,12 +100,12 @@ console.log("Usuario sesión:", usuarioSesion);
       usuPassHash: '',
       usuPassHashConfirm: '',
       usuRol: 'USUARIO',
-      usuSupFk: usuarioSesion?.user_id || '',
+      usuSupFk: '',
       usuEst: 'Activo',
     });
 
   }
-
+  setErrors({});
 }, [usuario]);
   // ─────────────────────────────────────────
   // Handle Change
@@ -389,40 +390,61 @@ console.log("Usuario sesión:", usuarioSesion);
   // ─────────────────────────────────────────
 
   const handleChangePassword = async (e) => {
-    if (e?.preventDefault) e.preventDefault();
-    const newErrors = {};
-    if (!newPass || newPass.length < 6) newErrors.newPass = 'Mínimo 6 caracteres';
-    if (newPass !== newPassConfirm) newErrors.newPassConfirm = 'Las contraseñas no coinciden';
-    if (Object.keys(newErrors).length) {
-      setPwErrors(newErrors);
-      return;
-    }
-    setPwSubmitting(true);
-    setLoading(true);
-    try {
-      await updateUsuario(usuario.id, {
-        id: Number(form.usuId),
-        nombres: form.usuNom,
-        apellidos: form.usuApe,
-        telefono: form.usuTel,
-        correo: form.usuCor,
-        password: newPass,
-        rolId: form.usuRol === 'ADMINISTRADOR' ? 1 : 2,
-        supervisorId: form.usuSupFk || null,
+  if (e?.preventDefault) e.preventDefault();
+
+  const newErrors = {};
+
+  if (!newPass || newPass.length < 6) {
+    newErrors.newPass = 'Mínimo 6 caracteres';
+  }
+
+  if (newPass !== newPassConfirm) {
+    newErrors.newPassConfirm = 'Las contraseñas no coinciden';
+  }
+
+  if (Object.keys(newErrors).length) {
+    setPwErrors(newErrors);
+    return;
+  }
+
+  setPwSubmitting(true);
+  setLoading(true);
+
+  try {
+    await updatePassword(usuario.id, {
+      password: newPass,
+    });
+
+    setShowPwModal(false);
+    onClose();
+
+    setTimeout(() => {
+      setAlert({
+        type: 'success',
+        title: 'Contraseña actualizada',
+        message: 'La contraseña se actualizó correctamente',
+        onClose: () => setAlert(null),
       });
-      setAlert({ type: 'success', title: 'Contraseña actualizada', message: 'La contraseña se actualizó correctamente', onClose: () => setAlert(null) });
-      if (onSuccess) onSuccess();
-      setShowPwModal(false);
-      setNewPass('');
-      setNewPassConfirm('');
-    } catch (err) {
-      console.error('Error cambiando contraseña', err);
-      setAlert({ type: 'error', title: 'Error', message: err?.response?.data?.message || 'No se pudo cambiar la contraseña', onClose: () => setAlert(null) });
-    } finally {
-      setLoading(false);
-      setPwSubmitting(false);
-    }
-  };
+    }, 400);
+
+  } catch (err) {
+    console.error('Error cambiando contraseña', err);
+
+    setAlert({
+      type: 'error',
+      title: 'Error',
+      message:
+        err?.response?.data?.message ||
+        err?.response?.data?.msg ||
+        'No se pudo cambiar la contraseña',
+      onClose: () => setAlert(null),
+    });
+
+  } finally {
+    setLoading(false);
+    setPwSubmitting(false);
+  }
+};
 
   // ─────────────────────────────────────────
   // Render
@@ -762,12 +784,29 @@ console.log("Usuario sesión:", usuarioSesion);
             <div className={styles.inputWrap}>
               <FiUsers className={styles.inputIcon} />
 
-              <input
-                type="text"
-                className={styles.input}
-                value={`${usuarioSesion?.nombres || ''} ${usuarioSesion?.apellidos || ''}`}
-                disabled
-              />
+              <select
+                name="usuSupFk"
+                className={styles.select}
+                value={form.usuSupFk}
+                onChange={handleChange}
+              >
+                <option value="">
+                  Seleccione un supervisor
+                </option>
+
+                {usuarios
+                  ?.filter(
+                    (u) => u.rol === "ADMINISTRADOR"
+                  )
+                  .map((supervisor) => (
+                    <option
+                      key={supervisor.id}
+                      value={supervisor.id}
+                    >
+                      {supervisor.nombres} {supervisor.apellidos}
+                    </option>
+                  ))}
+              </select>
             </div>
           </div>
 

@@ -3,6 +3,7 @@
 // ================================================================
 
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 import {
   FiSearch,
@@ -17,7 +18,6 @@ import styles from './TablaUsuarios.module.css';
 import UsuarioFiltroDrawer from '../filtrodrawer/UsuarioFiltroDrawer';
 
 // ─── Menú de acciones ─────────────────────────────────────
-
 const AccionesMenu = ({
   usuario,
   isAdmin,
@@ -27,7 +27,13 @@ const AccionesMenu = ({
 
   const [open, setOpen] = useState(false);
 
+  const [menuPos, setMenuPos] = useState({
+    top: 0,
+    left: 0,
+  });
   const ref = useRef(null);
+  const buttonRef = useRef(null);
+  const menuRef = useRef(null);
 
   useEffect(() => {
 
@@ -35,7 +41,9 @@ const AccionesMenu = ({
 
       if (
         ref.current &&
-        !ref.current.contains(e.target)
+        !ref.current.contains(e.target) &&
+        menuRef.current &&
+        !menuRef.current.contains(e.target)
       ) {
         setOpen(false);
       }
@@ -54,6 +62,21 @@ const AccionesMenu = ({
     };
 
   }, []);
+  useEffect(() => {
+  const handleScroll = () => {
+    setOpen(false);
+  };
+
+  window.addEventListener('scroll', handleScroll, true);
+
+  return () => {
+    window.removeEventListener(
+      'scroll',
+      handleScroll,
+      true
+    );
+  };
+}, []);
 
   return (
     <div
@@ -62,41 +85,68 @@ const AccionesMenu = ({
     >
 
       <button
+        ref={buttonRef}
         className={styles.actionBtn}
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => {
+          const rect =
+            buttonRef.current.getBoundingClientRect();
+
+          setMenuPos({
+            top: rect.top,
+            left: rect.left - 180,
+          });
+
+          setOpen((o) => !o);
+        }}
       >
         <FiMoreVertical />
       </button>
 
-      {open && (
-        <div className={styles.actionsMenu}>
-
-          <button
-            className={styles.actionItem}
-            disabled={!isAdmin}
-            onClick={() => {
-              setOpen(false);
-              onEdit(usuario);
+      {open &&
+        createPortal(
+          <div
+          ref={menuRef}
+            className={styles.actionsMenu}
+            style={{
+              position: 'fixed',
+              top: menuPos.top,
+              left: menuPos.left,
+              zIndex: 999999,
             }}
           >
-            <FiEdit3 />
-            Editar
-          </button>
+            <button
+              className={styles.actionItem}
+              disabled={!isAdmin}
+              onClick={() => {
+                setOpen(false);
+                onEdit(usuario);
+              }}
+            >
+              <FiEdit3 />
+              Editar
+            </button>
 
-          <button
-            className={styles.actionItem}
-            disabled={!isAdmin}
-            onClick={() => {
-              setOpen(false);
-              onToggleEstado(usuario);
-            }}
-          >
-            {usuario.estado === 1 ? <FiLock /> : <FiUnlock />}
-            {usuario.estado === 1 ? 'Bloquear' : 'Desbloquear'}
-          </button>
+            <button
+              className={styles.actionItem}
+              disabled={!isAdmin}
+              onClick={() => {
+                setOpen(false);
+                onToggleEstado(usuario);
+              }}
+            >
+              {usuario.estado === 1 ? (
+                <FiLock />
+              ) : (
+                <FiUnlock />
+              )}
 
-        </div>
-      )}
+              {usuario.estado === 1
+                ? 'Bloquear'
+                : 'Desbloquear'}
+            </button>
+          </div>,
+          document.body
+        )}
 
     </div>
   );
@@ -238,7 +288,7 @@ const TablaUsuarios = ({
                     {usuario.nombres} {usuario.apellidos}
                   </td>
 
-                  <td>
+                  <td className={styles.cellEmail}>
                     {usuario.correo}
                   </td>
 
