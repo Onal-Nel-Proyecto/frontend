@@ -33,6 +33,7 @@ const DetallePedido = () => {
         id: f.foto_id,
         foto_id: f.foto_id,
         preview: `${API_URL}${f.foto_url}`,
+        // preview: `${f.foto_url}`,
         name: f.foto_url.split('/').pop() || `foto-${f.foto_id}`,
         isExisting: true,
       })));
@@ -43,7 +44,7 @@ const DetallePedido = () => {
 
   const handleFileSelect = useCallback(async (e) => {
     const MAX_SIZE_MB = 5;
-    const VALID_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'];
+    const VALID_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];  // Solo formatos permitidos por backend
 
     const files = Array.from(e.target.files);
     let subidas = 0;
@@ -67,6 +68,32 @@ const DetallePedido = () => {
         const resp = await uploadFotoPedido(pedido.pedido_id, formData);
         if (resp?.status) {
           subidas++;
+          // Añadir la imagen al estado local inmediatamente
+          const fotoData = resp?.data;
+          if (fotoData?.foto_id) {
+            setImages((prev) => [
+              ...prev,
+              {
+                id: fotoData.foto_id,
+                foto_id: fotoData.foto_id,
+                preview: `${API_URL}${fotoData.foto_url}`,
+                name: fotoData.foto_url?.split('/').pop() || file.name,
+                isExisting: true,
+              },
+            ]);
+          } else {
+            // Fallback: preview local si el server no devuelve la url
+            setImages((prev) => [
+              ...prev,
+              {
+                id: Date.now() + Math.random(),
+                foto_id: null,
+                preview: URL.createObjectURL(file),
+                name: file.name,
+                isExisting: false,
+              },
+            ]);
+          }
         } else {
           errores.push(`"${file.name}": el servidor rechazó la subida`);
         }
@@ -94,15 +121,22 @@ const DetallePedido = () => {
     }
 
     e.target.value = '';
-  }, [pedido.pedido_id]);
+  }, [pedido.pedido_id, API_URL, setImages]);
 
   const handleDeleteImage = useCallback(async (id, fotoId) => {
+    // Remover del estado local inmediatamente (se ve al instante)
+    setImages((prev) => {
+      const img = prev.find((i) => i.id === id);
+      if (img?.preview?.startsWith('blob:')) URL.revokeObjectURL(img.preview);
+      return prev.filter((i) => i.id !== id);
+    });
+    if (viewerImage?.id === id) setViewerImage(null);
+
     if (fotoId) {
       // Es una foto existente del backend → eliminar vía API
       try {
         const resp = await deleteFotoPedido(pedido.pedido_id, fotoId);
         if (resp?.status) {
-          // Mostrar éxito y recargar al cerrar
           setResultAlert({
             type: 'success',
             title: 'Foto eliminada',
@@ -116,7 +150,6 @@ const DetallePedido = () => {
             message: resp?.msg || 'No se pudo eliminar la foto',
             onClose: () => setResultAlert(null),
           });
-          return;
         }
       } catch (err) {
         setResultAlert({
@@ -125,18 +158,9 @@ const DetallePedido = () => {
           message: err?.response?.data?.error || 'Error de conexión al eliminar la foto',
           onClose: () => setResultAlert(null),
         });
-        return;
       }
-    } else {
-      // Imagen local (no subida aún) — solo limpiar preview
-      setImages((prev) => {
-        const img = prev.find((i) => i.id === id);
-        if (img) URL.revokeObjectURL(img.preview);
-        return prev.filter((i) => i.id !== id);
-      });
     }
-    if (viewerImage?.id === id) setViewerImage(null);
-  }, [viewerImage, pedido.pedido_id]);
+  }, [viewerImage, pedido.pedido_id, setImages]);
 
   const handleDownloadImage = useCallback(async (image) => {
     if (image.preview.startsWith('blob:')) {
@@ -203,6 +227,21 @@ const DetallePedido = () => {
 
   return (
     <div className={styles.detalleContent}>
+
+      {/* Tipo de pedido */}
+      <section className={styles.cardSection}>
+        <div className={styles.tipoPedidoRow}>
+          <span className={styles.tipoPedidoLabel}>Tipo de pedido:</span>
+          <span className={styles.tipoPedidoValue}>
+            {pedido.tipo_pedido
+              ? pedido.tipo_pedido === 'personalizado' ? 'Personalizado'
+                : pedido.tipo_pedido === 'retoques' ? 'Retoques'
+                : pedido.tipo_pedido === 'modificaciones' ? 'Modificaciones'
+                : pedido.tipo_pedido
+              : '—'}
+          </span>
+        </div>
+      </section>
 
       {/* Tabla de detalle */}
       <section className={styles.cardSection}>
@@ -329,6 +368,10 @@ const DetallePedido = () => {
       <section className={styles.cardSection}>
         <h3 className={styles.sectionTitle}>Referencias</h3>
 
+        <p className={styles.referencesInfo}>
+          Formatos: JPEG, PNG, GIF, WEBP — Máx. 5MB por imagen — Máx. 15 imágenes
+        </p>
+
         {/* Input file oculto */}
         <input
           ref={fileInputRef}
@@ -343,42 +386,51 @@ const DetallePedido = () => {
           <div className={styles.referencesEmpty}>
             <div className={styles.referencesIcon}><FiImage /></div>
             <p className={styles.referencesText}>No hay imágenes de referencia para este pedido</p>
-            <button
-              className={styles.btnUpload}
-              disabled={isCanceled}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <FiUpload />
-              Subir imagen
-            </button>
+            {images.length < 15 && (
+              <button
+                className={styles.btnUpload}
+                disabled={isCanceled}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <FiUpload />
+                Subir imagen
+              </button>
+            )}
           </div>
         ) : (
-          <div className={styles.imageGallery}>
-            {images.map((img) => (
-              <div key={img.id} className={styles.imageThumbWrapper}>
-                <img
-                  src={img.preview}
-                  alt={img.name}
-                  className={styles.imageThumb}
-                  onClick={() => setViewerImage(img)}
-                />
+          <>
+            <div className={styles.imageGallery}>
+              {images.map((img) => (
+                <div key={img.id} className={styles.imageThumbWrapper}>
+                  <img
+                    src={img.preview}
+                    alt={img.name}
+                    className={styles.imageThumb}
+                    onClick={() => setViewerImage(img)}
+                  />
+                  <button
+                    className={styles.imageThumbDelete}
+                    onClick={() => handleDeleteImage(img.id, img.foto_id)}
+                    title="Eliminar imagen"
+                  >
+                    <FiTrash2 />
+                  </button>
+                </div>
+              ))}
+              {images.length < 15 && (
                 <button
-                  className={styles.imageThumbDelete}
-                  onClick={() => handleDeleteImage(img.id, img.foto_id)}
-                  title="Eliminar imagen"
+                  className={styles.btnUploadImage}
+                  disabled={isBloqueado}
+                  onClick={() => fileInputRef.current?.click()}
                 >
-                  <FiTrash2 />
+                  <FiUpload />
                 </button>
-              </div>
-            ))}
-            <button
-              className={styles.btnUploadImage}
-              disabled={isBloqueado}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <FiUpload />
-            </button>
-          </div>
+              )}
+            </div>
+            <p className={styles.referencesCounter}>
+              {images.length}/15
+            </p>
+          </>
         )}
       </section>
 

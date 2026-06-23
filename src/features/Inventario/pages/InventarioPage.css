@@ -113,7 +113,7 @@
 .inv-search input {
   border: none; outline: none; padding: 0.5rem 0;
   font-size: var(--text-xs); font-family: inherit; color: var(--text-primary);
-  background: transparent; min-width: 10rem;
+  background: transparent; flex: 1; width: 100%; min-width: 0;
 }
 .inv-search input::placeholder { color: var(--text-muted); }
 .inv-filters__count { font-size: var(--text-xs); color: var(--text-muted); margin: 0; white-space: nowrap; }
@@ -162,9 +162,9 @@
 .inv-row--warning td { background: rgba(239,68,68,0.04); }
 .inv-row--warning:hover td { background: rgba(239,68,68,0.08); }
 
-.inv-cell-name { display: flex; flex-direction: column; gap: 2px; }
-.inv-material-name { font-weight: 600; color: var(--text-primary); margin: 0; font-size: var(--text-xs); }
-.inv-material-ref { font-size: 0.68rem; color: var(--text-muted); margin: 0; }
+.inv-cell-name { display: flex; flex-direction: column; gap: 2px; max-width: 100%; overflow: hidden; }
+.inv-material-name { font-weight: 600; color: var(--text-primary); margin: 0; font-size: var(--text-xs); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.inv-material-ref { font-size: 0.68rem; color: var(--text-muted); margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .inv-cat-tag { display: inline-block; padding: 3px 10px; background: var(--bg-glass); border-radius: 6px; font-size: 0.72rem; font-weight: 500; color: var(--text-muted); }
 .inv-cell-specs { font-size: 0.72rem; color: var(--text-muted); max-width: 200px; }
 .inv-cell-price { font-weight: 700; color: var(--text-primary); font-size: var(--text-sm); white-space: nowrap; }
@@ -217,6 +217,11 @@
 .inv-action-btn--danger:hover { background: rgba(239,68,68,0.12); color: #f87171; }
 .inv-action-btn--success:hover { background: rgba(16,185,129,0.12); color: #10b981; }
 
+/* En móvil / touch siempre mostrar acciones (bug #6) */
+@media (max-width: 768px) {
+  .inv-actions { opacity: 1; }
+}
+
 /* ── Empty state ── */
 .inv-empty-state { display: flex; flex-direction: column; align-items: center; gap: 0.75rem; padding: 3rem 2rem; text-align: center; }
 .inv-empty-state i { font-size: 2.5rem; color: var(--text-muted); opacity: 0.4; }
@@ -229,10 +234,35 @@
 }
 .inv-empty-btn:hover { border-color: var(--accent-violet); color: var(--accent-violet); }
 
+/* ── Paginación ── */
+.inv-pagination {
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  padding: 0.75rem 1rem; border-top: 1px solid var(--border-glass);
+}
+.inv-pagination-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 2rem; height: 2rem; border: 1px solid var(--border-glass);
+  border-radius: var(--radius-xs); background: var(--bg-glass);
+  color: var(--text-muted); cursor: pointer; transition: all var(--transition-fast);
+  font-size: 0.9rem;
+}
+.inv-pagination-btn:hover:not(:disabled) { background: var(--bg-glass-hover); color: var(--text-primary); border-color: var(--accent-violet); }
+.inv-pagination-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.inv-pagination-btn--active { background: var(--accent-violet-subtle); color: var(--accent-violet); border-color: var(--accent-violet); }
+.inv-pagination-info {
+  font-size: var(--text-xs); color: var(--text-muted);
+  padding: 0 0.5rem; white-space: nowrap;
+}
+
 /* ── Responsive ── */
 @media (max-width: 1024px) {
   .inv-stats { grid-template-columns: 1fr 1fr; }
-  .inv-table th:nth-child(3), .inv-table td:nth-child(3) { display: none; }
+  /* Ocultar columna UNIDAD (3ra) en tablets — solo tabla de materiales */
+  .inv-table[data-tab="materiales"] th:nth-child(3),
+  .inv-table[data-tab="materiales"] td:nth-child(3) { display: none; }
+  /* Productos: ocultar TIPO PRENDA (4ta) en tablets */
+  .inv-table[data-tab="productos"] th:nth-child(4),
+  .inv-table[data-tab="productos"] td:nth-child(4) { display: none; }
 }
 
 @media (max-width: 768px) {
@@ -244,10 +274,24 @@
   .inv-filters__left { flex-direction: column; }
   .inv-filter-group, .inv-select, .inv-search { width: 100%; }
   .inv-search input { min-width: unset; }
-  .inv-table { min-width: 600px; }
+  .inv-table { min-width: unset; }
   .inv-table-wrap { overflow-x: auto; }
   .inv-stat-card { padding: 1rem 1.25rem; }
   .inv-stat-value { font-size: 1.25rem; }
+  /* Ocultar columna DESCRIPCIÓN (4ta) en móvil para evitar interpolación con STOCK — solo tabla de materiales (bug #7) */
+  .inv-table[data-tab="materiales"] th:nth-child(4),
+  .inv-table[data-tab="materiales"] td:nth-child(4) { display: none; }
+  /* Productos: ocultar CATEGORÍA (3ra), TIPO PRENDA (4ta), GÉNERO·TALLA (5ta), PRECIO (6ta) en móvil */
+  .inv-table[data-tab="productos"] th:nth-child(3),
+  .inv-table[data-tab="productos"] td:nth-child(3),
+  .inv-table[data-tab="productos"] th:nth-child(4),
+  .inv-table[data-tab="productos"] td:nth-child(4),
+  .inv-table[data-tab="productos"] th:nth-child(5),
+  .inv-table[data-tab="productos"] td:nth-child(5),
+  .inv-table[data-tab="productos"] th:nth-child(6),
+  .inv-table[data-tab="productos"] td:nth-child(6) { display: none; }
+  /* Cambiar a table-layout:auto en móvil para que las columnas visibles usen bien el espacio */
+  .inv-table[data-tab="productos"] { table-layout: auto !important; }
 }
 
 @media (max-width: 480px) {
@@ -259,4 +303,10 @@
   .inv-stat-icon { width: 2.25rem; height: 2.25rem; font-size: 1rem; }
   .inv-empty-state { padding: 2rem 1rem; }
   .inv-empty-state i { font-size: 2rem; }
+  /* Ocultar columna TIPO (2da) en pantallas muy pequeñas — solo tabla de materiales */
+  .inv-table[data-tab="materiales"] th:nth-child(2),
+  .inv-table[data-tab="materiales"] td:nth-child(2) { display: none; }
+  /* Productos: ocultar DESCRIPCIÓN (2da) en pantallas muy pequeñas */
+  .inv-table[data-tab="productos"] th:nth-child(2),
+  .inv-table[data-tab="productos"] td:nth-child(2) { display: none; }
 }

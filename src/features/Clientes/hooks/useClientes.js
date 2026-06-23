@@ -6,6 +6,17 @@ import {
   changeStatus as apiChangeStatus,
 } from "../services/clientesService";
 
+/** Extrae el mensaje de error del backend (varios formatos posibles) */
+const getErrorMsg = (err) => {
+  return err?.response?.data?.message
+    || err?.response?.data?.error
+    || err?.response?.data?.msg
+    || err?.response?.data?.detail
+    || err?.response?.statusText
+    || err?.message
+    || 'Error desconocido';
+};
+
 // ── Clientes de ejemplo para modo local ─────
 const CLIENTES_EJEMPLO = [
   { id: 1, name: 'María García López', category: 'Activo', email: 'maria.garcia@email.com', phone: '300 123 4567', address: 'Calle 10 #20-30, Bogotá', lastOrder: 'Jan 15, 2025' },
@@ -29,6 +40,12 @@ const formatTelefonos = (telefonos) => {
     .join(", ")
 }
 
+const extraerTelefono = (telefonos, index = 0) => {
+  if (!telefonos || !Array.isArray(telefonos) || telefonos.length <= index) return ''
+  const t = telefonos[index]
+  return (typeof t === "string" ? t : t.numero_telefono || t.numero || t.telefono || '') || ''
+}
+
 const mapearCliente = (item) => ({
   id: parseInt(item.cliente_id, 10) || item.cliente_id,
   name: `${item.cliente_nombre || ""} ${item.cliente_apellido || ""}`.trim(),
@@ -40,6 +57,8 @@ const mapearCliente = (item) => ({
         : item.estado || "Activo",
   email: item.cliente_email || "",
   phone: formatTelefonos(item.cliente_telefonos),
+  telefono: extraerTelefono(item.cliente_telefonos, 0),
+  telefono2: extraerTelefono(item.cliente_telefonos, 1),
   address: item.cliente_direccion || "",
   lastOrder: item.fecha_creacion || null,
 });
@@ -76,10 +95,8 @@ export const useClientes = ({ paginaInicial = 1, limiteInicial = 15 } = {}) => {
       setClientes(items.filter((c) => String(c.cliente_id) !== '9999999999').map(mapearCliente));
       setMeta(respuesta?.meta ?? null);
     } catch (err) {
-      // Si falla la API, cargamos datos de ejemplo
-      console.warn("API no disponible, cargando datos de ejemplo:", err?.message);
-      setClientes(CLIENTES_EJEMPLO);
-      setMeta({ total: CLIENTES_EJEMPLO.length, pagina_actual: 1, paginas_totales: 1, limite });
+      setClientes([]);
+      setError(err?.response?.data?.message || err?.response?.data?.error || err?.message || 'Error al cargar clientes');
     } finally {
       clearTimeout(safetyTimer);
       if (mounted.current) setLoading(false);
@@ -102,29 +119,15 @@ export const useClientes = ({ paginaInicial = 1, limiteInicial = 15 } = {}) => {
       setLoading(true);
       setError(null);
       try {
-        await apiCreateCliente(clienteData);
+        const resp = await apiCreateCliente(clienteData);
         await loadClientes(1, meta?.limite || limiteInicial, search);
+        return { ok: true, msg: resp?.msg || 'Cliente registrado correctamente' };
       } catch (err) {
-        // 🔸 Fallback local: agregar el cliente en memoria
-        const nuevoId = ++localIdRef.current;
-        const nuevoCliente = {
-          id: nuevoId,
-          name: `${clienteData.cliente_nombre || ""} ${clienteData.cliente_apellido || ""}`.trim(),
-          category: "Activo",
-          email: clienteData.cliente_email || "",
-          phone: "-",
-          address: clienteData.cliente_direccion || "",
-          lastOrder: new Date().toLocaleDateString("en-US", {
-            month: "short", day: "numeric", year: "numeric",
-          }),
-        };
-        setClientes((prev) => [nuevoCliente, ...prev]);
-        setMeta((prev) => prev ? { ...prev, total: (prev.total || 0) + 1 } : null);
-        console.info("🧪 Cliente agregado en modo local:", nuevoCliente);
+        const msg = getErrorMsg(err);
+        return { ok: false, msg };
       } finally {
         if (mounted.current) setLoading(false);
       }
-      return { ok: true };
     },
     [loadClientes, meta]
   );
@@ -135,27 +138,15 @@ export const useClientes = ({ paginaInicial = 1, limiteInicial = 15 } = {}) => {
       setLoading(true);
       setError(null);
       try {
-        await apiUpdateCliente(id, clienteData);
+        const resp = await apiUpdateCliente(id, clienteData);
         await loadClientes(meta?.pagina_actual || 1, meta?.limite || limiteInicial, search);
+        return { ok: true, msg: resp?.msg || 'Cliente actualizado correctamente' };
       } catch (err) {
-        // 🔸 Fallback local: actualizar en memoria
-        setClientes((prev) =>
-          prev.map((c) =>
-            c.id === id
-              ? {
-                  ...c,
-                  name: `${clienteData.cliente_nombre || ""} ${clienteData.cliente_apellido || ""}`.trim(),
-                  phone: clienteData.cliente_email || "",
-                  address: clienteData.cliente_direccion || "",
-                }
-              : c
-          )
-        );
-        console.info("🧪 Cliente actualizado en modo local:", id);
+        const msg = getErrorMsg(err);
+        return { ok: false, msg };
       } finally {
         if (mounted.current) setLoading(false);
       }
-      return { ok: true };
     },
     [loadClientes, meta]
   );
@@ -165,20 +156,16 @@ export const useClientes = ({ paginaInicial = 1, limiteInicial = 15 } = {}) => {
     async (id, search = '') => {
       setLoading(true);
       setError(null);
-      let msg = null;
       try {
-        const response = await apiChangeStatus(id, 2);
-        msg = response?.msg || null;
+        const resp = await apiChangeStatus(id, 2);
         await loadClientes(meta?.pagina_actual || 1, meta?.limite || limiteInicial, search);
+        return { ok: true, msg: resp?.msg || 'Cliente inhabilitado correctamente' };
       } catch (err) {
-        // 🔸 Fallback local: eliminar del array
-        setClientes((prev) => prev.filter((c) => c.id !== id));
-        setMeta((prev) => prev ? { ...prev, total: Math.max(0, (prev.total || 0) - 1) } : null);
-        console.info("🧪 Cliente eliminado en modo local:", id);
+        const msg = getErrorMsg(err);
+        return { ok: false, msg };
       } finally {
         if (mounted.current) setLoading(false);
       }
-      return { ok: true, msg };
     },
     [loadClientes, meta]
   );
