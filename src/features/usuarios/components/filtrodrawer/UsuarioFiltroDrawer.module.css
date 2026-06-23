@@ -1,0 +1,78 @@
+.container {
+display: flex;
+flex-direction: column;
+gap: 1.25rem;
+}
+
+.filterGroup {
+display: flex;
+flex-direction: column;
+gap: 0.5rem;
+}
+
+.label {
+font-size: 0.85rem;
+font-weight: 600;
+color: #555;
+}
+
+.select,
+.input {
+width: 100%;
+
+padding: 0.9rem 1rem;
+
+border: 1px solid #e5e7eb;
+border-radius: 14px;
+
+background: #fff;
+
+font-size: 0.9rem;
+
+outline: none;
+
+transition: all 0.2s ease;
+}
+
+.select:focus,
+.input:focus {
+border-color: #8b756c;
+
+box-shadow:
+0 0 0 4px rgba(139,117,108,.12);
+}
+
+.clearBtn {
+flex: 1;
+
+padding: 0.9rem;
+
+border: 1px solid #e5e7eb;
+border-radius: 14px;
+
+background: white;
+
+font-weight: 500;
+
+cursor: pointer;
+}
+
+.applyBtn {
+flex: 1;
+
+padding: 0.9rem;
+
+border: none;
+border-radius: 14px;
+
+background: #7b6861;
+color: white;
+
+font-weight: 600;
+
+cursor: pointer;
+}
+
+.applyBtn:hover {
+opacity: 0.95;
+}

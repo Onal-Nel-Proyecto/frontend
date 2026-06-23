@@ -128,9 +128,39 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle, pedidoEstado }) => {
 
     const { name, value, type } = e.target;
 
-    if (type === 'number' && value !== '') {
+    let sanitizedValue = value;
 
-      const numericValue = Number(value);
+    // Cantidad: solo dígitos, sin signos matemáticos
+    if (name === 'cantidad' && sanitizedValue !== '') {
+      sanitizedValue = sanitizedValue.replace(/[^0-9]/g, '');
+      const num = Number(sanitizedValue);
+      if (!isNaN(num) && num > 300) {
+        sanitizedValue = '300';
+      }
+    }
+
+    // Precio: solo dígitos y . , (máximo una vez cada uno)
+    if (name === 'producto_precio' && sanitizedValue !== '') {
+      let filtered = '';
+      let dotCount = 0;
+      let commaCount = 0;
+      for (const char of sanitizedValue) {
+        if (/[0-9]/.test(char)) {
+          filtered += char;
+        } else if (char === '.' && dotCount < 1) {
+          filtered += char;
+          dotCount++;
+        } else if (char === ',' && commaCount < 1) {
+          filtered += char;
+          commaCount++;
+        }
+      }
+      sanitizedValue = filtered;
+    }
+
+    if (type === 'number' && sanitizedValue !== '') {
+
+      const numericValue = Number(sanitizedValue);
 
       if (numericValue < 0) return;
 
@@ -141,7 +171,7 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle, pedidoEstado }) => {
 
     setForm((prev) => ({
       ...prev,
-      [name]: value
+      [name]: sanitizedValue
     }));
 
     if (errors[name]) {
@@ -153,8 +183,33 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle, pedidoEstado }) => {
   };
 
   const handleMedidaChange = (index, field, value) => {
+    let newValue = value;
+
+    // Para 'valor': solo dígitos y .,+-, cada especial máximo una vez, máximo 500
+    if (field === 'valor') {
+      let sanitized = '';
+      const counts = { '.': 0, ',': 0, '+': 0, '-': 0 };
+
+      for (const char of value) {
+        if (/[0-9]/.test(char)) {
+          sanitized += char;
+        } else if (char in counts && counts[char] < 1) {
+          sanitized += char;
+          counts[char]++;
+        }
+      }
+
+      // Clamp a 500
+      const numericValue = parseFloat(sanitized.replace(',', '.'));
+      if (!isNaN(numericValue) && numericValue > 500) {
+        sanitized = '500';
+      }
+
+      newValue = sanitized;
+    }
+
     const nuevas = [...form.medidas];
-    nuevas[index] = { ...nuevas[index], [field]: value };
+    nuevas[index] = { ...nuevas[index], [field]: newValue };
     setForm((prev) => ({ ...prev, medidas: nuevas }));
   };
 
@@ -170,6 +225,16 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle, pedidoEstado }) => {
       ...prev,
       medidas: prev.medidas.filter((_, i) => i !== index),
     }));
+  };
+
+  const handlePriceBlur = () => {
+    const currentPrice = Number(form.producto_precio);
+    if (!isNaN(currentPrice) && currentPrice < 100) {
+      setForm((prev) => ({
+        ...prev,
+        producto_precio: '100'
+      }));
+    }
   };
 
   const handleSubmit = async () => {
@@ -388,12 +453,11 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle, pedidoEstado }) => {
                 <label className={styles.label}>Cantidad</label>
                 <input
                   name="cantidad"
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   className={`${styles.input} ${errors.cantidad ? styles.inputError : ''}`}
                   value={form.cantidad}
                   onChange={handleChange}
-                  min={1}
-                  max={300}
                 />
                 {errors.cantidad && <span className={styles.fieldError}>{errors.cantidad}</span>}
               </div>
@@ -401,14 +465,13 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle, pedidoEstado }) => {
                 <label className={styles.label}>Precio</label>
                 <input
                   name="producto_precio"
-                  type="number"
-                  step="100"
+                  type="text"
+                  inputMode="decimal"
                   className={styles.input}
                   value={form.producto_precio}
                   onChange={handleChange}
+                  onBlur={handlePriceBlur}
                   placeholder="0.00"
-                  min={0}
-                  max={99999999.99}
                 />
               </div>
             </div>
@@ -503,7 +566,11 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle, pedidoEstado }) => {
               onChange={handleChange}
               placeholder="Notas adicionales…"
               rows={2}
+              maxLength={300}
             />
+            <span className={styles.charCounter}>
+              {(form.observacion || '').length}/300
+            </span>
           </section>
 
           <section className={styles.formSection}>
@@ -522,8 +589,8 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle, pedidoEstado }) => {
                 </select>
                 <div className={styles.medidaInputWrap}>
                   <input
-                    type="number"
-                    step="0.1"
+                    type="text"
+                    inputMode="decimal"
                     className={styles.input}
                     placeholder="Valor"
                     value={m.valor}

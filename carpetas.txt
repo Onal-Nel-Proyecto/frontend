@@ -1,48 +1,141 @@
-src/ // Carpeta principal del frontend
+📁 ESTRUCTURA DEL PROYECTO — ona&nel Atelier
+═══════════════════════════════════════════════════
+
+├── .env                             // Variables de entorno (local)
+├── .env.example                     // Plantilla de variables de entorno
+├── .gitignore                       // Archivos ignorados por Git
+├── eslint.config.js                 // Configuración de ESLint
+├── index.html                       // Entry point HTML de Vite
+├── package.json                     // Dependencias y scripts del proyecto
+├── pnpm-lock.yaml                   // Lock file de pnpm
+├── pnpm-workspace.yaml              // Configuración del workspace pnpm
+├── README.md                        // Documentación general del proyecto
+├── revision.md                      // Historial de revisiones
+├── vercel.json                      // Configuración de despliegue en Vercel
+├── vite.config.js                   // Configuración de Vite
 │
-├── api/ // Manejo de comunicación con el backend (Express)
-│   ├── axiosInstance.js // Configuración global de axios (baseURL, headers, interceptores JWT)
-│   └── endpoints/ // Funciones organizadas por módulo para consumir la API
+├── public/                          // Archivos públicos estáticos
+│   ├── favicon.svg                  // Favicon del sitio
+│   └── icons.svg                    // Sprites de iconos SVG
 │
-├── assets/ // Recursos estáticos del proyecto
-│   ├── images/ // Imágenes, logos, iconos
-│   └── styles/ // Estilos globales o variables CSS
+├── scripts/                         // Scripts auxiliares
+│   └── check-css-classes.cjs        // Validador de clases CSS
 │
-├── components/ // Componentes reutilizables globales
-│   ├── common/ // Botones, inputs, modales, loaders
-│   └── ui/ // Componentes visuales (cards, tablas, badges)
+├── uploads/                         // Archivos estáticos subidos por usuarios
+│   └── pedidos/                     // Imágenes/fotos de pedidos
 │
-├── features/ // Organización por módulos/funcionalidades (escalable)
-│   ├── auth/ // Módulo de autenticación
-│   │   ├── components/ // Componentes propios del módulo auth
-│   │   ├── pages/ // Vistas (login, register, etc.)
-│   │   ├── services/ // Lógica para consumir API de auth
-│   │   └── hooks/ // Hooks específicos del módulo
-│   │
-│   ├── pedidos/ // Módulo de pedidos
-│   │   ├── components/ // Componentes de pedidos
-│   │   ├── pages/ // Vistas de pedidos
-│   │   └── services/ // Consumo de endpoints de pedidos
-│   │
-│   └── usuarios/ // Módulo de usuarios
-│       ├── components/ // Componentes de usuarios
-│       ├── pages/ // Vistas de usuarios
-│       └── services/ // Consumo de endpoints de usuarios
-│
-├── hooks/ // Hooks personalizados globales (useAuth, useFetch, etc.)
-│
-├── layouts/ // Estructuras base (Dashboard, Auth layout)
-│
-├── pages/ // Páginas generales (Home, NotFound, etc.)
-│
-├── routes/ // Configuración de rutas (react-router)
-│   ├── AppRouter.jsx // Definición principal de rutas
-│   ├── PrivateRoute.jsx // Rutas protegidas
-│   └── PublicRoute.jsx // Rutas públicas
-│
-├── store/ // Estado global (Context API o Redux) - opcional
-│
-├── utils/ // Funciones auxiliares (helpers, validaciones, formateos)
-│
-├── App.jsx // Componente raíz (rutas + layouts + toastify)
-└── main.jsx // Punto de entrada de React (ReactDOM)
+└── src/                             // Código fuente de la aplicación
+    │
+    ├── App.jsx                      // Componente raíz (Providers + Router)
+    ├── main.jsx                     // Punto de entrada (ReactDOM.createRoot)
+    │
+    ├── api/                         // Capa de comunicación con el backend
+    │   ├── axiosInstance.js          // Instancia Axios (baseURL, cookies, 401 interceptor)
+    │   ├── usuariosService.js       // Servicio de usuarios (login/logout/perfil)
+    │   └── endpoints/               // Constantes de URLs del backend
+    │       ├── abastecimientoEndpoints.js
+    │       ├── alertasEndpoints.js
+    │       ├── authEndpoints.js
+    │       ├── clientesEndpoints.js
+    │       ├── dashboardEndpoints.js
+    │       ├── pedidosEndpoints.js
+    │       └── ventasEndpoints.js
+    │
+    ├── assets/                      // Recursos estáticos
+    │   ├── font/                    // Fuentes (Inter font family)
+    │   └── styles/                  // Estilos globales
+    │       ├── fonts.css            // Declaración de fuentes @font-face
+    │       ├── global.css           // Estilos base / reset
+    │       ├── index.css            // Entry point de estilos
+    │       └── variables.css        // Variables CSS (colores, sombras, radios, fuentes)
+    │
+    ├── components/                  // Componentes reutilizables
+    │   ├── Cards/                   // Tarjetas de dashboard (InsightsCard, MaintenanceCard)
+    │   ├── common/                  // Componentes base (Button, Card, Drawer, Input, EditCardModal)
+    │   ├── stats/                   // Componentes de estadísticas (GrowthCard, StatCard)
+    │   ├── Table/                   // Componentes de tabla (AvatarBadge, StatusBadge, TableFilters)
+    │   └── ui/                      // Componentes de interfaz
+    │       ├── feedback/            // Alertas, ConnectionBanner, ErrorBoundary,
+    │       │                       // InConstruction, LoadingOverlay, LoadingPages, SkeletonLoader
+    │       ├── Header/              // Header principal, NavTabs, NotificationsDropdown, UserDropdown
+    │       ├── NotificacionModal/   // Modal de notificaciones
+    │       └── Sidebar/             // Sidebar de navegación
+    │
+    ├── context/                     // Contextos de React
+    │   ├── AuthContext.jsx          // Estado de autenticación (httpOnly cookies + /auth/perfil)
+    │   └── ThemeContext.jsx         // Tema claro/oscuro
+    │
+    ├── data/                        // Datos mock / estáticos
+    │   └── productosMock.js         // Mock de productos (fallback mientras el endpoint de búsqueda está incompleto)
+    │
+    ├── features/                    // Módulos feature-sliced
+    │   │
+    │   ├── auth/                    // Autenticación
+    │   │   ├── components/          // Footer, Formulario (login), Header del login
+    │   │   ├── hooks/               // Hook personalizado useAuth
+    │   │   ├── pages/               // Página de login
+    │   │   └── services/            // authService, sesionService, usuariosService
+    │   │
+    │   ├── Clientes/                // Gestión de clientes
+    │   │   ├── components/          // ContactTable (tabla de clientes), ViewClientModal (detalle + historial)
+    │   │   ├── hooks/               // Hook useClientes (CRUD de clientes)
+    │   │   ├── pages/               // ClientDirectory (listado), RegisterClient (registro)
+    │   │   └── services/            // clientesService (API calls)
+    │   │
+    │   ├── Inventario/              // Inventario / productos y materiales
+    │   │   ├── hooks/               // Hook useAbastecimiento
+    │   │   ├── pages/               // InventarioPage, RegisterAbastecimiento, RegisterMaterial, RegisterProducto
+    │   │   └── services/            // abastecimientoService, productosService
+    │   │
+    │   ├── pedidos/                 // Módulo de pedidos (core del negocio)
+    │   │   ├── components/          // ClienteSearch, DetallePanel, EntregasModal, Pagos,
+    │   │   │                       // PedidoForm, Produccion, ProduccionForm, ProductoSearch,
+    │   │   │                       // RegistrarPagoPedido, TablaPedidos
+    │   │   ├── hooks/               // useCancelPedido, usePedidosTable
+    │   │   ├── pages/               // Dashboard, Entregas, Pedidos (listado), PedidoSeleccionado
+    │   │   └── services/            // pedidosService (API calls)
+    │   │
+    │   └── Ventas/                  // Módulo de ventas (cobros y pagos)
+    │       ├── components/          // DetalleVenta, PagosVenta, RegistrarPago, VentaForm
+    │       ├── hooks/               // useVentas (estado + API)
+    │       ├── pages/               // VentasPage (listado + stats), VentaSeleccionada (detalle),
+    │       │                       // Reportes (reportes mensuales/periodo)
+    │       └── services/            // ventasService (API calls)
+    │
+    ├── hooks/                       // Hooks compartidos de la aplicación
+    │   ├── useAlertas.js            // Gestión de alertas/notificaciones
+    │   ├── useAsyncAction.js        // Manejo genérico de acciones asíncronas
+    │   ├── useDocumentTitle.js      // Cambiar el título de la pestaña
+    │   ├── useFocusTrap.js          // Trampa de foco para modales/paneles
+    │   └── useFormDraft.js          // Borrador de formularios (persistencia local)
+    │
+    ├── layout/                      // Layout principal de la app
+    │   └── MainLayout/              // Shell con Sidebar + Header + contenido
+    │
+    ├── page/                        // Páginas de nivel superior
+    │   ├── categoria/               // CRUD de categorías de productos
+    │   ├── Config/                  // Página de configuración
+    │   ├── GestionPersonal/         // Gestión de empleados/personal
+    │   ├── GestionUsuarios/         // Administración de usuarios del sistema
+    │   ├── Home/                    // Dashboard principal / inicio
+    │   ├── medidas/                 // CRUD de medidas (tallas)
+    │   ├── NotFount/                // Página 404
+    │   └── RegisterClient.css       // (estilos duplicados de Clientes)
+    │
+    ├── routes/                      // Configuración de rutas
+    │   ├── adminRoute.jsx           // Guard para rutas de administrador
+    │   ├── AppRouter.jsx            // Router principal (lazy-loaded routes)
+    │   ├── privateRoute.jsx         // Guard para rutas autenticadas
+    │   └── publicRoute.jsx          // Guard para rutas públicas (login)
+    │
+    ├── services/                    // Servicios compartidos
+    │   ├── categoriaService.js      // API de categorías
+    │   ├── medidasService.js        // API de medidas/tallas
+    │   ├── pagosService.js          // API de pagos (compartido pedidos + ventas)
+    │   ├── productoService.js       // API de productos
+    │   └── socketService.js         // Servicio Socket.IO (lazy-loaded)
+    │
+    └── utils/                       // Utilidades / helpers
+        ├── format.js                // Formateo de moneda, fechas, strings
+        ├── serverDate.js            // Utilidades de fechas del servidor
+        └── session.js               // Manejo de sesión/localStorage

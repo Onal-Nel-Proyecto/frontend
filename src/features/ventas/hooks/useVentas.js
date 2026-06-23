@@ -92,11 +92,11 @@ export const useVentas = ({ paginaInicial = 1, limiteInicial = 15 } = {}) => {
   const [error, setError] = useState(null);
 
   // ── Cargar ventas con filtros ──
-  const loadVentas = useCallback(async ({ pagina = 1, limite = 15, busqueda, estado } = {}, signal) => {
+  const loadVentas = useCallback(async ({ pagina = 1, limite = 15, busqueda, estado, fechaRegistro } = {}, signal) => {
     setLoading(true);
     setError(null);
     try {
-      const respuesta = await apiGetVentas({ pagina, limite, busqueda, estado });
+      const respuesta = await apiGetVentas({ pagina, limite, busqueda, estado, fechaRegistro });
       if (signal?.aborted) return;
       const items = Array.isArray(respuesta?.data) ? respuesta.data : Array.isArray(respuesta?.ventas) ? respuesta.ventas : Array.isArray(respuesta) ? respuesta : [];
       setVentas(items.map(mapearVenta));

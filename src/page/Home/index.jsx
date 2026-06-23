@@ -22,6 +22,7 @@ import {
   FiPackage,
   FiArrowRight,
   FiUser,
+  FiTruck,
 } from "react-icons/fi";
 import Card from "../../components/common/Card";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
@@ -53,8 +54,9 @@ const estadoMap = {
 // admin: true → solo visible para usuarios con rol ADMINISTRADOR
 const actions = [
   { label: "Nuevo Pedido", icon: <FiPlusCircle />, path: "/pedidos", color: "#3b82f6", admin: false },
-  { label: "Registrar Cliente", icon: <FiUserPlus />, path: "/gestion-clientes", color: "#8b5cf6", admin: false },
-  { label: "Registrar Compra", icon: <FiShoppingCart />, path: "/ventas", color: "#10b981", admin: false },
+  { label: "Registrar Cliente", icon: <FiUserPlus />, path: "/gestion-personal/clientes", color: "#8b5cf6", admin: false },
+  { label: "Registrar Venta", icon: <FiShoppingCart />, path: "/ventas", color: "#10b981", admin: false },
+  { label: "Registrar Compra", icon: <FiTruck />, path: "/inventario/abastecimiento", color: "#10b981", admin: false },
   { label: "Generar Reporte", icon: <FiBarChart2 />, path: "/ventas/reportes", color: "#f59e0b", admin: true },
 ];
 

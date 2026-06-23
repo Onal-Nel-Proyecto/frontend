@@ -5,6 +5,7 @@
 // ================================================================
 
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
+import { useLocation } from 'react-router-dom'
 import RegisterMaterial from './RegisterMaterial'
 import RegisterProducto from './RegisterProducto'
 import RegisterAbastecimiento from './RegisterAbastecimiento'
@@ -430,6 +431,15 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
     loadProductos(params, page)
   }
 
+  // Abrir formulario de abastecimiento si se navegó con openForm:true (ej: desde acceso rápido del dashboard)
+  const location = useLocation()
+  useEffect(() => {
+    if (location.state?.openForm && activeTab === 'abastecimiento') {
+      setShowDrawerAbs(true)
+      window.history.replaceState(null, '')
+    }
+  }, [location.state, activeTab])
+
   /* ── Handlers Materiales ── */
   /** Abre el drawer para crear un nuevo material */
   const handleAddMaterial = () => { setEditingMaterial(null); setShowDrawerMat(true) }
@@ -515,7 +525,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
           precioUnitario: data.precio || 0,
           genero: data.genero,
           tipoPrenda: data.tipoPrenda,
-          categoria: data.categoria,
+          categoriaId: data.categoriaId,
           talla: data.talla,
         })
       } else {
@@ -525,7 +535,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
           precioUnitario: data.precio || 0,
           genero: data.genero,
           tipoPrenda: data.tipoPrenda,
-          categoria: data.categoria,
+          categoriaId: data.categoriaId,
           talla: data.talla,
         })
       }

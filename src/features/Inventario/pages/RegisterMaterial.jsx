@@ -14,12 +14,6 @@ const TIPOS_MATERIAL = [
   'APLIQUE', 'ETIQUETA', 'EMPAQUE', 'ACCESORIO',
 ]
 
-const UNIDADES_MEDIDA = [
-  'Metros', 'Centímetros', 'Unidades', 'Piezas', 'Paquetes',
-  'Rollos', 'Cajas', 'Kilos', 'Gramos', 'Litros',
-  'Conos', 'Bobinas', 'Planchas', 'Láminas', 'Tambores',
-]
-
 const SOLO_LETRAS = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/
 
 const validate = (form) => {
@@ -33,35 +27,18 @@ const validate = (form) => {
 
   if (!form.tipoMaterial) errs.tipoMaterial = 'Selecciona el tipo de material'
 
-  // unidadMedida ahora es un select — siempre válido si se elige una opción
+  const uni = form.unidadMedida.trim()
+  if (uni.length > 20) errs.unidadMedida = 'Máximo 20 caracteres'
+  else if (uni.length > 0 && !/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ.,\s]+$/.test(uni))
+    errs.unidadMedida = 'Solo letras, puntos, comas y espacios'
 
   const desc = form.descripcion?.trim()
   if (desc.length > 200) errs.descripcion = 'Máximo 200 caracteres'
 
-  const umbral = form.umbralMinimo?.toString().trim()
-  if (umbral !== '' && umbral !== undefined) {
-    if (!/^\d+$/.test(umbral)) errs.umbralMinimo = 'Solo números enteros'
-    else {
-      const n = parseInt(umbral, 10)
-      if (n < 0) errs.umbralMinimo = 'No puede ser negativo'
-      else if (n > 300) errs.umbralMinimo = 'Máximo 300'
-    }
-  }
-
-  const stock = form.cantidadDisponible?.toString().trim()
-  if (stock !== '' && stock !== undefined) {
-    if (!/^\d+$/.test(stock)) errs.cantidadDisponible = 'Solo números enteros'
-    else {
-      const n = parseInt(stock, 10)
-      if (n < 0) errs.cantidadDisponible = 'No puede ser negativo'
-      else if (n > 999999) errs.cantidadDisponible = 'Máximo 999,999'
-    }
-  }
-
   return errs
 }
 
-const RegisterMaterial = ({ isOpen, onClose, initialData, onSave, existingMaterials = [] }) => {
+const RegisterMaterial = ({ isOpen, onClose, initialData, onSave }) => {
   const isEditing = !!initialData
 
   const [form, setForm] = useState({
@@ -69,8 +46,6 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, onSave, existingMateri
     tipoMaterial: initialData?.tipo_material || '',
     unidadMedida: initialData?.unidad_medida || '',
     descripcion: initialData?.desc || '',
-    umbralMinimo: initialData?.minStock?.toString() ?? '',
-    cantidadDisponible: initialData?.stock?.toString() ?? '',
   })
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
@@ -78,9 +53,6 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, onSave, existingMateri
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    // Enforce maxLength for textarea (HTML maxLength unreliable in React controlled)
-    if (name === 'descripcion' && value.length > 200) return
-    if (name === 'nombre' && value.length > 50) return
     setForm((prev) => ({ ...prev, [name]: value }))
   }
 
@@ -99,31 +71,19 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, onSave, existingMateri
         tipoMaterial: initialData?.tipo_material || '',
         unidadMedida: initialData?.unidad_medida?.trim() || '',
         descripcion: initialData?.desc?.trim() || '',
-        umbralMinimo: initialData?.minStock?.toString() ?? '',
-        cantidadDisponible: initialData?.stock?.toString() ?? '',
       }
       const sinCambios =
         orig.nombre === form.nombre.trim() &&
         orig.tipoMaterial === form.tipoMaterial &&
         orig.unidadMedida === form.unidadMedida.trim() &&
-        orig.descripcion === form.descripcion?.trim() &&
-        orig.umbralMinimo === form.umbralMinimo?.toString().trim() &&
-        orig.cantidadDisponible === form.cantidadDisponible?.toString().trim()
+        orig.descripcion === form.descripcion?.trim()
       if (sinCambios) {
         newErrors._general = 'No se detectaron cambios para guardar'
       }
     }
 
-    // Validar nombre duplicado (solo en creación, no en edición del mismo material)
-    if (!newErrors.nombre && form.nombre.trim().length >= 3) {
-      const duplicado = existingMaterials.find(
-        (m) => m.name?.toLowerCase().trim() === form.nombre.trim().toLowerCase() && m.id !== initialData?.id
-      )
-      if (duplicado) newErrors.nombre = 'Ya existe un material con este nombre'
-    }
-
     setErrors(newErrors)
-    setTouched({ nombre: true, tipoMaterial: true, unidadMedida: true, descripcion: true, umbralMinimo: true, cantidadDisponible: true })
+    setTouched({ nombre: true, tipoMaterial: true, unidadMedida: true, descripcion: true })
     if (Object.keys(newErrors).length > 0) return
 
     setSaving(true)
@@ -134,8 +94,7 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, onSave, existingMateri
         tipoMaterial: form.tipoMaterial.trim() || null,
         unidadMedida: form.unidadMedida.trim(),
         descripcion: form.descripcion.trim(),
-        umbralMinimo: form.umbralMinimo?.toString().trim() !== '' ? parseInt(form.umbralMinimo, 10) : 0,
-        cantidadDisponible: form.cantidadDisponible?.toString().trim() !== '' ? parseInt(form.cantidadDisponible, 10) : 0,
+        umbralMinimo: 0,
       })
     } finally {
       setSaving(false)
@@ -197,15 +156,10 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, onSave, existingMateri
             <label className="rm-label" htmlFor="rm-unidadMedida">Unidad de medida</label>
             <div className="rm-input-wrap">
               <i className="ti ti-ruler rm-input-icon" />
-              <select id="rm-unidadMedida" name="unidadMedida"
-                className={`rm-input rm-select ${hasError('unidadMedida') ? 'rm-input--error' : ''}`}
-                value={form.unidadMedida}
-                onChange={handleChange} onBlur={handleBlur}>
-                <option value="">Seleccione...</option>
-                {UNIDADES_MEDIDA.map((u) => (
-                  <option key={u} value={u}>{u}</option>
-                ))}
-              </select>
+              <input id="rm-unidadMedida" name="unidadMedida" type="text" maxLength="20"
+                className={`rm-input ${hasError('unidadMedida') ? 'rm-input--error' : ''}`}
+                placeholder="Ej: mts, kg, unidades, rollos" value={form.unidadMedida}
+                onChange={handleChange} onBlur={handleBlur} />
             </div>
             {hasError('unidadMedida') && <p className="rm-err">{errors.unidadMedida}</p>}
           </div>
@@ -226,28 +180,6 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, onSave, existingMateri
           </div>
         </div>
 
-        <div className="rm-row">
-          <div className="rm-group">
-            <label className="rm-label" htmlFor="rm-cantidadDisponible">Stock actual (cantidad)</label>
-            <div className="rm-input-wrap">
-              <i className="ti ti-stack rm-input-icon" />
-              <input id="rm-cantidadDisponible" name="cantidadDisponible" type="text" inputMode="numeric" maxLength="6"
-                className={`rm-input ${hasError('cantidadDisponible') ? 'rm-input--error' : ''}`}
-                placeholder="0" value={form.cantidadDisponible} onChange={handleChange} onBlur={handleBlur} />
-            </div>
-            {hasError('cantidadDisponible') && <p className="rm-err">{errors.cantidadDisponible}</p>}
-          </div>
-          <div className="rm-group">
-            <label className="rm-label" htmlFor="rm-umbralMinimo">Stock mínimo de seguridad</label>
-            <div className="rm-input-wrap">
-              <i className="ti ti-alert-triangle rm-input-icon" />
-              <input id="rm-umbralMinimo" name="umbralMinimo" type="text" inputMode="numeric" maxLength="3"
-                className={`rm-input ${hasError('umbralMinimo') ? 'rm-input--error' : ''}`}
-                placeholder="0" value={form.umbralMinimo} onChange={handleChange} onBlur={handleBlur} />
-            </div>
-            {hasError('umbralMinimo') && <p className="rm-err">{errors.umbralMinimo}</p>}
-          </div>
-        </div>
       </form>
     </Drawer>
   )

@@ -1,0 +1,29 @@
+.backButton {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  border-radius: 14px;
+
+  background: #f5efed;
+
+  color: #6f564e;
+
+  cursor: pointer;
+
+  transition: all .25s ease;
+}
+
+.backButton:hover {
+  background: #ece2de;
+  color: #4e3b35;
+}
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}

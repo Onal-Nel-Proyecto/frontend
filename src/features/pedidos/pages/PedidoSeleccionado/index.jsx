@@ -107,6 +107,7 @@ const PedidoSeleccionado = () => {
   const [detallePanel, setDetallePanel] = useState({ open: false, modo: 'view', detalle: null });
   const [showCancelAlert, setShowCancelAlert] = useState(false);
   const [cancelMotivo, setCancelMotivo] = useState('');
+  const [cancelMotivoError, setCancelMotivoError] = useState('');
   const [cancelLoading, setCancelLoading] = useState(false);
   const [cancelResult, setCancelResult] = useState(null);
 
@@ -263,7 +264,11 @@ const PedidoSeleccionado = () => {
           message="Esta acción no se puede deshacer. Ingresa el motivo de cancelación:"
           onCancel={() => setShowCancelAlert(false)}
           onConfirm={async () => {
-            if (!cancelMotivo.trim()) return;
+            if (!cancelMotivo.trim()) {
+              setCancelMotivoError('El motivo de cancelación es obligatorio');
+              return;
+            }
+            setCancelMotivoError('');
             setShowCancelAlert(false);
             setCancelLoading(true);
             try {
@@ -293,13 +298,24 @@ const PedidoSeleccionado = () => {
           }}
         >
           <textarea
-            className={styles.cancelInput}
+            className={`${styles.cancelInput} ${cancelMotivoError ? styles.cancelInputError : ''}`}
             placeholder="Motivo de cancelación…"
             value={cancelMotivo}
-            onChange={(e) => setCancelMotivo(e.target.value)}
+            onChange={(e) => {
+              setCancelMotivo(e.target.value);
+              if (cancelMotivoError) setCancelMotivoError('');
+            }}
             rows={3}
+            cols={3}
+            maxLength={150}
             required
           />
+          {cancelMotivoError && (
+            <span className={styles.cancelError}>{cancelMotivoError}</span>
+          )}
+          <span className={styles.charCounter}>
+            {cancelMotivo.length}/150
+          </span>
         </Alert>
       )}
 

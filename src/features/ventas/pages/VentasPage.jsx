@@ -66,6 +66,8 @@ const VentasPage = () => {
   const pagAct = Number(searchParams.get('pagina')) || 1
   const estadoFilter = searchParams.get('estado') || ''
   const busquedaUrl = searchParams.get('busqueda') || ''
+  const fechaFiltro = searchParams.get('fechaFiltro') || 'hoy'
+  const fechaRegistroParam = searchParams.get('fecha_registro') || ''
 
   // ── Debounce local para búsqueda ──
   const [searchInput, setSearchInput] = useState(busquedaUrl)
@@ -86,6 +88,7 @@ const VentasPage = () => {
 
   const maxPag = meta?.paginas_totales || 1
   const pageNumbers = useMemo(() => getPageNumbers(pagAct, maxPag), [pagAct, maxPag])
+  const todayStr = new Date().toISOString().split('T')[0]
 
   // ── Sincronizar URL y cargar datos cuando cambian los filtros ──
   useEffect(() => {
@@ -94,11 +97,21 @@ const VentasPage = () => {
     if (pagAct > 1) params.set('pagina', String(pagAct))
     if (searchQuery) params.set('busqueda', searchQuery)
     if (estadoFilter) params.set('estado', estadoFilter)
+    if (fechaFiltro !== 'hoy') params.set('fechaFiltro', fechaFiltro)
+    if (fechaFiltro === 'personalizado' && fechaRegistroParam) params.set('fecha_registro', fechaRegistroParam)
 
     const currentStr = searchParams.toString()
     const nextStr = params.toString()
     if (currentStr !== nextStr) {
       setSearchParams(params, { replace: true })
+    }
+
+    // Determinar fecha_registro para la API
+    let fechaRegistro = undefined
+    if (fechaFiltro === 'hoy') {
+      fechaRegistro = todayStr
+    } else if (fechaFiltro === 'personalizado' && fechaRegistroParam) {
+      fechaRegistro = fechaRegistroParam
     }
 
     // Cargar datos con los filtros actuales
@@ -108,9 +121,10 @@ const VentasPage = () => {
       limite: 15,
       busqueda: searchQuery || undefined,
       estado: estadoFilter || undefined,
+      fechaRegistro,
     }, controller.signal)
     return () => controller.abort()
-  }, [pagAct, searchQuery, estadoFilter, loadVentas]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [pagAct, searchQuery, estadoFilter, fechaFiltro, fechaRegistroParam, loadVentas, todayStr]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Limpiar debounce al desmontar ──
   useEffect(() => {
@@ -141,6 +155,32 @@ const VentasPage = () => {
     setSearchParams({}, { replace: true })
   }
 
+  const handleFechaFiltroChange = (e) => {
+    const val = e.target.value
+    const params = new URLSearchParams(searchParams)
+    if (val === 'personalizado') {
+      params.set('fechaFiltro', 'personalizado')
+      params.set('fecha_registro', todayStr)
+    } else if (val === 'todos') {
+      params.set('fechaFiltro', 'todos')
+      params.delete('fecha_registro')
+    } else {
+      params.delete('fechaFiltro')
+      params.delete('fecha_registro')
+    }
+    params.set('pagina', '1')
+    setSearchParams(params, { replace: true })
+  }
+
+  const handleFechaRegistroChange = (e) => {
+    const val = e.target.value
+    const params = new URLSearchParams(searchParams)
+    if (val) params.set('fecha_registro', val)
+    else params.delete('fecha_registro')
+    params.set('pagina', '1')
+    setSearchParams(params, { replace: true })
+  }
+
   // Stats desde el resumen del backend
   const totalVendidoData = resumen?.total_vendido
   const totalVendido = totalVendidoData?.total ?? 0
@@ -154,6 +194,10 @@ const VentasPage = () => {
   const ventasCompletadas = totalCobradoData?.ventas_completadas ?? 0
   const pendienteCobrar = resumen?.cobro_pendiente ?? 0
   const abonosActivos = resumen?.abonos ?? 0
+  const ingresoHoyData = resumen?.ingreso_hoy
+  const ingresoHoyTotal = ingresoHoyData?.total ?? 0
+  const ingresoHoyVentas = ingresoHoyData?.ventas_cantidad ?? 0
+  const cobradoHoy = resumen?.cobrado_hoy ?? 0
 
   const abrirPago = (venta) => { setVentaSel(venta); setShowDrawer(true) }
 
@@ -274,6 +318,22 @@ const VentasPage = () => {
             <p className="vtas-stat-sub">pagos fraccionados en curso</p>
           </div>
         </div>
+        <div className="vtas-stat-card" style={{ '--delay': '0.32s' }}>
+          <div className="vtas-stat-icon vtas-stat-icon--info"><i className="ti ti-coin" /></div>
+          <div>
+            <p className="vtas-stat-value">{fmt(ingresoHoyTotal)}</p>
+            <p className="vtas-stat-label">Ingresos hoy</p>
+            <p className="vtas-stat-sub">{ingresoHoyVentas} ventas procesadas hoy</p>
+          </div>
+        </div>
+        <div className="vtas-stat-card" style={{ '--delay': '0.40s' }}>
+          <div className="vtas-stat-icon vtas-stat-icon--gold"><i className="ti ti-cash" /></div>
+          <div>
+            <p className="vtas-stat-value">{fmt(cobradoHoy)}</p>
+            <p className="vtas-stat-label">Cobrado hoy</p>
+            <p className="vtas-stat-sub">total cobrado del día</p>
+          </div>
+        </div>
       </div>
 
       {/* ══ FILTROS ══ */}
@@ -288,6 +348,26 @@ const VentasPage = () => {
               <option value="PAGADO">Pagado</option>
             </select>
           </div>
+          <div className="vtas-filter-group">
+            <i className="ti ti-calendar" />
+            <select className="vtas-select" value={fechaFiltro} onChange={handleFechaFiltroChange}>
+              <option value="hoy">Hoy</option>
+              <option value="personalizado">Personalizado</option>
+              <option value="todos">Todos</option>
+            </select>
+          </div>
+          {fechaFiltro === 'personalizado' && (
+            <div className="vtas-filter-group">
+              <i className="ti ti-calendar-event" />
+              <input
+                type="date"
+                className="vtas-select vtas-date-input"
+                value={fechaRegistroParam}
+                onChange={handleFechaRegistroChange}
+                max={todayStr}
+              />
+            </div>
+          )}
           <div className="vtas-search">
             <i className="ti ti-search" />
             <input type="text" placeholder="Buscar cliente..." value={searchInput} onChange={handleSearchChange} maxLength={300} />

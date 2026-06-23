@@ -13,6 +13,7 @@
 // ================================================================
 
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import {
   FiCheckCircle,
@@ -41,7 +42,7 @@ const Alert = ({ type = 'success', title, message, children, onConfirm, onCancel
     };
   }, []);
 
-  return (
+  return createPortal(
     <motion.div
       className={styles.overlay}
       initial={{ opacity: 0 }}
@@ -85,7 +86,8 @@ const Alert = ({ type = 'success', title, message, children, onConfirm, onCancel
             )}
           </div>
       </motion.div>
-    </motion.div>
+    </motion.div>,
+    document.body
   );
 };
 

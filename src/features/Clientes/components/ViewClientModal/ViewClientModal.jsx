@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { formatDate, formatCurrency } from '../../../../utils/format'
 import { getClienteById } from '../../services/clientesService'
 import { getPedidos } from '../../../pedidos/services/pedidosService'
@@ -92,9 +93,20 @@ const ViewClientModal = ({ cliente, onClose }) => {
     .join('')
     .toUpperCase() || '??'
 
+  const navigate = useNavigate()
+
+  // Formatear teléfonos desde el array de la API
+  const formatPhones = (telefonos) => {
+    if (!telefonos || !Array.isArray(telefonos) || telefonos.length === 0) return cliente.phone || '—'
+    return telefonos
+      .map((t) => (typeof t === "string" ? t : t.numero_telefono || t.numero || t.telefono || ''))
+      .filter(Boolean)
+      .join(', ')
+  }
+
   // Combinar datos: lo que ya teníamos + lo que trajo la API
-  const email = fullCliente?.cliente_email || cliente.phone || '—'
-  const phone = fullCliente?.cliente_telefono || '—'
+  const email = fullCliente?.cliente_email || cliente.email || '—'
+  const phone = formatPhones(fullCliente?.cliente_telefonos)
   const address = fullCliente?.cliente_direccion || cliente.address || '—'
   const createdAt = fullCliente?.created_at || fullCliente?.fecha_creacion || cliente.lastOrder || null
 
@@ -102,10 +114,7 @@ const ViewClientModal = ({ cliente, onClose }) => {
     <div className="vcm-overlay" onClick={handleOverlayClick}>
       <div className="vcm-card vcm-card--wide">
 
-        {/* ── Botón cerrar ── */}
-        <button className="vcm-close" onClick={onClose} aria-label="Cerrar">
-          <i className="ti ti-x" />
-        </button>
+
 
         <div className="vcm-grid">
 
@@ -219,37 +228,68 @@ const ViewClientModal = ({ cliente, onClose }) => {
               </div>
             ) : (
               <div className="vcm-orders-list">
-                <table className="vcm-orders-table">
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Fecha</th>
-                      <th>Estado</th>
-                      <th>Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {orders.map((order) => {
-                      const st = statusMap[order.estado?.toUpperCase()] || {};
-                      return (
-                        <tr key={order.id} className="vcm-order-row">
-                          <td className="vcm-order-id">{order.id}</td>
-                          <td className="vcm-order-date">
-                            {order.fecha_creacion ? formatDate(order.fecha_creacion) : '—'}
-                          </td>
-                          <td>
-                            <span className={`vcm-status-badge ${st.className || ''}`}>
-                              {st.label || order.estado || '—'}
-                            </span>
-                          </td>
-                          <td className="vcm-order-total">
-                            {order.total ? formatCurrency(order.total) : '—'}
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
+                {orders.map((order) => {
+                  const st = statusMap[order.estado?.toUpperCase()] || {};
+
+                  // Tipos de prenda: desde campo directo o desde detalles
+                  const tiposPrendaRaw = order.tipos_prenda
+                  let tiposPrenda = Array.isArray(tiposPrendaRaw)
+                    ? tiposPrendaRaw.filter(Boolean)
+                    : typeof tiposPrendaRaw === 'string'
+                      ? tiposPrendaRaw.split(',').map(s => s.trim()).filter(Boolean)
+                      : []
+                  if (tiposPrenda.length === 0) {
+                    const prendas = (order.detalles || [])
+                      .map(d => d?.producto?.tipoPrenda || d?.producto?.tipo_prenda || '')
+                      .filter(Boolean)
+                    tiposPrenda = [...new Set(prendas)]
+                  }
+
+                  // Observacion
+                  const observacion = order.observacion || ''
+
+                  // Fecha: priorizar fecha_entrega, luego fecha_entrega_estimada
+                  const fecha = order.fecha_entrega || order.fecha_entrega_estimada || order.fecha_creacion || ''
+
+                  return (
+                    <div key={order.id} className="vcm-order-item" onClick={() => navigate(`/pedidos/${order.id}`)}>
+                      <div className="vcm-order-item__head">
+                        <span className="vcm-order-item__id">#{order.id}</span>
+                        <span className={`vcm-status-badge ${st.className || ''}`}>
+                          {st.label || order.estado || '—'}
+                        </span>
+                      </div>
+                      <div className="vcm-order-item__body">
+                        <div className="vcm-order-item__field">
+                          <span className="vcm-order-item__label">Fecha</span>
+                          <span className="vcm-order-item__value">
+                            {fecha ? formatDate(fecha) : '—'}
+                          </span>
+                        </div>
+                        <div className="vcm-order-item__field">
+                          <span className="vcm-order-item__label">Total</span>
+                          <span className="vcm-order-item__value vcm-order-item__value--total">
+                            {order.precio_total || order.total ? formatCurrency(order.precio_total || order.total) : '—'}
+                          </span>
+                        </div>
+                        {tiposPrenda.length > 0 && (
+                          <div className="vcm-order-item__field vcm-order-item__field--full">
+                            <span className="vcm-order-item__label">Tipo de prendas</span>
+                            <div className="vcm-order-item__tags">
+                              {tiposPrenda.map((t, i) => (
+                                <span key={i} className="vcm-order-tag">{t}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        <div className="vcm-order-item__field vcm-order-item__field--full vcm-order-item__field--obs">
+                          <span className="vcm-order-item__label">Observación</span>
+                          <p className={`vcm-order-item__obs${!observacion ? ' vcm-order-item__obs--empty' : ''}`}>{observacion || '—'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             )}
           </div>

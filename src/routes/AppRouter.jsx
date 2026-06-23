@@ -18,6 +18,7 @@ import DetallePedido from "../features/pedidos/components/DetallePedido";
 import Produccion from "../features/pedidos/components/Produccion";
 import Pagos from "../features/pedidos/components/Pagos";
 import GestionUsuarios from "../page/GestionUsuarios";
+import GestionProveedores from "../page/GestionProveedores";
 import InConstruction from "../components/ui/feedback/InConstruction/InConstruction";
 import Entregas from "../features/pedidos/pages/Entregas";
 
@@ -82,11 +83,15 @@ const AppRoutes = () => {
 
           {/* Personal */}
           <Route path="/gestion-personal" element={<GestionPersonal />} />
+
+          {/* Proveedores */}
+          <Route path="/gestion-proveedores" element={<GestionProveedores />} />
         </Route>
 
         {/* RUTAS SOLO ADMIN */}
         <Route element={<AdminRoute />}>
         <Route path="/" element={<MainLayout />}>
+          <Route path="/gestion-usuarios" element={<GestionUsuarios />} />
           <Route path="/gestion-personal/usuarios" element={<GestionUsuarios />} />
           <Route path="/config" element={<Config />} />
           <Route path="/ventas/reportes" element={<ReportesVentas />} />

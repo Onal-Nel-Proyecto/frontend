@@ -7,7 +7,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { FiDollarSign, FiXCircle, FiCheckCircle, FiAlertTriangle } from 'react-icons/fi';
-import { getPagosByPedido, createPagoPedido, rechazarPago } from '../../../../services/pagosService';
+import { getPagosByPedido, createPago, rechazarPago } from '../../../../services/pagosService';
 import { getStoredUser } from '../../../../utils/session';
 import { formatDate } from '../../../../utils/format';
 import LoadingOverlay from '../../../../components/ui/feedback/LoadingOverlay';
@@ -57,6 +57,7 @@ const Pagos = () => {
   
   const detalles = pedido.detalles_pedido || [];
   const ventaId = pedido.venta_id || null;
+  const estadoPedido = pedido.estado?.toUpperCase();
 
   // Calcular total desde detalles si total_general no está disponible
   const totalCalculado = totalGeneral > 0
@@ -96,6 +97,8 @@ const Pagos = () => {
   const sinPrecio = precioTotal <= 0;
 
   // ── Cargar pagos ──
+  // Si el pedido tiene venta asociada, combina pagos de ambos lados
+  // (?venta_id=...&pedido_id=...) para tener el historial completo
   const loadPagos = useCallback(async () => {
     setLoading(true);
     try {
@@ -136,11 +139,16 @@ const Pagos = () => {
   const validate = useCallback((values) => {
     const errs = {};
     const monto = parseFloat(values.monto);
+    const minimo = Math.min(100, saldoRestante);
 
     if (!values.monto || isNaN(monto)) {
       errs.monto = 'Ingresa un monto válido';
     } else if (monto <= 0) {
       errs.monto = 'El monto debe ser mayor a $0';
+    } else if (monto < minimo) {
+      errs.monto = saldoRestante < 100
+        ? `El saldo pendiente (${fmtCOP(saldoRestante)}) es menor a $100, debe pagar el total restante`
+        : `El monto mínimo es ${fmtCOP(100)}`;
     } else if (monto > saldoRestante) {
       errs.monto = `El monto no puede superar ${fmtCOP(saldoRestante)}`;
     }
@@ -175,6 +183,18 @@ const Pagos = () => {
 
   const handleBlur = (name) => {
     setTouched((prev) => ({ ...prev, [name]: true }));
+
+    // Monto mínimo: 100, o el saldoRestante si es menor
+    if (name === 'monto' && form.monto) {
+      const montoNum = Number(form.monto);
+      const minimo = Math.min(100, saldoRestante);
+      if (montoNum < minimo) {
+        setForm((prev) => ({ ...prev, monto: String(minimo) }));
+        setErrors((prev) => ({ ...prev, monto: undefined }));
+        return;
+      }
+    }
+
     const newErrors = validate(form);
     setErrors((prev) => ({ ...prev, [name]: newErrors[name] || undefined }));
   };
@@ -189,10 +209,18 @@ const Pagos = () => {
     setSaving(true);
     setSuccessMsg('');
     try {
-      await createPagoPedido(pedido.pedido_id, {
-        ...form,
-        venta_id: ventaId,
-      });
+      // ── Dónde asociar el pago ──
+      // PENDIENTE/EN PROCESO → solo pedido_id
+      // TERMINADO/ENTREGADO + venta_id → solo venta_id
+      // TERMINADO/ENTREGADO sin venta → solo pedido_id
+      const asociarAlPedido = ['PENDIENTE', 'EN PROCESO'].includes(estadoPedido);
+      const asociarAVenta = !asociarAlPedido && ventaId;
+
+      const pagoPayload = asociarAVenta
+        ? { ventaId, monto: form.monto, metodo: form.metodo }
+        : { pedidoId: pedido.pedido_id, monto: form.monto, metodo: form.metodo };
+
+      await createPago(pagoPayload);
 
       setSuccessMsg('Pago registrado correctamente');
       setForm({
