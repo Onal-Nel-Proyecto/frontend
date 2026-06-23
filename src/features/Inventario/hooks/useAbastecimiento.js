@@ -19,6 +19,11 @@ const ABASTECIMIENTOS_EJEMPLO = [
     usuIdFk: "123",
     total_items: 3,
     costo_total: 450000,
+    detalles: [
+      { detAbsTip: 'MATERIAL', detAbsRefId: '1', referenciaNombre: 'Seda Natural', detAbsCant: 10, detAbsCos: 15000 },
+      { detAbsTip: 'MATERIAL', detAbsRefId: '2', referenciaNombre: 'Algodón Premium', detAbsCant: 20, detAbsCos: 8000 },
+      { detAbsTip: 'MATERIAL', detAbsRefId: '3', referenciaNombre: 'Hilo Dorado', detAbsCant: 5, detAbsCos: 2000 },
+    ],
   },
   {
     absId: 2,
@@ -30,6 +35,10 @@ const ABASTECIMIENTOS_EJEMPLO = [
     usuIdFk: "123",
     total_items: 2,
     costo_total: 280000,
+    detalles: [
+      { detAbsTip: 'PRODUCTO', detAbsRefId: '1', referenciaNombre: 'Vestido Lino', detAbsCant: 5, detAbsCos: 40000 },
+      { detAbsTip: 'PRODUCTO', detAbsRefId: '2', referenciaNombre: 'Blazer Ejecutivo', detAbsCant: 2, detAbsCos: 40000 },
+    ],
   },
   {
     absId: 3,
@@ -41,6 +50,9 @@ const ABASTECIMIENTOS_EJEMPLO = [
     usuIdFk: "456",
     total_items: 1,
     costo_total: 120000,
+    detalles: [
+      { detAbsTip: 'MATERIAL', detAbsRefId: '4', referenciaNombre: 'Botones Premium', detAbsCant: 200, detAbsCos: 600 },
+    ],
   },
 ];
 
@@ -61,6 +73,12 @@ const mapearAbastecimiento = (item) => ({
   usuarioId: item.usuIdFk,
   totalItems: Number(item.total_items) || 0,
   costoTotal: Number(item.costo_total) || 0,
+  detalles: Array.isArray(item.detalles) ? item.detalles.map((d) => ({
+    tipo: d.detAbsTip || d.tipo || '—',
+    nombre: d.referenciaNombre || d.nombre || d.detAbsRefId || '—',
+    cantidad: Number(d.detAbsCant || d.cantidad || 0),
+    costo: Number(d.detAbsCos || d.costo || 0),
+  })) : [],
 });
 
 export const useAbastecimiento = ({ paginaInicial = 1, limiteInicial = 15 } = {}) => {
