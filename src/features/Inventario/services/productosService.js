@@ -14,7 +14,7 @@ import axiosInstance from "../../../api/axiosInstance";
  * @returns {Promise<{status, data, meta}>}
  */
 export const getProductos = async ({ pagina = 1, limite = 50, nombre = "" } = {}) => {
-  const params = { pagina, limite, estado: 1, tipoProducto: "INVENTARIO" };
+  const params = { pagina, limite, estado: 1 };
   if (nombre.trim()) params.nombre = nombre.trim();
 
   const response = await axiosInstance.get("/productos", { params });

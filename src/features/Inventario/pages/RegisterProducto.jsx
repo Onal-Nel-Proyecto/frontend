@@ -213,7 +213,7 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
         </div>
 
         <div className="rp-row">
-          <div className="rp-group">
+          {/* <div className="rp-group">
             <label className="rp-label" htmlFor="rp-tipoProducto">Tipo de producto <span className="rp-required">*</span></label>
             <div className="rp-input-wrap">
               <i className="ti ti-tag" />
@@ -224,6 +224,19 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
               </select>
             </div>
             {hasError('tipoProducto') && <p className="rp-err">{errors.tipoProducto}</p>}
+          </div> */}
+          <div className="rp-group">
+            <label className="rp-label" htmlFor="rp-talla">Talla</label>
+            <div className="rp-input-wrap">
+              <i className="ti ti-ruler" />
+              <select id="rp-talla" name="talla" className="rp-input rp-select"
+                value={form.talla} onChange={handleChange} onBlur={handleBlur}>
+                <option value="">Seleccione...</option>
+                {TALLAS.map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+            </div>
           </div>
           <div className="rp-group">
             <label className="rp-label" htmlFor="rp-genero">Género</label>
@@ -240,21 +253,8 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
           </div>
         </div>
 
-        <div className="rp-row">
-          <div className="rp-group rp-group--full">
-            <label className="rp-label" htmlFor="rp-talla">Talla</label>
-            <div className="rp-input-wrap">
-              <i className="ti ti-ruler" />
-              <select id="rp-talla" name="talla" className="rp-input rp-select"
-                value={form.talla} onChange={handleChange} onBlur={handleBlur}>
-                <option value="">Seleccione...</option>
-                {TALLAS.map((t) => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
+        {/* <div className="rp-row">
+        </div> */}
 
         <div className="rp-row">
           <div className="rp-group rp-group--full">

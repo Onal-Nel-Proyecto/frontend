@@ -23,6 +23,12 @@ const fmt = (val) => {
   return clamped.toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
 };
 
+/** Retorna la fecha local en formato YYYY-MM-DD (no UTC) */
+const toLocalDateStr = (date) => {
+  const d = date || new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
 const VentaForm = ({ isOpen, onClose }) => {
   const { addVenta } = useVentas();
 
@@ -595,8 +601,8 @@ const VentaForm = ({ isOpen, onClose }) => {
                 <input
                   className={styles.input}
                   type="date"
-                  min={new Date().toISOString().split('T')[0]}
-                  max={(() => { const d = new Date(); d.setMonth(d.getMonth() + 2); return d.toISOString().split('T')[0]; })()}
+                  min={toLocalDateStr()}
+                  max={toLocalDateStr(new Date(new Date().setMonth(new Date().getMonth() + 2)))}
                   value={fechaVencimiento}
                   onChange={(e) => setFechaVencimiento(e.target.value)}
                 />

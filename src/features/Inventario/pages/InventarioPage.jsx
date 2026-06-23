@@ -470,7 +470,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
           nombre: data.nombre,
           descripcion: data.descripcion,
           umbralMinimo: data.umbralMinimo ?? 0,
-          cantidadDisponible: data.cantidadDisponible ?? 0,
+          stock: data.stock,
           unidadMedida: data.unidadMedida,
           tipoMaterial: data.tipoMaterial,
         })
