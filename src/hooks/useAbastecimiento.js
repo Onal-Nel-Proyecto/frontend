@@ -74,7 +74,7 @@ const mapearAbastecimiento = (item) => ({
   totalItems: Number(item.total_items) || 0,
   costoTotal: Number(item.costo_total) || 0,
   detalles: Array.isArray(item.detalles) ? item.detalles.map((d) => ({
-    nombre: d.referenciaNombre || d.nombre || d.detAbsRefId || '—',
+    nombre: d.detAbsRefNombre || d.referenciaNombre || d.nombre || `Ref #${d.detAbsRefId || d.refId || '—'}`,
     cantidad: Number(d.detAbsCant || d.cantidad || 0),
     costo: Number(d.detAbsCos || d.costo || 0),
   })) : [],

@@ -61,6 +61,7 @@ const mapperProducto = (p) => ({
   price: Number(p.precioUnitario || 0),
   stock: Number(p.cantidadDisponible || 0),
   minStock: Number(p.umbralMinimo || 0),
+  tipoProducto: p.tipoProducto || 'INVENTARIO',
   status: typeof p.estado === 'string' ? p.estado.toLowerCase() : p.estado === 1 ? 'disponible' : p.estado === 2 ? 'agotado' : 'eliminado',
 })
 
@@ -344,9 +345,11 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
       const params = { limite: 15, pagina, tipoProducto: 'INVENTARIO', ...filtros }
       const res = await getProductos(params)
       let items = Array.isArray(res?.data) ? res.data.map(mapperProducto) : []
-      // Filtrar productos eliminados, salvo que se haya pedido explícitamente "Eliminado"
-      if (filtros.estado !== 'ELIMINADO') {
-        items = items.filter((p) => p.status !== 'eliminado')
+      // Filtrar productos que no son de inventario (ej: PERSONALIZADO de pedidos)
+      items = items.filter((p) => p.tipoProducto === 'INVENTARIO')
+      // Filtrar eliminados/inactivos/inhabilitados, salvo que el filtro sea específicamente "eliminado" (estado=3)
+      if (filtros.estado !== 3) {
+        items = items.filter((p) => p.status !== 'eliminado' && p.status !== 'inactivo' && p.status !== 'inhabilitado')
       }
       setProducts(items)
       if (res?.resumen) setProdResumen(res.resumen)
