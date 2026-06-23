@@ -19,6 +19,11 @@ const ABASTECIMIENTOS_EJEMPLO = [
     usuIdFk: "123",
     total_items: 3,
     costo_total: 450000,
+    detalles: [
+      { nombre: 'Seda Natural', cantidad: 10, costo: 15000 },
+      { nombre: 'Algodón Premium', cantidad: 20, costo: 8000 },
+      { nombre: 'Hilo Dorado', cantidad: 5, costo: 2000 },
+    ],
   },
   {
     id: 2,
@@ -30,6 +35,10 @@ const ABASTECIMIENTOS_EJEMPLO = [
     usuIdFk: "123",
     total_items: 2,
     costo_total: 280000,
+    detalles: [
+      { nombre: 'Vestido Lino', cantidad: 5, costo: 40000 },
+      { nombre: 'Blazer Ejecutivo', cantidad: 2, costo: 40000 },
+    ],
   },
   {
     id: 3,
@@ -41,6 +50,9 @@ const ABASTECIMIENTOS_EJEMPLO = [
     usuIdFk: "456",
     total_items: 1,
     costo_total: 120000,
+    detalles: [
+      { nombre: 'Botones Premium', cantidad: 200, costo: 600 },
+    ],
   },
 ];
 
@@ -61,6 +73,11 @@ const mapearAbastecimiento = (item) => ({
   usuarioId: item.usuIdFk,
   totalItems: Number(item.total_items) || 0,
   costoTotal: Number(item.costo_total) || 0,
+  detalles: Array.isArray(item.detalles) ? item.detalles.map((d) => ({
+    nombre: d.referenciaNombre || d.nombre || d.detAbsRefId || '—',
+    cantidad: Number(d.detAbsCant || d.cantidad || 0),
+    costo: Number(d.detAbsCos || d.costo || 0),
+  })) : [],
 });
 
 export const useAbastecimiento = ({ paginaInicial = 1, limiteInicial = 15 } = {}) => {

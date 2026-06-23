@@ -17,8 +17,6 @@ const validate = (form) => {
   else if (nom.length > 70) errs.nombre = 'Máximo 70 caracteres'
   else if (!SOLO_LETRAS.test(nom)) errs.nombre = 'Solo letras y espacios, sin números'
 
-  if (!form.tipoProducto) errs.tipoProducto = 'Selecciona el tipo de producto'
-
   const precioStr = form.precio?.toString().trim()
   if (precioStr === '') errs.precio = 'Ingresa un precio válido'
   else if (!/^\d+(\.\d{1,2})?$/.test(precioStr)) errs.precio = 'Solo números (máx 2 decimales)'
@@ -27,6 +25,8 @@ const validate = (form) => {
     if (precio <= 0) errs.precio = 'El precio debe ser mayor a $0'
     else if (precio > 999999999999) errs.precio = 'Máximo $999,999,999,999'
   }
+
+  if (!form.tipoPrenda) errs.tipoPrenda = 'Selecciona el tipo de prenda'
 
   const tallaStr = form.talla?.trim()
   if (tallaStr.length > 10) errs.talla = 'Máximo 10 caracteres'
@@ -39,7 +39,6 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
 
   const [form, setForm] = useState({
     nombre: initialData?.name || '',
-    tipoProducto: 'INVENTARIO',
     tipoPrenda: initialData?.tipo_prenda || '',
     categoria: initialData?.categoria || '',
     genero: initialData?.genero === 'Femenino' ? 'F' : initialData?.genero === 'Masculino' ? 'M' : initialData?.genero === 'Unisex' ? 'U' : initialData?.genero || '',
@@ -67,7 +66,6 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
     if (isEditing && Object.keys(newErrors).length === 0) {
       const orig = {
         nombre: initialData?.name?.trim() || '',
-        tipoProducto: 'INVENTARIO',
         tipoPrenda: initialData?.tipo_prenda || '',
         categoria: initialData?.categoria || '',
         genero: initialData?.genero === 'Femenino' ? 'F' : initialData?.genero === 'Masculino' ? 'M' : initialData?.genero === 'Unisex' ? 'U' : initialData?.genero || '',
@@ -76,7 +74,6 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
       }
       const sinCambios =
         orig.nombre === form.nombre.trim() &&
-        orig.tipoProducto === form.tipoProducto &&
         orig.tipoPrenda === form.tipoPrenda &&
         orig.categoria === form.categoria &&
         orig.genero === form.genero &&
@@ -88,7 +85,7 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
     }
 
     setErrors(newErrors)
-    setTouched({ nombre: true, precio: true, talla: true })
+    setTouched({ nombre: true, tipoPrenda: true, precio: true, talla: true })
     if (Object.keys(newErrors).length > 0) return
 
     setSaving(true)
@@ -96,7 +93,7 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
       await onSave({
         id: initialData?.id,
         nombre: form.nombre.trim(),
-        tipoProducto: form.tipoProducto,
+        tipoProducto: 'INVENTARIO',
         tipoPrenda: form.tipoPrenda,
         categoria: form.categoria,
         genero: form.genero,
@@ -143,8 +140,8 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
 
         <div className="rp-row">
           <div className="rp-group">
-            <label className="rp-label" htmlFor="rp-tipoPrenda">Tipo de prenda</label>
-            <div className="rp-input-wrap">
+            <label className="rp-label" htmlFor="rp-tipoPrenda">Tipo de prenda <span className="rp-required">*</span></label>
+            <div className={`rp-input-wrap ${hasError('tipoPrenda') ? 'rp-input-wrap--err' : ''}`}>
               <i className="ti ti-tag" />
               <select id="rp-tipoPrenda" name="tipoPrenda" className="rp-input rp-select"
                 value={form.tipoPrenda} onChange={handleChange} onBlur={handleBlur}>
@@ -160,6 +157,7 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
                 <option value="OTRO">Otro</option>
               </select>
             </div>
+            {hasError('tipoPrenda') && <p className="rp-err">{errors.tipoPrenda}</p>}
           </div>
           <div className="rp-group">
             <label className="rp-label" htmlFor="rp-categoria">Categoría</label>
@@ -177,18 +175,6 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
         </div>
 
         <div className="rp-row">
-          <div className="rp-group">
-            <label className="rp-label" htmlFor="rp-tipoProducto">Tipo de producto <span className="rp-required">*</span></label>
-            <div className="rp-input-wrap">
-              <i className="ti ti-tag" />
-              <select id="rp-tipoProducto" name="tipoProducto" className={`rp-input rp-select ${hasError('tipoProducto') ? 'rp-input-wrap--err' : ''}`}
-                value={form.tipoProducto} onChange={handleChange} onBlur={handleBlur}>
-                <option value="INVENTARIO">Inventario</option>
-                <option value="PERSONALIZADO">Personalizado</option>
-              </select>
-            </div>
-            {hasError('tipoProducto') && <p className="rp-err">{errors.tipoProducto}</p>}
-          </div>
           <div className="rp-group">
             <label className="rp-label" htmlFor="rp-genero">Género</label>
             <div className="rp-input-wrap">

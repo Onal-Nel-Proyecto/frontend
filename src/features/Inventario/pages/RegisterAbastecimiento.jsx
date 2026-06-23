@@ -30,12 +30,11 @@ const validate = (form, proveedores) => {
         if (n <= 0) ie.cantidad = 'Debe ser mayor a 0'
         else if (n > 100) ie.cantidad = 'Máximo 100'
       }
-      if (item.costo !== '' && item.costo !== null) {
-        const costoStr = item.costo.toString().trim()
-        if (!/^\d+(\.\d{1,2})?$/.test(costoStr)) ie.costo = 'Formato inválido (ej: 1500 o 1500.50)'
-        else if (parseFloat(costoStr) < 0) ie.costo = 'No puede ser negativo'
-        else if (parseFloat(costoStr) > 999999999999) ie.costo = 'Máximo $999,999,999,999'
-      }
+      const costoStr = (item.costo ?? '').toString().trim()
+      if (costoStr === '') ie.costo = 'Ingresa el costo unitario'
+      else if (!/^\d+(\.\d{1,2})?$/.test(costoStr)) ie.costo = 'Formato inválido (ej: 1500 o 1500.50)'
+      else if (parseFloat(costoStr) <= 0) ie.costo = 'Debe ser mayor a $0'
+      else if (parseFloat(costoStr) > 999999999999) ie.costo = 'Máximo $999,999,999,999'
       if (Object.keys(ie).length > 0) itemsErrs.push(ie)
       else itemsErrs.push(null)
     })
@@ -135,8 +134,9 @@ const RegisterAbastecimiento = ({ isOpen, onClose, proveedores = [], onSave }) =
       detalles: form.detalles.map((d) => ({
         detAbsTip: d.tipo,
         detAbsRefId: d.refId,
+        detAbsRefNombre: d.busqueda || `Ref #${d.refId}`,
         detAbsCant: parseInt(d.cantidad, 10),
-        detAbsCos: d.costo !== '' && d.costo !== null ? parseFloat(d.costo) : 0,
+        detAbsCos: parseFloat(d.costo) || 0,
       })),
     }
     try {
@@ -286,7 +286,7 @@ const RegisterAbastecimiento = ({ isOpen, onClose, proveedores = [], onSave }) =
                 </div>
 
                 <div className="ra-group ra-group--costo">
-                  <label className="ra-label">Costo unitario</label>
+                  <label className="ra-label">Costo unitario <span className="ra-required">*</span></label>
                   <input type="text" inputMode="decimal" maxLength="20"
                     className={`ra-input ra-input--no-icon ${errors.detallesItems?.[index]?.costo ? 'ra-input--error' : ''}`}
                     placeholder="0.00" value={item.costo}
