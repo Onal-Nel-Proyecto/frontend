@@ -4,7 +4,7 @@
 // Cada pestaña tiene su propia tabla, filtros, estadísticas y CRUD
 // ================================================================
 
-import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import RegisterMaterial from './RegisterMaterial'
 import RegisterProducto from './RegisterProducto'
@@ -23,14 +23,6 @@ import './InventarioPage.css'
 /** Formatea un número como moneda COP (sin decimales) */
 const fmt = (val) =>
   Number(val || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
-
-/** Convierte un código de género (F/M/U) a su etiqueta visible */
-const displayGenero = (g) => {
-  if (g === 'F' || g === 'Femenino') return 'Femenino'
-  if (g === 'M' || g === 'Masculino') return 'Masculino'
-  if (g === 'U' || g === 'Unisex') return 'Unisex'
-  return g || '—'
-}
 
 // ════════════════════════════════════════════
 //  TRANSFORMADORES API → TABLA (mappers)
@@ -317,12 +309,9 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
     try {
       const params = { limite: 15, pagina, ...filtros }
       const res = await getMateriales(params)
-      let items = Array.isArray(res?.data) ? res.data.map(mapperMaterial) : []
-      // Si no se pidió explícitamente "eliminado", filtrarlos fuera
-      if (filtros.estado !== 'ELIMINADO') {
-        items = items.filter((m) => m.status !== 'eliminado')
-      }
+      const items = Array.isArray(res?.data) ? res.data.map(mapperMaterial) : []
       setMaterials(items)
+      setMatPage(pagina)
       if (res?.resumen) setMatResumen(res.resumen)
       if (res?.paginacion) {
         setMatTotalPages(res.paginacion.totalPaginas || 1)
@@ -345,14 +334,9 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
     try {
       const params = { limite: 15, pagina, tipoProducto: 'INVENTARIO', ...filtros }
       const res = await getProductos(params)
-      let items = Array.isArray(res?.data) ? res.data.map(mapperProducto) : []
-      // Filtrar productos que no son de inventario (ej: PERSONALIZADO de pedidos)
-      items = items.filter((p) => p.tipoProducto === 'INVENTARIO')
-      // Filtrar eliminados/inactivos/inhabilitados, salvo que el filtro sea específicamente "eliminado" (estado=3)
-      if (filtros.estado !== 3) {
-        items = items.filter((p) => p.status !== 'eliminado' && p.status !== 'inactivo' && p.status !== 'inhabilitado')
-      }
+      const items = Array.isArray(res?.data) ? res.data.map(mapperProducto) : []
       setProducts(items)
+      setProdPage(pagina)
       if (res?.resumen) setProdResumen(res.resumen)
       if (res?.paginacion) {
         setProdTotalPages(res.paginacion.totalPaginas || 1)
@@ -392,16 +376,14 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
   // Recargar materiales al cambiar filtros (búsqueda debounced, estado/categoría inmediato)
   useEffect(() => {
     const params = {}
-    if (matFilters.search) params.nombre = matFilters.search
+    if (debouncedMatSearch) params.nombre = debouncedMatSearch
     const estado = mapEstadoMaterial(matFilters.status)
     if (estado != null) params.estado = estado
     if (matFilters.category) params.tipoMaterial = matFilters.category
-    setMatPage(1) // reset a primera página al cambiar filtros
     loadMateriales(params, 1)
   }, [loadMateriales, debouncedMatSearch, matFilters.status, matFilters.category])
 
   const handleMatPageChange = (page) => {
-    setMatPage(page)
     const params = {}
     if (matFilters.search) params.nombre = matFilters.search
     const estado = mapEstadoMaterial(matFilters.status)
@@ -413,16 +395,14 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
   // Recargar productos al cambiar filtros
   useEffect(() => {
     const params = { tipoProducto: 'INVENTARIO' }
-    if (prodFilters.search) params.nombre = prodFilters.search
+    if (debouncedProdSearch) params.nombre = debouncedProdSearch
     const estado = mapEstadoProducto(prodFilters.status)
     if (estado != null) params.estado = estado
     if (prodFilters.category) params.categoria = prodFilters.category
-    setProdPage(1) // reset a primera página al cambiar filtros
     loadProductos(params, 1)
   }, [loadProductos, debouncedProdSearch, prodFilters.status, prodFilters.category])
 
   const handleProdPageChange = (page) => {
-    setProdPage(page)
     const params = { tipoProducto: 'INVENTARIO' }
     if (prodFilters.search) params.nombre = prodFilters.search
     const estado = mapEstadoProducto(prodFilters.status)
@@ -433,8 +413,10 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
 
   // Abrir formulario de abastecimiento si se navegó con openForm:true (ej: desde acceso rápido del dashboard)
   const location = useLocation()
+  const openFormHandled = useRef(false)
   useEffect(() => {
-    if (location.state?.openForm && activeTab === 'abastecimiento') {
+    if (location.state?.openForm && activeTab === 'abastecimiento' && !openFormHandled.current) {
+      openFormHandled.current = true
       setShowDrawerAbs(true)
       window.history.replaceState(null, '')
     }
@@ -453,7 +435,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
       onConfirm: async () => {
         setAlertState(null)
         try {
-          await changeMaterialEstado(item.id, 3)
+          await changeMaterialEstado(item.id, 'ELIMINADO')
           await loadMateriales()
         } catch (err) {
           setAlertState({ type: 'error', title: 'Error', message: err?.response?.data?.message || err?.message, onClose: () => setAlertState(null) })
@@ -591,6 +573,8 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
         setAlertState(null)
         try {
           await cancelarAbs(item.id)
+          await loadMateriales()
+          await loadProductos()
         } catch (err) {
           setAlertState({ type: 'error', title: 'Error', message: err?.response?.data?.message || err?.message, onClose: () => setAlertState(null) })
         }

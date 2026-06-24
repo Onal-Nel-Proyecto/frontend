@@ -44,6 +44,7 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle, pedidoEstado }) => {
 
   // ─── Cargar catálogos del backend al abrir el drawer ───
   useEffect(() => {
+    let cancelled = false;
     if (isOpen && (isCreate || editMode)) {
       const fetchCatalogos = async () => {
         try {
@@ -51,15 +52,18 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle, pedidoEstado }) => {
             getCategorias(1, { estado: 'ACTIVO' }),
             getMedidas(1, { estado: 'ACTIVO' }),
           ]);
+          if (cancelled) return;
           setCategorias(Array.isArray(catRes.data) ? catRes.data : []);
           setMedidasList(Array.isArray(medRes.data) ? medRes.data : []);
         } catch {
+          if (cancelled) return;
           setCategorias([]);
           setMedidasList([]);
         }
       };
       fetchCatalogos();
     }
+    return () => { cancelled = true; };
   }, [isOpen, isCreate, editMode]);
 
   const [form, setForm] = useState({

@@ -7,7 +7,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { FiDollarSign, FiXCircle, FiCheckCircle, FiAlertTriangle } from 'react-icons/fi';
-import { getPagosByPedido, createPago, rechazarPago } from '../../../../services/pagosService';
+import { getPagos, createPago, rechazarPago } from '../../../../services/pagosService';
 import { getStoredUser } from '../../../../utils/session';
 import { formatDate } from '../../../../utils/format';
 import LoadingOverlay from '../../../../components/ui/feedback/LoadingOverlay';
@@ -102,7 +102,7 @@ const Pagos = () => {
   const loadPagos = useCallback(async () => {
     setLoading(true);
     try {
-      const result = await getPagosByPedido(pedido.pedido_id, ventaId);
+      const result = await getPagos({ pedidoId: pedido.pedido_id, ventaId });
       setPagos(result.pagos || []);
       if (result.resumen) {
         setResumen(result.resumen);
@@ -281,8 +281,6 @@ const Pagos = () => {
             <span className={styles.progressPct}>
               {(() => {
                 const activos = pagos.filter(p => !['ANULADO', 'RECHAZADO'].includes(p.estado?.toUpperCase()));
-                console.log(activos);
-                
                 return `${activos.length} pago${activos.length !== 1 ? 's' : ''}`;
               })()}
             </span>

@@ -30,72 +30,6 @@ const subPages = [
   { label: 'Cobro',          to: 'pagos' },
 ];
 
-// ── Datos de ejemplo (fallback cuando la API no responde) ──
-const PEDIDOS_DETALLE_EJEMPLO = {
-  'PED-001': {
-    pedido_id: 'PED-001',
-    estado: 'TERMINADO',
-    descripcion: 'Vestido de Noche Seda — Talla M',
-    observacion: 'Cliente pidió ajuste en la cintura. Entregar antes del 15 de febrero.',
-    cliente: { cliente_nombres: 'María García López' },
-    fecha_entrega: '2025-02-15',
-    fecha_estimada_entrega: '2025-02-15',
-    detalles_pedido: [
-      { detalle_id: 1, producto: { nombre: 'Vestido de Noche Seda' }, cantidad: 1, in_produccion: [{ id: 1, estado: 'TERMINADO' }] },
-    ],
-  },
-  'PED-002': {
-    pedido_id: 'PED-002',
-    estado: 'EN_PROCESO',
-    descripcion: 'Blazer Lino Clásico — Talla L',
-    observacion: '',
-    cliente: { cliente_nombres: 'Alejandro Martínez Ruiz' },
-    fecha_entrega: null,
-    fecha_estimada_entrega: '2025-02-20',
-    detalles_pedido: [
-      { detalle_id: 2, producto: { nombre: 'Blazer Lino Clásico' }, cantidad: 1, in_produccion: [{ id: 2, estado: 'EN_PROCESO' }] },
-    ],
-  },
-  'PED-003': {
-    pedido_id: 'PED-003',
-    estado: 'PENDIENTE',
-    descripcion: 'Vestido de Día Lino + Pañuelo Seda',
-    observacion: 'Pañuelo en seda tussar color marfil.',
-    cliente: { cliente_nombres: 'Carmen Herrera Díaz' },
-    fecha_entrega: null,
-    fecha_estimada_entrega: '2025-03-01',
-    detalles_pedido: [
-      { detalle_id: 3, producto: { nombre: 'Vestido de Día Lino' }, cantidad: 1, in_produccion: [] },
-      { detalle_id: 4, producto: { nombre: 'Pañuelo Seda Tussar' }, cantidad: 1, in_produccion: [] },
-    ],
-  },
-  'PED-004': {
-    pedido_id: 'PED-004',
-    estado: 'PENDIENTE',
-    descripcion: 'Corbata Terciopelo Italia x2',
-    observacion: '',
-    cliente: { cliente_nombres: 'Roberto Sánchez Vega' },
-    fecha_entrega: null,
-    fecha_estimada_entrega: '2025-03-10',
-    detalles_pedido: [
-      { detalle_id: 5, producto: { nombre: 'Corbata Terciopelo Italia' }, cantidad: 2, in_produccion: [] },
-    ],
-  },
-  'PED-005': {
-    pedido_id: 'PED-005',
-    estado: 'ENTREGADO',
-    descripcion: 'Pañuelo Seda Tussar + Vestido Noche',
-    observacion: 'Entregado exitosamente. Cliente satisfecho.',
-    cliente: { cliente_nombres: 'Laura Jiménez Torres' },
-    fecha_entrega: '2025-02-28',
-    fecha_estimada_entrega: '2025-02-28',
-    detalles_pedido: [
-      { detalle_id: 6, producto: { nombre: 'Pañuelo Seda Tussar' }, cantidad: 1, in_produccion: [{ id: 3, estado: 'TERMINADO' }] },
-      { detalle_id: 7, producto: { nombre: 'Vestido Noche' }, cantidad: 1, in_produccion: [{ id: 4, estado: 'TERMINADO' }] },
-    ],
-  },
-};
-
 const PedidoSeleccionado = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -119,9 +53,8 @@ const PedidoSeleccionado = () => {
         if (cancel) return;
         setPedido(resp);
       } catch {
-        console.warn('[PedidoSeleccionado] API no disponible, cargando datos de ejemplo');
         if (!cancel) {
-          setPedido(PEDIDOS_DETALLE_EJEMPLO[id] || null);
+          setPedido(null);
         }
       } finally {
         if (!cancel) setLoading(false);
@@ -132,6 +65,7 @@ const PedidoSeleccionado = () => {
   }, [id]);
 
   // ── Redirigir desde /pagos si precio_total es inválido ──
+  const location = useLocation();
   useEffect(() => {
     if (!pedido) return;
     const precioTotal = Number(pedido.precio_total ?? pedido.total_general ?? 0);
