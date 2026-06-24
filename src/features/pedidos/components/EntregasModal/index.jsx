@@ -40,8 +40,7 @@ const EntregasModal = ({ entrega, onClose }) => {
       document.body.style.overflow = '';
     };
   }, [onClose]);
-  console.log(entrega);
-  
+
   const sp = statusPayment[entrega.estado_pago] || {};
   const so = statusOrder[entrega.estado] || {};
 

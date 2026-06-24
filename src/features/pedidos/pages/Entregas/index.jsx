@@ -664,7 +664,7 @@ const Entregas = () => {
                     <button className={styles.actionBtn} title="Ver detalle" onClick={() => verDetalle(entrega)}>
                       <FiEye />
                     </button>
-                    <button className={styles.actionBtn} title={entrega.venta_id ? "Ver venta asociada" : "Ver pedido"} onClick={() => navigate(entrega.venta_id ? `/ventas/reportes` : `/pedidos/${idDisplay}`)}>
+                    <button className={styles.actionBtn} title={entrega.venta_id ? "Ver venta asociada" : "Ver pedido"} onClick={() => navigate(entrega.venta_id ? `/ventas/${entrega.venta_id}` : `/pedidos/${idDisplay}`)}>
                       <FiExternalLink />
                     </button>
                     {entrega.estado === 'TERMINADO' && (
