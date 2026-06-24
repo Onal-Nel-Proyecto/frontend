@@ -25,6 +25,7 @@ import {
   updateUsuario,
   updatePassword,
 } from '../../features/usuarios/services/user.services.js';
+import { logoutUser } from '../../features/auth/services/authService';
 
 import styles from './UsuarioForm.module.css';
 
@@ -40,7 +41,7 @@ const UsuarioForm = ({
 const usuarioSesion = JSON.parse(
   sessionStorage.getItem("user")
 );
-console.log("Usuario sesión:", usuarioSesion);
+const esMismaSesion = isEdit && usuario?.id && usuarioSesion?.user_id && String(usuario.id) === String(usuarioSesion.user_id);
   // ─────────────────────────────────────────
   // Estados
   // ─────────────────────────────────────────
@@ -58,6 +59,7 @@ console.log("Usuario sesión:", usuarioSesion);
   usuEst: usuario?.estado === 1 ? 'Activo' : 'Bloqueado',
 });
   const [showPassword, setShowPassword] = useState(false);
+  const [passwordActual, setPasswordActual] = useState('');
   const [alert,      setAlert]      = useState(null);
   const [loading,    setLoading]    = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -105,6 +107,7 @@ console.log("Usuario sesión:", usuarioSesion);
     });
 
   }
+  setPasswordActual('');
   setErrors({});
 }, [usuario]);
   // ─────────────────────────────────────────
@@ -394,6 +397,10 @@ console.log("Usuario sesión:", usuarioSesion);
 
   const newErrors = {};
 
+  if (esMismaSesion && !passwordActual) {
+    newErrors.passwordActual = 'Debes ingresar tu contraseña actual';
+  }
+
   if (!newPass || newPass.length < 6) {
     newErrors.newPass = 'Mínimo 6 caracteres';
   }
@@ -411,9 +418,11 @@ console.log("Usuario sesión:", usuarioSesion);
   setLoading(true);
 
   try {
-    await updatePassword(usuario.id, {
-      password: newPass,
-    });
+    const pwPayload = { password: newPass };
+    if (esMismaSesion && passwordActual) {
+      pwPayload.passwordActual = passwordActual;
+    }
+    await updatePassword(usuario.id, pwPayload);
 
     setShowPwModal(false);
     onClose();
@@ -422,8 +431,17 @@ console.log("Usuario sesión:", usuarioSesion);
       setAlert({
         type: 'success',
         title: 'Contraseña actualizada',
-        message: 'La contraseña se actualizó correctamente',
-        onClose: () => setAlert(null),
+        message: esMismaSesion
+          ? 'La contraseña se actualizó correctamente. Se cerrará tu sesión por seguridad.'
+          : 'La contraseña se actualizó correctamente',
+        onClose: async () => {
+          setAlert(null);
+          if (esMismaSesion) {
+            await logoutUser();
+            sessionStorage.removeItem('user');
+            window.location.href = '/login';
+          }
+        },
       });
     }, 400);
 
@@ -434,6 +452,7 @@ console.log("Usuario sesión:", usuarioSesion);
       type: 'error',
       title: 'Error',
       message:
+        err?.response?.data?.error ||
         err?.response?.data?.message ||
         err?.response?.data?.msg ||
         'No se pudo cambiar la contraseña',
@@ -834,6 +853,30 @@ console.log("Usuario sesión:", usuarioSesion);
         }
       >
         <div className={styles.form}>
+          {esMismaSesion && (
+            <div className={styles.field}>
+              <label className={styles.label}>Contraseña anterior</label>
+              <div className={styles.inputWrap}>
+                <FiLock className={styles.inputIcon} />
+                <input
+                  type="password"
+                  name="passwordActual"
+                  className={`${styles.input} ${pwErrors.passwordActual ? styles.inputError : ''}`}
+                  placeholder="Ingresa tu contraseña actual"
+                  value={passwordActual}
+                  onChange={(e) => {
+                    setPasswordActual(e.target.value);
+                    if (pwErrors.passwordActual) {
+                      setPwErrors((prev) => ({ ...prev, passwordActual: '' }));
+                    }
+                  }}
+                />
+              </div>
+              {pwErrors.passwordActual && (
+                <span className={styles.fieldError}>{pwErrors.passwordActual}</span>
+              )}
+            </div>
+          )}
           <div className={styles.field}>
             <label className={styles.label}>Contraseña nueva</label>
             <div className={styles.inputWrap}>

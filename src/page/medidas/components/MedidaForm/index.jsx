@@ -88,8 +88,6 @@ const MedidaForm = ({ isOpen, onClose, medida, onSuccess }) => {
     }
 
     setSubmitting(true);
-    onClose();
-    setLoading(true);
 
     const payload = {
       medNom: form.medNom.trim(),
@@ -106,9 +104,9 @@ const MedidaForm = ({ isOpen, onClose, medida, onSuccess }) => {
         resp = await createMedida(payload);
       }
 
-      setLoading(false);
-
       if (resp?.status) {
+        onClose();
+        setLoading(true);
         setAlert({
           type: 'success',
           title: isEdit ? 'Medida actualizada' : 'Medida registrada',
@@ -131,13 +129,20 @@ const MedidaForm = ({ isOpen, onClose, medida, onSuccess }) => {
         });
       }
     } catch (err) {
-      setLoading(false);
       const serverErrors = err?.response?.data?.errors;
       if (serverErrors) {
         const mapped = {};
-        serverErrors.forEach((e) => {
-          if (e.path) mapped[e.path] = e.msg;
-        });
+        if (Array.isArray(serverErrors)) {
+          serverErrors.forEach((e) => {
+            if (e.path) mapped[e.path] = e.msg;
+          });
+        } else {
+          Object.entries(serverErrors).forEach(([key, msgs]) => {
+            if (Array.isArray(msgs) && msgs.length > 0) {
+              mapped[key] = msgs.join('. ');
+            }
+          });
+        }
         setErrors(mapped);
       }
       setAlert({

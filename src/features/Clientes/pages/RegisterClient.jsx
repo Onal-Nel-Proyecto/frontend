@@ -1,10 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import Alert from '../../../components/ui/feedback/Alert'
+import { isAdmin } from '../../../utils/session'
 import './RegisterClient.css'
 
 const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
+  const admin = isAdmin()
+  const puedeEditarDoc = !clienteEdit || admin
+
   const [form, setForm] = useState({
+    documento:   clienteEdit?.documento ?? '',
+    tipoDocumento: clienteEdit?.tipoDocumento ?? 'DOCUMENTO',
     nombres:   clienteEdit?.name?.split(' ')[0] ?? '',
     apellidos: clienteEdit?.name?.split(' ').slice(1).join(' ') ?? '',
     correo:    clienteEdit?.email ?? '',
@@ -24,7 +30,13 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
 
   const validate = (form) => {
     const errs = {}
-    
+
+    // Documento
+    const doc = form.documento.trim()
+    if (!doc) errs.documento = 'El documento es obligatorio'
+    else if (!/^\d+$/.test(doc)) errs.documento = 'Solo números, sin letras ni caracteres especiales'
+    else if (doc.length > 15) errs.documento = 'Máximo 15 caracteres'
+
     const nom = form.nombres.trim()
     if (!nom) errs.nombres = 'El nombre es obligatorio'
     else if (nom.length < 2) errs.nombres = 'Mínimo 2 caracteres'
@@ -81,7 +93,7 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
     
     const newErrors = validate(form)
     setErrors(newErrors)
-    setTouched({ nombres: true, apellidos: true, correo: true, telefono: true, direccion: true })
+    setTouched({ documento: true, tipoDocumento: true, nombres: true, apellidos: true, correo: true, telefono: true, direccion: true })
     if (Object.keys(newErrors).length > 0) return
 
     if (!onGuardar) {
@@ -99,6 +111,8 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
     if (form.telefono2.trim()) telefonos.push({ numero_telefono: form.telefono2.trim() })
 
     const clienteData = {
+      cliente_documento: form.documento.trim(),
+      cliente_tipo_doc: form.tipoDocumento,
       cliente_nombre: form.nombres.trim(),
       cliente_apellido: form.apellidos.trim(),
       cliente_email: form.correo.trim(),
@@ -109,7 +123,7 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
     const result = await onGuardar(clienteData)
 
     if (result.ok) {
-      setForm({ nombres: '', apellidos: '', correo: '', telefono: '', direccion: '' })
+      setForm({ nombres: '', apellidos: '', correo: '', telefono: '', telefono2: '', direccion: '', documento: '', tipoDocumento: 'DOCUMENTO' })
       setAlert({ type: 'success', title: clienteEdit ? 'Cliente actualizado' : 'Cliente registrado', message: `Los datos de ${form.nombres.trim()} se guardaron correctamente.`, onClose: () => { setAlert(null); onClose() } })
     } else {
       setErrorForm(result.error || 'Error al guardar el cliente')
@@ -152,6 +166,51 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
 
         {/* ── Formulario ── */}
         <form className="ncp-form" onSubmit={handleSubmit}>
+
+          {/* Documento + Tipo Documento */}
+          <div className="ncp-row">
+            <div className="ncp-group">
+              <label className="ncp-label" htmlFor="documento">Documento</label>
+              <div className={`ncp-input-wrap ${errors.documento && touched.documento ? 'ncp-input-wrap--err' : ''}`}>
+                <i className="ti ti-id" aria-hidden="true" />
+                <input
+                  id="documento" name="documento" type="text" inputMode="numeric" maxLength="15"
+                  className="ncp-input"
+                  placeholder="Número de documento"
+                  value={form.documento}
+                  onChange={(e) => {
+                    const raw = e.target.value.replace(/\D/g, '');
+                    setForm((prev) => ({ ...prev, documento: raw }));
+                  }}
+                  disabled={!puedeEditarDoc}
+                  required
+                />
+              <span style={{fontSize:'0.65rem', color:'var(--text-muted)', marginLeft:'auto'}}>Obligatorio</span>
+              </div>
+              {errors.documento && touched.documento && <p className="ncp-field-err">{errors.documento}</p>}
+              {clienteEdit && !admin && (
+                <p className="ncp-field-err" style={{ color: 'var(--text-muted)', fontSize: '0.65rem' }}>Solo administradores pueden editar este campo</p>
+              )}
+            </div>
+            <div className="ncp-group">
+              <label className="ncp-label" htmlFor="tipoDocumento">Tipo de documento</label>
+              <div className={`ncp-input-wrap ${errors.tipoDocumento && touched.tipoDocumento ? 'ncp-input-wrap--err' : ''}`}>
+                <i className="ti ti-file-text" aria-hidden="true" />
+                <select
+                  id="tipoDocumento" name="tipoDocumento"
+                  className="ncp-input"
+                  value={form.tipoDocumento}
+                  onChange={handleChange}
+                  disabled={!puedeEditarDoc}
+                  style={{ cursor: 'pointer', appearance: 'auto' }}
+                >
+                  <option value="DOCUMENTO">Documento</option>
+                  <option value="NIT">NIT</option>
+                </select>
+              </div>
+              {errors.tipoDocumento && touched.tipoDocumento && <p className="ncp-field-err">{errors.tipoDocumento}</p>}
+            </div>
+          </div>
 
           {/* Nombres + Apellidos */}
           <div className="ncp-row">

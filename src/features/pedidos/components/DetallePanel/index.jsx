@@ -2,7 +2,7 @@
 // DetallePanel — Drawer para ver / crear / editar un detalle
 // ================================================================
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import {
   FiPackage,
@@ -44,28 +44,27 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle, pedidoEstado }) => {
 
   // ─── Cargar catálogos del backend al abrir el drawer ───
   useEffect(() => {
-    if (isOpen && (isCreate || editMode)) {
-      const fetchCatalogos = async () => {
-        try {
-          const [catRes, medRes] = await Promise.all([
-            getCategorias(1, { estado: 'ACTIVO' }),
-            getMedidas(1, { estado: 'ACTIVO' }),
-          ]);
-          setCategorias(Array.isArray(catRes.data) ? catRes.data : []);
-          setMedidasList(Array.isArray(medRes.data) ? medRes.data : []);
-        } catch {
-          setCategorias([]);
-          setMedidasList([]);
-        }
-      };
-      fetchCatalogos();
-    }
-  }, [isOpen, isCreate, editMode]);
+    if (!isOpen) return;
+    const fetchCatalogos = async () => {
+      try {
+        const [catRes, medRes] = await Promise.all([
+          getCategorias(1, { estado: 'ACTIVO' }),
+          getMedidas(1, { estado: 'ACTIVO' }),
+        ]);
+        setCategorias(Array.isArray(catRes.data) ? catRes.data : []);
+        setMedidasList(Array.isArray(medRes.data) ? medRes.data : []);
+      } catch {
+        setCategorias([]);
+        setMedidasList([]);
+      }
+    };
+    fetchCatalogos();
+  }, [isOpen]);
 
   const [form, setForm] = useState({
     producto_nombre: detalle?.producto?.nombre || '',
     producto_precio: detalle?.producto?.precio || '',
-    producto_categoria_id: detalle?.producto?.categoria || '',
+    producto_categoria_id: detalle?.producto?.categoria?.id ?? detalle?.producto?.categoria ?? '',
     tipo_prenda: detalle?.producto?.tipoPrenda || '',
     genero: detalle?.producto?.genero || '',
     producto_talla: detalle?.producto?.talla || '',
@@ -83,7 +82,7 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle, pedidoEstado }) => {
     setForm({
       producto_nombre: detalle?.producto?.nombre || '',
       producto_precio: detalle?.producto?.precio || '',
-      producto_categoria_id: detalle?.producto?.categoria || '',
+      producto_categoria_id: detalle?.producto?.categoria?.id ?? detalle?.producto?.categoria ?? '',
       tipo_prenda: detalle?.producto?.tipoPrenda || '',
       genero: detalle?.producto?.genero || '',
       producto_talla: detalle?.producto?.talla || '',
@@ -96,6 +95,46 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle, pedidoEstado }) => {
       })) || [],
     });
   }, [detalle]);
+
+  // ─── Datos derivados de la categoría seleccionada ───
+  const categoriaSel = useMemo(
+    () => categorias.find((c) => String(c.id) === String(form.producto_categoria_id)) || null,
+    [categorias, form.producto_categoria_id]
+  );
+
+  const tipoPrendaOptions = categoriaSel?.categoria_tipo_prenda || [];
+  const tallaRefOptions = categoriaSel?.categoria_talla_referencia || [];
+  const restriccionesMedidas = categoriaSel?.restricciones_medidas || [];
+
+  // Filtrar medidas disponibles según restricciones de la categoría
+  const medidasFiltradas = useMemo(() => {
+    if (!restriccionesMedidas || restriccionesMedidas.length === 0) return medidasList;
+    return medidasList.filter((md) => {
+      const tipo = md.med_tipo || md.tipo_medida || '';
+      return restriccionesMedidas.includes(tipo);
+    });
+  }, [medidasList, restriccionesMedidas]);
+
+  // ─── Resetear tipo_prenda / talla al cambiar de categoría ───
+  useEffect(() => {
+    if (!form.producto_categoria_id) return;
+    // Limpiar tipo_prenda si ya no está entre las opciones
+    if (
+      form.tipo_prenda &&
+      tipoPrendaOptions.length > 0 &&
+      !tipoPrendaOptions.includes(form.tipo_prenda)
+    ) {
+      setForm((prev) => ({ ...prev, tipo_prenda: '' }));
+    }
+    // Limpiar talla si ya no está entre las opciones
+    if (
+      form.producto_talla &&
+      tallaRefOptions.length > 0 &&
+      !tallaRefOptions.includes(form.producto_talla)
+    ) {
+      setForm((prev) => ({ ...prev, producto_talla: '' }));
+    }
+  }, [form.producto_categoria_id, tipoPrendaOptions, tallaRefOptions]);
 
   // ─── Cargar producto como plantilla ───
   const handleTemplateSelect = (producto) => {
@@ -345,7 +384,7 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle, pedidoEstado }) => {
                 </div>
                 <div className={styles.viewItem}>
                   <span className={styles.viewLabel}>Categoría</span>
-                  <span className={styles.viewValue}>{detalle?.producto?.categoria || detalle?.producto?.categoriaId || '—'}</span>
+                  <span className={styles.viewValue}>{categorias.find((c) => String(c.id) === String(detalle?.producto?.categoria?.id ?? detalle?.producto?.categoria ?? detalle?.producto?.categoriaId))?.nombre || detalle?.producto?.categoria?.nombre || detalle?.producto?.categoria || detalle?.producto?.categoriaId || '—'}</span>
                 </div>
                 <div className={styles.viewItem}>
                   <span className={styles.viewLabel}>Tipo de prenda</span>
@@ -497,33 +536,12 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle, pedidoEstado }) => {
                   className={styles.select}
                   value={form.tipo_prenda}
                   onChange={handleChange}
+                  disabled={!form.producto_categoria_id}
                 >
                   <option value="">Seleccionar tipo de prenda…</option>
-                  <option value="CAMISA">Camisa</option>
-                  <option value="CAMISETA">Camiseta</option>
-                  <option value="POLO">Polo</option>
-
-                  <option value="PANTALON">Pantalón</option>
-                  <option value="JEAN">Jean</option>
-                  <option value="BERMUDA">Bermuda</option>
-                  <option value="SHORT">Short</option>
-
-                  <option value="FALDA">Falda</option>
-                  <option value="VESTIDO">Vestido</option>
-
-                  <option value="CHAQUETA">Chaqueta</option>
-                  <option value="BUSO">Buso</option>
-                  <option value="SUDADERA">Sudadera</option>
-                  <option value="HOODIE">Hoodie</option>
-
-                  <option value="OVEROL">Overol</option>
-                  <option value="DELANTAL">Delantal</option>
-
-                  <option value="UNIFORME">Uniforme</option>
-                  <option value="DOTACION">Dotación</option>
-
-                  <option value="GORRA">Gorra</option>
-                  <option value="OTRO">Otro</option>
+                  {tipoPrendaOptions.map((opt) => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -544,15 +562,18 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle, pedidoEstado }) => {
               </div>
               <div className={styles.field}>
                 <label className={styles.label}>Referencia de talla</label>
-                <input
+                <select
                   name="producto_talla"
-                  type="text"
-                  className={styles.input}
+                  className={styles.select}
                   value={form.producto_talla}
                   onChange={handleChange}
-                  placeholder="Ej: M, 38, S"
-                  maxLength={10}
-                />
+                  disabled={!form.producto_categoria_id}
+                >
+                  <option value="">Seleccionar talla…</option>
+                  {tallaRefOptions.map((opt) => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                </select>
               </div>
             </div>
           </section>
@@ -583,7 +604,7 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle, pedidoEstado }) => {
                   onChange={(e) => handleMedidaChange(i, 'medida_id', e.target.value)}
                 >
                   <option value="">Seleccionar…</option>
-                  {medidasList.map((md) => (
+                  {medidasFiltradas.map((md) => (
                     <option key={md.id} value={md.id}>{md.nombre}</option>
                   ))}
                 </select>

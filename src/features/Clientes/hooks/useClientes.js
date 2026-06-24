@@ -60,6 +60,8 @@ const mapearCliente = (item) => ({
   telefono: extraerTelefono(item.cliente_telefonos, 0),
   telefono2: extraerTelefono(item.cliente_telefonos, 1),
   address: item.cliente_direccion || "",
+  documento: item.cliente_documento || '',
+  tipoDocumento: item.cliente_tipo_doc || 'DOCUMENTO',
   lastOrder: item.fecha_creacion || null,
 });
 

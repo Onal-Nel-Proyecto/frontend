@@ -1,12 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { FiTag } from 'react-icons/fi'
 import Drawer from '../../../components/common/Drawer'
 import { getCategorias } from '../../../services/categoriaService'
 import './RegisterProducto.css'
 
 const SOLO_LETRAS = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/
-
-const TALLAS = ['XS', 'S', 'M', 'L', 'XL', 'XXL']
 
 const validate = (form) => {
   const errs = {}
@@ -75,6 +73,26 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
     fetchCat()
     return () => { cancel = true }
   }, [isOpen])
+
+  // ─── Datos derivados de la categoría seleccionada ───
+  const categoriaSel = useMemo(
+    () => categorias.find((c) => String(c.cat_id || c.id) === String(form.categoria)) || null,
+    [categorias, form.categoria]
+  )
+
+  const tipoPrendaOptions = categoriaSel?.categoria_tipo_prenda || []
+  const tallaOptions = categoriaSel?.categoria_talla_referencia || []
+
+  // ─── Resetear tipoPrenda / talla al cambiar de categoría ───
+  useEffect(() => {
+    if (!form.categoria) return
+    if (form.tipoPrenda && tipoPrendaOptions.length > 0 && !tipoPrendaOptions.includes(form.tipoPrenda)) {
+      setForm((prev) => ({ ...prev, tipoPrenda: '' }))
+    }
+    if (form.talla && tallaOptions.length > 0 && !tallaOptions.includes(form.talla)) {
+      setForm((prev) => ({ ...prev, talla: '' }))
+    }
+  }, [form.categoria, tipoPrendaOptions, tallaOptions])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -173,27 +191,12 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
             <div className="rp-input-wrap">
               <i className="ti ti-tag" />
               <select id="rp-tipoPrenda" name="tipoPrenda" className="rp-input rp-select"
-                value={form.tipoPrenda} onChange={handleChange} onBlur={handleBlur}>
+                value={form.tipoPrenda} onChange={handleChange} onBlur={handleBlur}
+                disabled={!form.categoria}>
                 <option value="">Seleccione...</option>
-                <option value="CAMISA">Camisa</option>
-                <option value="CAMISETA">Camiseta</option>
-                <option value="POLO">Polo</option>
-                <option value="PANTALON">Pantalón</option>
-                <option value="JEAN">Jean</option>
-                <option value="BERMUDA">Bermuda</option>
-                <option value="SHORT">Short</option>
-                <option value="FALDA">Falda</option>
-                <option value="VESTIDO">Vestido</option>
-                <option value="CHAQUETA">Chaqueta</option>
-                <option value="BUSO">Buso</option>
-                <option value="SUDADERA">Sudadera</option>
-                <option value="HOODIE">Hoodie</option>
-                <option value="OVEROL">Overol</option>
-                <option value="DELANTAL">Delantal</option>
-                <option value="UNIFORME">Uniforme</option>
-                <option value="DOTACION">Dotación</option>
-                <option value="GORRA">Gorra</option>
-                <option value="OTRO">Otro</option>
+                {tipoPrendaOptions.map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
               </select>
             </div>
           </div>
@@ -230,9 +233,10 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
             <div className="rp-input-wrap">
               <i className="ti ti-ruler" />
               <select id="rp-talla" name="talla" className="rp-input rp-select"
-                value={form.talla} onChange={handleChange} onBlur={handleBlur}>
+                value={form.talla} onChange={handleChange} onBlur={handleBlur}
+                disabled={!form.categoria}>
                 <option value="">Seleccione...</option>
-                {TALLAS.map((t) => (
+                {tallaOptions.map((t) => (
                   <option key={t} value={t}>{t}</option>
                 ))}
               </select>

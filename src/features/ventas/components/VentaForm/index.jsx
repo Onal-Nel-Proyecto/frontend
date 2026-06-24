@@ -82,7 +82,7 @@ const VentaForm = ({ isOpen, onClose }) => {
       const data = resp?.data || resp;
       if (resp?.status || data?.cliente_id) {
         const info = {
-          cliente_id: data.cliente_id,
+          cliente_id: data.cliente_id || data.id,
           cliente_nombre: data.cliente_nombre || clienteData.cliente_nombre,
           cliente_apellido: data.cliente_apellido || clienteData.cliente_apellido || '',
         };
