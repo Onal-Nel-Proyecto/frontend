@@ -19,11 +19,8 @@ export const getPedidos = async (pag = 1, filtros = {}) => {
   if (filtros.estado_pago) params.append("estado_pago", filtros.estado_pago);
   if (filtros.fecha_entrega_desde) params.append("fecha_entrega_desde", filtros.fecha_entrega_desde);
   if (filtros.fecha_entrega_hasta) params.append("fecha_entrega_hasta", filtros.fecha_entrega_hasta);
-<<<<<<< HEAD
   if (filtros.tipo_origen) params.append("tipo_origen", filtros.tipo_origen);
   console.log(`${BASE}?${params}`)
-=======
->>>>>>> 3136cab (areglos)
   const res = await axiosInstance.get(`${BASE}?${params}`);
   return res.data;
 };

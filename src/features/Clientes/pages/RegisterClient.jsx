@@ -63,10 +63,7 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
     // Tipo de documento
     if (!form.tipo_doc) errs.tipo_doc = 'Selecciona el tipo de documento'
 
-    // Número de documento
-    const doc = form.documento.trim()
-    if (!doc) errs.documento = 'El número de documento es obligatorio'
-    else if (doc.length > 20) errs.documento = 'Máximo 20 caracteres'
+
 
     // Dirección opcional
     const dir = form.direccion.trim()

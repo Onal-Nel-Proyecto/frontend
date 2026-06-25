@@ -62,6 +62,7 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, existingMaterials = []
     unidadMedida: initialData?.unidad_medida || '',
     descripcion: initialData?.desc || '',
     stock: isEditing ? (initialData?.stock ?? 0) : 0,
+    cantidadInicial: '',
   })
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
@@ -133,6 +134,7 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, existingMaterials = []
         descripcion: form.descripcion.trim(),
         umbralMinimo: 0,
         stock: isEditing ? Number(form.stock) : undefined,
+        cantidadDisponible: isEditing ? undefined : (Number(form.cantidadInicial) || 0),
       })
     } finally {
       setSaving(false)
@@ -208,7 +210,7 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, existingMaterials = []
           </div>
         </div>
 
-        {isEditing && (
+        {isEditing ? (
           <div className="rm-row">
             <div className="rm-group rm-group--full">
               <label className="rm-label" htmlFor="rm-stock">Stock actual</label>
@@ -237,6 +239,27 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, existingMaterials = []
                   Stock actual: {initialData?.stock ?? 0}. Solo puedes reducir el stock.
                 </p>
               )}
+            </div>
+          </div>
+        ) : (
+          <div className="rm-row">
+            <div className="rm-group rm-group--full">
+              <label className="rm-label" htmlFor="rm-cantidadInicial">Cantidad inicial</label>
+              <div className="rm-input-wrap">
+                <i className="ti ti-package rm-input-icon" />
+                <input id="rm-cantidadInicial" name="cantidadInicial" type="text" inputMode="numeric"
+                  className={`rm-input ${hasError('cantidadInicial') ? 'rm-input--error' : ''}`}
+                  placeholder="0" value={form.cantidadInicial}
+                  onChange={(e) => {
+                    const raw = e.target.value.replace(/\D/g, '');
+                    setForm((prev) => ({ ...prev, cantidadInicial: raw }));
+                  }}
+                  onBlur={handleBlur} />
+              </div>
+              {hasError('cantidadInicial') && <p className="rm-err">{errors.cantidadInicial}</p>}
+              <p className="rm-hint" style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+                Cantidad de unidades con la que se registrará el material en el inventario.
+              </p>
             </div>
           </div>
         )}
