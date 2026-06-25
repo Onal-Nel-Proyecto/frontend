@@ -308,6 +308,18 @@
 .mobilePrice { color: var(--accent-gold); font-weight: 600; font-size: var(--text-sm); margin-top: 0.2rem; }
 .mobileFooter { display: flex; align-items: center; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted); margin-top: 0.25rem; }
 
+/* ─── Truncado a 2 líneas ─── */
+.cellTruncate {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+  word-break: break-word;
+  line-height: 1.35;
+}
+
 @media (max-width: 768px) {
   .card { padding: 1.25rem 1rem 0; border-radius: var(--radius-lg); }
   .table { display: none; }

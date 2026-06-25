@@ -17,8 +17,9 @@ import { createCliente } from '../../../../features/Clientes/services/clientesSe
 import { getServerDate } from '../../../../utils/serverDate';
 import styles from './PedidoForm.module.css';
 
-const PedidoForm = ({ isOpen, onClose, pedido }) => {
+const PedidoForm = ({ isOpen, onClose, pedido, origen = 'CLIENTE' }) => {
   const isEdit = !!pedido;
+  const isProduccion = origen === 'PRODUCCION';
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
@@ -140,8 +141,18 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.cliente_id) {
+    if (!isProduccion && !form.cliente_id) {
       setErrors({ cliente_id: 'Selecciona un cliente' });
+      return;
+    }
+
+    if (isProduccion && !form.descripcion?.trim()) {
+      setErrors({ descripcion: 'La descripción es requerida' });
+      return;
+    }
+
+    if (isProduccion && !form.fecha_entrega_estimada) {
+      setErrors({ fecha_entrega_estimada: 'La fecha estimada de finalización es requerida' });
       return;
     }
 
@@ -160,14 +171,18 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
 
     const fechaEntrega = form.fecha_entrega_estimada || null;
     const payload = {
-      cliente_id: form.cliente_id,
       descripcion: form.descripcion || null,
       observacion: form.observacion || null,
-      tipo_pedido: form.tipo_pedido || null,
       [isEdit ? 'fecha_estimada_entrega' : 'fecha_estimada']: fechaEntrega,
-      recordatorio,
-      tipo_de_origen: "CLIENTE",
     };
+    if (isProduccion) {
+      payload.tipo_de_origen = "PRODUCCION";
+    } else {
+      payload.cliente_id = form.cliente_id;
+      payload.tipo_pedido = form.tipo_pedido || null;
+      payload.recordatorio = recordatorio;
+      payload.tipo_de_origen = "CLIENTE";
+    }
 
     try {
       let resp;
@@ -180,14 +195,15 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
       setLoading(false);
 
       if (resp?.status) {
+        const detailPath = isProduccion ? '/pedidos/orden-produccion/' : '/pedidos/';
         setAlert({
           type: 'success',
-          title: isEdit ? 'Pedido actualizado' : 'Pedido registrado',
-          message: resp.msg || `Se registró un nuevo pedido con el ID ${resp.data}`,
+          title: isEdit ? (isProduccion ? 'Orden actualizada' : 'Pedido actualizado') : (isProduccion ? 'Orden registrada' : 'Pedido registrado'),
+          message: resp.msg || `Se registró${isProduccion ? ' una nueva orden' : ' un nuevo pedido'} con el ID ${resp.data}`,
           onConfirm: () => {
             setAlert(null);
             if (!isEdit && resp.data) {
-              navigate(`/pedidos/${resp.data}`);
+              navigate(`${detailPath}${resp.data}`);
             } else {
               window.location.reload();
             }
@@ -195,7 +211,7 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
           onClose: () => {
             setAlert(null);
             if (!isEdit && resp.data) {
-              navigate(`/pedidos/${resp.data}`);
+              navigate(`${detailPath}${resp.data}`);
             } else {
               window.location.reload();
             }
@@ -240,44 +256,55 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
       <Drawer
         isOpen={isOpen}
         onClose={onClose}
-        title={isEdit ? 'Editar pedido' : 'Nuevo pedido'}
-        subtitle="Completa los datos para registrar un nuevo pedido en el sistema."
+        title={isEdit
+          ? (isProduccion ? 'Editar orden de producción' : 'Editar pedido')
+          : (isProduccion ? 'Nueva orden de producción' : 'Nuevo pedido')
+        }
+        subtitle={isProduccion
+          ? "Completa los datos para registrar una nueva orden de producción."
+          : "Completa los datos para registrar un nuevo pedido en el sistema."
+        }
         icon={<FiShoppingBag />}
         footer={
           <>
             <button className={styles.btnOutline} onClick={onClose} disabled={submitting}>Cancelar</button>
             <button className={styles.btnPrimary} onClick={handleSubmit} disabled={submitting}>
-              {submitting ? 'Guardando…' : isEdit ? 'Guardar cambios' : 'Registrar pedido'}
+              {submitting ? 'Guardando…' : isEdit ? 'Guardar cambios' : (isProduccion ? 'Registrar orden' : 'Registrar pedido')}
             </button>
           </>
         }
       >
         <form className={styles.form} onSubmit={handleSubmit}>
-          <div className={styles.field}>
-            <label className={styles.label}>Cliente *</label>
-            <ClienteSearch
-              initialNombre={nuevoCliente
-                ? `${nuevoCliente.cliente_nombre} ${nuevoCliente.cliente_apellido}`.trim()
-                : pedido?.cliente?.cliente_nombres || ''}
-              onChange={handleClienteChange}
-              error={errors.cliente_id}
-              onAddCliente={handleAddCliente}
-            />
-          </div>
+          {!isProduccion && (
+            <div className={styles.field}>
+              <label className={styles.label}>Cliente *</label>
+              <ClienteSearch
+                initialNombre={nuevoCliente
+                  ? `${nuevoCliente.cliente_nombre} ${nuevoCliente.cliente_apellido}`.trim()
+                  : pedido?.cliente?.cliente_nombres || ''}
+                onChange={handleClienteChange}
+                error={errors.cliente_id}
+                onAddCliente={handleAddCliente}
+              />
+            </div>
+          )}
 
           <div className={styles.field}>
-            <label className={styles.label}>Descripción</label>
+            <label className={styles.label}>Descripción {isProduccion ? '*' : ''}</label>
             <div className={styles.inputWrap}>
               <BiSolidUserDetail className={styles.inputIcon} />
               <input
                 name="descripcion"
-                className={styles.input}
-                placeholder="Describe el pedido…"
+                className={`${styles.input} ${errors.descripcion ? styles.inputError : ''}`}
+                placeholder={isProduccion ? "Describe la orden de producción…" : "Describe el pedido…"}
                 value={form.descripcion}
                 onChange={handleChange}
                 maxLength={80}
               />
             </div>
+            {errors.descripcion && (
+              <span className={styles.fieldError}>{errors.descripcion}</span>
+            )}
           </div>
 
           <div className={styles.field}>
@@ -295,28 +322,33 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
             </div>
           </div>
 
-          <div className={styles.field}>
-            <label className={styles.label}>Tipo de pedido</label>
-            <select
-              name="tipo_pedido"
-              className={styles.select}
-              value={form.tipo_pedido}
-              onChange={handleChange}
-            >
-              <option value="">Seleccionar tipo…</option>
-              <option value="personalizado">Personalizado</option>
-              <option value="retoques">Retoques</option>
-              <option value="modificaciones">Modificaciones</option>
-            </select>
-          </div>
+          {!isProduccion && (
+            <div className={styles.field}>
+              <label className={styles.label}>Tipo de pedido</label>
+              <select
+                name="tipo_pedido"
+                className={styles.select}
+                value={form.tipo_pedido}
+                onChange={handleChange}
+              >
+                <option value="">Seleccionar tipo…</option>
+                <option value="personalizado">Personalizado</option>
+                <option value="retoques">Retoques</option>
+                <option value="modificaciones">Modificaciones</option>
+              </select>
+            </div>
+          )}
 
           <div className={styles.field}>
-            <label className={styles.label}>Fecha estimada de entrega</label>
+            <label className={styles.label}>
+              {isProduccion ? 'Fecha estimada de finalización' : 'Fecha estimada de entrega'}
+              {isProduccion ? ' *' : ''}
+            </label>
             <div className={styles.inputWrap}>
               <input
                 type="date"
                 name="fecha_entrega_estimada"
-                className={styles.input}
+                className={`${styles.input} ${errors.fecha_entrega_estimada ? styles.inputError : ''}`}
                 value={form.fecha_entrega_estimada}
                 onChange={handleChange}
                 min={minDate}
@@ -342,9 +374,12 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
                   }
                 }} />
             </div>
+            {errors.fecha_entrega_estimada && (
+              <span className={styles.fieldError}>{errors.fecha_entrega_estimada}</span>
+            )}
           </div>
 
-          {form.fecha_entrega_estimada && getMaxRecordatorio() > 0 && (
+          {!isProduccion && form.fecha_entrega_estimada && getMaxRecordatorio() > 0 && (
             <div className={styles.field}>
               <label className={styles.label}>Recordatorio</label>
               <div className={styles.switchRow}>
@@ -394,12 +429,14 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
         </form>
       </Drawer>
 
-      {/* Panel de registro de nuevo cliente (se superpone sin cerrar el drawer) */}
-      <NewClientPanel
-        isOpen={showClientForm}
-        onClose={() => setShowClientForm(false)}
-        onGuardar={handleCreateCliente}
-      />
+      {/* Panel de registro de nuevo cliente (solo para pedidos de clientes) */}
+      {!isProduccion && (
+        <NewClientPanel
+          isOpen={showClientForm}
+          onClose={() => setShowClientForm(false)}
+          onGuardar={handleCreateCliente}
+        />
+      )}
 
       {loading && <LoadingOverlay title="Guardando pedido…" message="Procesando la solicitud" />}
       {alert && <Alert type={alert.type} title={alert.title} message={alert.message} onClose={alert.onClose || (() => setAlert(null))} />}

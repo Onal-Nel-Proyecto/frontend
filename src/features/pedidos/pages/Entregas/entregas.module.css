@@ -821,19 +821,12 @@
 .returnOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.55);
   z-index: 250;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1.5rem;
-  animation: returnFadeIn 0.15s ease;
-}
-
-@keyframes returnFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
 }
 
 .returnModal {
@@ -851,12 +844,6 @@
   align-items: center;
   gap: 0.75rem;
   box-shadow: var(--shadow-xl);
-  animation: returnSlideUp 0.2s ease;
-}
-
-@keyframes returnSlideUp {
-  from { opacity: 0; transform: translateY(20px) scale(0.96); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .returnClose {
@@ -1025,7 +1012,6 @@
   align-items: center;
   gap: 0.75rem;
   box-shadow: var(--shadow-xl);
-  animation: returnSlideUp 0.2s ease;
 }
 
 .returnConfirmField {

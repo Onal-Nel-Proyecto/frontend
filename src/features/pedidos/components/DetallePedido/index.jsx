@@ -14,7 +14,7 @@ import { deleteDetalle, uploadFotoPedido, deleteFotoPedido } from '../../service
 import styles from '../../pages/PedidoSeleccionado/pedido_seleccionado.module.css';
 
 const DetallePedido = () => {
-  const { pedido, openDetallePanel, isCanceled } = useOutletContext();
+  const { pedido, openDetallePanel, isCanceled, origen } = useOutletContext();
   const isEntregado = pedido.estado?.toUpperCase() === 'ENTREGADO';
   const isBloqueado = isCanceled || isEntregado;
   const detalles = pedido.detalles_pedido || [];
@@ -228,20 +228,22 @@ const DetallePedido = () => {
   return (
     <div className={styles.detalleContent}>
 
-      {/* Tipo de pedido */}
-      <section className={styles.cardSection}>
-        <div className={styles.tipoPedidoRow}>
-          <span className={styles.tipoPedidoLabel}>Tipo de pedido:</span>
-          <span className={styles.tipoPedidoValue}>
-            {pedido.tipo_pedido
-              ? pedido.tipo_pedido === 'personalizado' ? 'Personalizado'
-                : pedido.tipo_pedido === 'retoques' ? 'Retoques'
-                : pedido.tipo_pedido === 'modificaciones' ? 'Modificaciones'
-                : pedido.tipo_pedido
-              : '—'}
-          </span>
-        </div>
-      </section>
+      {/* Tipo de pedido (solo para pedidos de clientes) */}
+      {origen !== 'PRODUCCION' && (
+        <section className={styles.cardSection}>
+          <div className={styles.tipoPedidoRow}>
+            <span className={styles.tipoPedidoLabel}>Tipo de pedido:</span>
+            <span className={styles.tipoPedidoValue}>
+              {pedido.tipo_pedido
+                ? pedido.tipo_pedido === 'personalizado' ? 'Personalizado'
+                  : pedido.tipo_pedido === 'retoques' ? 'Retoques'
+                  : pedido.tipo_pedido === 'modificaciones' ? 'Modificaciones'
+                  : pedido.tipo_pedido
+                : '—'}
+            </span>
+          </div>
+        </section>
+      )}
 
       {/* Tabla de detalle */}
       <section className={styles.cardSection}>

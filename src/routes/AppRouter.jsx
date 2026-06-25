@@ -21,6 +21,8 @@ import GestionUsuarios from "../page/GestionUsuarios";
 import GestionProveedores from "../page/GestionProveedores";
 import InConstruction from "../components/ui/feedback/InConstruction/InConstruction";
 import Entregas from "../features/pedidos/pages/Entregas";
+import OrdenesProduccion from "../features/pedidos/pages/OrdenesProduccion";
+import OrdenProduccionSeleccionado from "../features/pedidos/pages/OrdenProduccionSeleccionado";
 
 // ─── Rutas pesadas → lazy loading ───
 const DashboardPedidos = lazy(() => import("../features/pedidos/pages/Dashboard"));
@@ -69,6 +71,14 @@ const AppRoutes = () => {
             <Route path="produccion" element={<Produccion />} />
             <Route path="pagos" element={<Pagos />} />
           </Route>
+          {/* Órdenes de Producción */}
+          <Route path="/pedidos/ordenes-produccion" element={<OrdenesProduccion />} />
+          <Route path="/pedidos/orden-produccion/:id" element={<OrdenProduccionSeleccionado />}>
+            <Route index element={<DetallePedido />} />
+            <Route path="produccion" element={<Produccion />} />
+            <Route path="pagos" element={<Pagos />} />
+          </Route>
+
           <Route path="/pedidos/entregas" element={<Entregas />} />
 
           {/* Inventario */}
