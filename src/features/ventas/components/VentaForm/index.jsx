@@ -63,7 +63,8 @@ const VentaForm = ({ isOpen, onClose }) => {
   // ─── Cálculos ───
   const subtotal = items.reduce((s, it) => s + (Number(it.cantidad) || 0) * (Number(it.precio) || 0), 0);
   const descuentoNum = Math.min(100, Math.max(0, Number(descuento) || 0));
-  const total = Math.max(0, subtotal * (1 - descuentoNum / 100));
+  const total = Math.round(Math.max(0, subtotal * (1 - descuentoNum / 100)) * 100) / 100;
+  console.warn('🧮 VentaForm RENDER — total:', { subtotal, descuentoNum, total, pagoMonto });
 
   // ─── Handlers ───
 
@@ -557,7 +558,7 @@ const VentaForm = ({ isOpen, onClose }) => {
                   inputMode="numeric"
                   maxLength={12}
                   placeholder="0"
-                  value={pagoMonto}
+                  value={pagoMonto === '' ? '' : Number(pagoMonto).toFixed(2).replace(/\.?0+$/, '')}
                   onChange={(e) => {
                     const raw = e.target.value.replace(/[^0-9]/g, '');
                     if (raw === '') {
@@ -566,7 +567,9 @@ const VentaForm = ({ isOpen, onClose }) => {
                     }
                     const num = Number(raw);
                     if (!isNaN(num) && num >= 0) {
-                      setPagoMonto(Math.min(num, total || 0));
+                      const clamped = Math.min(num, total || 0);
+                      console.warn('🧮 pagoMonto onChange:', { raw, num, clamped, total });
+                      setPagoMonto(clamped);
                     }
                   }}
                 />
