@@ -19,16 +19,16 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #aaa;
+  color: var(--text-muted);
   margin: 0.5rem 0 0;
   padding-bottom: 0.4rem;
-  border-bottom: 0.5px solid #e8e5e0;
+  border-bottom: 1px solid var(--border-glass);
 }
 
 .label {
   font-size: 0.78rem;
   font-weight: 600;
-  color: #444;
+  color: var(--text-primary);
 }
 
 .labelHint {
@@ -46,7 +46,7 @@
 .inputIcon {
   position: absolute;
   left: 12px;
-  color: #aaa;
+  color: var(--text-muted);
   font-size: 0.95rem;
   pointer-events: none;
 }
@@ -59,11 +59,12 @@
   min-width: 100%;
 
   padding: 0.6rem 0.85rem 0.6rem 2.2rem;
-  border: 0.5px solid #e8e5e0;
+  border: 1px solid var(--border-glass);
   border-radius: 10px;
-  background: #fcfcfc;
+  background: var(--bg-glass);
   font-size: 0.85rem;
-  color: #1a1a1a;
+  color: var(--text-primary);
+  backdrop-filter: var(--blur-glass);
   transition: border-color 0.2s ease;
   font-family: inherit;
 }
@@ -75,6 +76,7 @@
   background-repeat: no-repeat;
   background-position: right 12px center;
   cursor: pointer;
+  color: var(--text-primary) !important;
 }
 
 .textarea {
@@ -87,19 +89,33 @@
 .select:focus,
 .textarea:focus {
   outline: none;
-  border-color: #bbb;
-  background: #fff;
+  background: var(--bg-glass-hover);
+  border-color: var(--border-glass-hover);
+}
+.select,
+.select option {
+  color: var(--text-primary);
+}
+
+.select option {
+  background: #ffffff !important;
+  color: #1a1a1a !important;
+}
+
+
+.select option {
+  color: #1a1a1a !important;
 }
 
 .input:disabled {
-  background: #f5f3ef;
-  color: #888;
+  background: var(--surface-secondary);
+  color: var(--text-muted);
   cursor: not-allowed;
 }
 
 .inputError {
   border-color: #dc2626;
-  background: #fef2f2;
+  background: rgba(220, 38, 38, 0.08);
 }
 
 .chipContainer {
@@ -115,8 +131,9 @@
   gap: 0.35rem;
   padding: 0.45rem 0.7rem;
   border-radius: 999px;
-  background: #f5f3ef;
-  color: #333;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glass);
+  color: var(--text-primary);
   font-size: 0.78rem;
 }
 
@@ -134,14 +151,24 @@
 .addButton {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.45rem;
+
+  width: 100%;
+
   padding: 0.7rem 1rem;
+
   border: none;
   border-radius: 10px;
-  background: #695b58;
-  color: #fff;
+
+  background: #695B58;
+  color: #f5f0ef;
+
+  font-size: 0.85rem;
   font-weight: 600;
+
   cursor: pointer;
+
   transition: background 0.2s ease, transform 0.2s ease;
 }
 
@@ -150,6 +177,13 @@
   transform: translateY(-1px);
 }
 
+.addButton svg {
+  color: inherit;
+}
+
+.addButton svg {
+  color: #ffffff;
+}
 .fieldError {
   font-size: 0.72rem;
   color: #dc2626;
@@ -166,10 +200,10 @@
 .btnOutline {
   flex: 1;
   padding: 0.6rem 1rem;
-  border: 0.5px solid #e8e5e0;
+  border: 1px solid var(--border-glass);
   border-radius: 10px;
-  background: transparent;
-  color: #1a1a1a;
+  background: var(--bg-glass);
+  color: var(--text-primary);
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
@@ -177,7 +211,9 @@
 }
 
 .btnOutline:hover {
-  background: #f5f3ef;
+  background: var(--bg-glass-hover);
+  border-color: var(--border-glass-hover);
+  transform: translateY(-1px);
 }
 
 .btnPrimary {

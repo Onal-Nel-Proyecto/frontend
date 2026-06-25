@@ -180,13 +180,21 @@ const ProveedorForm = ({ isOpen, onClose, proveedor, onSuccess }) => {
     } catch (err) {
       console.error(err);
       const serverErrors = err?.response?.data?.errors;
-      if (serverErrors && Array.isArray(serverErrors)) {
+      if (serverErrors) {
         const mapped = {};
-        serverErrors.forEach((e) => { if (e.path) mapped[e.path] = e.msg; });
+        if (Array.isArray(serverErrors)) {
+          serverErrors.forEach((e) => { if (e.path) mapped[e.path] = e.msg; });
+        } else {
+          Object.entries(serverErrors).forEach(([key, msgs]) => {
+            if (Array.isArray(msgs) && msgs.length > 0) {
+              mapped[key] = msgs.join('. ');
+            }
+          });
+        }
         setErrors(mapped);
       }
 
-      setAlert({ type: 'error', title: 'Error', message: err?.response?.data?.message || 'No se pudo guardar el proveedor', onClose: () => setAlert(null) });
+      setAlert({ type: 'error', title: 'Error', message: err?.response?.data?.error || err?.response?.data?.message || 'No se pudo guardar el proveedor', onClose: () => setAlert(null) });
     } finally {
       setLoading(false);
       setSubmitting(false);

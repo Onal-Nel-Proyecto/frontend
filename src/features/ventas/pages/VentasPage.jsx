@@ -88,7 +88,7 @@ const VentasPage = () => {
 
   const maxPag = meta?.paginas_totales || 1
   const pageNumbers = useMemo(() => getPageNumbers(pagAct, maxPag), [pagAct, maxPag])
-  const todayStr = new Date().toISOString().split('T')[0]
+  const todayStr = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })()
 
   // ── Sincronizar URL y cargar datos cuando cambian los filtros ──
   useEffect(() => {

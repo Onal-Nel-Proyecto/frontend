@@ -113,8 +113,12 @@ const UserDropdown = () => {
         setAlert({
           type: 'success',
           title: 'Contraseña actualizada',
-          message: resp.msg || 'La contraseña se cambió correctamente.',
-          onClose: () => cerrarFormulario(),
+          message: (resp.msg || 'La contraseña se cambió correctamente.') + ' Se cerrará tu sesión por seguridad.',
+          onClose: async () => {
+            cerrarFormulario();
+            await logout();
+            navigate('/login');
+          },
         });
       } else {
         setAlert({

@@ -45,8 +45,9 @@
   background: transparent; border: none; outline: none;
 }
 .rp-input::placeholder { color: var(--text-muted); font-size: var(--text-xs); }
-.rp-select { cursor: pointer; appearance: auto; width: 100%; }
+.rp-select { cursor: pointer; appearance: auto; width: 100%; color-scheme: dark; }
 .rp-select option { background: var(--bg-elevated); color: var(--text-primary); }
+.rp-select:disabled { opacity: 0.45; cursor: not-allowed; }
 
 /* ── Botones ── */
 .rp-btn {

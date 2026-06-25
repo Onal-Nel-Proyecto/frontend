@@ -23,6 +23,12 @@ const fmt = (val) => {
   return clamped.toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
 };
 
+/** Retorna la fecha local en formato YYYY-MM-DD (no UTC) */
+const toLocalDateStr = (date) => {
+  const d = date || new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
 const VentaForm = ({ isOpen, onClose }) => {
   const { addVenta } = useVentas();
 
@@ -57,7 +63,8 @@ const VentaForm = ({ isOpen, onClose }) => {
   // ─── Cálculos ───
   const subtotal = items.reduce((s, it) => s + (Number(it.cantidad) || 0) * (Number(it.precio) || 0), 0);
   const descuentoNum = Math.min(100, Math.max(0, Number(descuento) || 0));
-  const total = Math.max(0, subtotal * (1 - descuentoNum / 100));
+  const total = Math.round(Math.max(0, subtotal * (1 - descuentoNum / 100)) * 100) / 100;
+  console.warn('🧮 VentaForm RENDER — total:', { subtotal, descuentoNum, total, pagoMonto });
 
   // ─── Handlers ───
 
@@ -76,7 +83,7 @@ const VentaForm = ({ isOpen, onClose }) => {
       const data = resp?.data || resp;
       if (resp?.status || data?.cliente_id) {
         const info = {
-          cliente_id: data.cliente_id,
+          cliente_id: data.cliente_id || data.id,
           cliente_nombre: data.cliente_nombre || clienteData.cliente_nombre,
           cliente_apellido: data.cliente_apellido || clienteData.cliente_apellido || '',
         };
@@ -551,7 +558,7 @@ const VentaForm = ({ isOpen, onClose }) => {
                   inputMode="numeric"
                   maxLength={12}
                   placeholder="0"
-                  value={pagoMonto}
+                  value={pagoMonto === '' ? '' : Number(pagoMonto).toFixed(2).replace(/\.?0+$/, '')}
                   onChange={(e) => {
                     const raw = e.target.value.replace(/[^0-9]/g, '');
                     if (raw === '') {
@@ -560,7 +567,9 @@ const VentaForm = ({ isOpen, onClose }) => {
                     }
                     const num = Number(raw);
                     if (!isNaN(num) && num >= 0) {
-                      setPagoMonto(Math.min(num, total || 0));
+                      const clamped = Math.min(num, total || 0);
+                      console.warn('🧮 pagoMonto onChange:', { raw, num, clamped, total });
+                      setPagoMonto(clamped);
                     }
                   }}
                 />
@@ -595,8 +604,8 @@ const VentaForm = ({ isOpen, onClose }) => {
                 <input
                   className={styles.input}
                   type="date"
-                  min={new Date().toISOString().split('T')[0]}
-                  max={(() => { const d = new Date(); d.setMonth(d.getMonth() + 2); return d.toISOString().split('T')[0]; })()}
+                  min={toLocalDateStr()}
+                  max={toLocalDateStr(new Date(new Date().setMonth(new Date().getMonth() + 2)))}
                   value={fechaVencimiento}
                   onChange={(e) => setFechaVencimiento(e.target.value)}
                 />

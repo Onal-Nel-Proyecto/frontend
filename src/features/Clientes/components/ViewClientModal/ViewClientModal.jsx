@@ -166,7 +166,27 @@ const ViewClientModal = ({ cliente, onClose }) => {
                   <i className="ti ti-id" />
                 </span>
                 <div>
-                  <p className="vcm-field__label">ID Cliente</p>
+                  <p className="vcm-field__label">Documento de identificación</p>
+                  <p className="vcm-field__value">{cliente.documento || fullCliente?.cliente_documento || '—'}</p>
+                </div>
+              </div>
+
+              <div className="vcm-field">
+                <span className="vcm-field__icon">
+                  <i className="ti ti-file-text" />
+                </span>
+                <div>
+                  <p className="vcm-field__label">Tipo de documento</p>
+                  <p className="vcm-field__value">{cliente.tipoDocumento || fullCliente?.cliente_tipo_doc || '—'}</p>
+                </div>
+              </div>
+
+              <div className="vcm-field">
+                <span className="vcm-field__icon">
+                  <i className="ti ti-hash" />
+                </span>
+                <div>
+                  <p className="vcm-field__label">ID del sistema</p>
                   <p className="vcm-field__value">{cliente.id || '—'}</p>
                 </div>
               </div>

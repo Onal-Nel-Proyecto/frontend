@@ -292,23 +292,56 @@ const TablaCategorias = ({ onEditar }) => {
               <th>ID</th>
               <th>NOMBRE</th>
               <th>DESCRIPCIÓN</th>
+              <th>TIPOS DE PRENDA</th>
+              <th>TALLAS REF.</th>
+              <th>RESTRICCIONES</th>
               <th>ESTADO</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={5} className={styles.loadingText}>Cargando categorías…</td></tr>
+              <tr><td colSpan={8} className={styles.loadingText}>Cargando categorías…</td></tr>
             ) : filtered.length === 0 ? (
-              <tr><td colSpan={5} className={styles.loadingText}>No se encontraron categorías</td></tr>
+              <tr><td colSpan={8} className={styles.loadingText}>No se encontraron categorías</td></tr>
             ) : (
               filtered.map((row) => {
                 const st = statusMap[row.cat_est || row.estado] || {};
+                const tipsPrendas = row.catTipsPrendas || row.categoria_tipo_prenda || [];
+                const tallasRef = row.catTallaRef || row.categoria_talla_referencia || [];
+                const restricciones = row.catRestMed || row.restricciones_medidas || [];
                 return (
                   <tr key={row.cat_id || row.id}>
                     <td className={styles.cellId}>{row.cat_id || row.id}</td>
                     <td className={styles.cellName}>{row.cat_nom || row.nombre}</td>
                     <td className={styles.cellDesc}>{row.cat_desc || row.descripcion || '—'}</td>
+                    <td className={styles.cellTags}>
+                      {tipsPrendas.length > 0 ? (
+                        <div className={styles.tagGroup}>
+                          {tipsPrendas.map((t) => (
+                            <span key={t} className={styles.cellTag}>{t}</span>
+                          ))}
+                        </div>
+                      ) : '—'}
+                    </td>
+                    <td className={styles.cellTags}>
+                      {tallasRef.length > 0 ? (
+                        <div className={styles.tagGroup}>
+                          {tallasRef.map((t) => (
+                            <span key={t} className={styles.cellTag}>{t}</span>
+                          ))}
+                        </div>
+                      ) : '—'}
+                    </td>
+                    <td className={styles.cellTags}>
+                      {restricciones.length > 0 ? (
+                        <div className={styles.tagGroup}>
+                          {restricciones.map((t) => (
+                            <span key={t} className={styles.cellTag}>{t}</span>
+                          ))}
+                        </div>
+                      ) : '—'}
+                    </td>
                     <td>
                       <span className={`${styles.badge} ${styles[st.className] || ''}`}>
                         {st.label || row.cat_est || row.estado}
@@ -337,6 +370,9 @@ const TablaCategorias = ({ onEditar }) => {
           ) : (
             filtered.map((row) => {
               const st = statusMap[row.cat_est || row.estado] || {};
+              const tipsPrendas = row.catTipsPrendas || row.categoria_tipo_prenda || [];
+              const tallasRef = row.catTallaRef || row.categoria_talla_referencia || [];
+              const restricciones = row.catRestMed || row.restricciones_medidas || [];
               return (
                 <div key={row.cat_id || row.id} className={styles.mobileCard}>
                   <div className={styles.mobileHeader}>
@@ -347,6 +383,21 @@ const TablaCategorias = ({ onEditar }) => {
                   </div>
                   <p className={styles.mobileName}>{row.cat_nom || row.nombre}</p>
                   <p className={styles.mobileDesc}>{row.cat_desc || row.descripcion || '—'}</p>
+                  {tipsPrendas.length > 0 && (
+                    <p className={styles.mobileExtra}>
+                      <strong>Prendas:</strong> {tipsPrendas.join(', ')}
+                    </p>
+                  )}
+                  {tallasRef.length > 0 && (
+                    <p className={styles.mobileExtra}>
+                      <strong>Tallas:</strong> {tallasRef.join(', ')}
+                    </p>
+                  )}
+                  {restricciones.length > 0 && (
+                    <p className={styles.mobileExtra}>
+                      <strong>Restric.:</strong> {restricciones.join(', ')}
+                    </p>
+                  )}
                   <div className={styles.mobileActions}>
                     <button className={styles.mobileActionBtn} onClick={() => onEditar(row)}>
                       <FiEdit2 /> Editar

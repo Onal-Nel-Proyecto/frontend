@@ -214,8 +214,6 @@ const CalendarGrid = ({ currentDate, pedidos, onSelectPedido, onShowOverflow, ov
                       title={`#${p.id} - ${p.cliente} (${st.label})`}
                     >
                       {p.title || p.id}
-                      {overdue && <span className={styles.eventTagRetrasado}>Retrasado</span>}
-                      {near && !overdue && <span className={styles.eventTagProximo}>Próximo</span>}
                     </button>
                   );
                 })}

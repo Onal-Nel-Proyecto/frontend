@@ -4,7 +4,7 @@
 // ================================================================
 
 import { useState, useEffect } from 'react';
-import { FiGrid } from 'react-icons/fi';
+import { FiGrid, FiPlus, FiX, FiHelpCircle } from 'react-icons/fi';
 import { BiSolidUserDetail } from 'react-icons/bi';
 import { createCategoria, updateCategoria } from '../../../../services/categoriaService';
 import Drawer from '../../../../components/common/Drawer';
@@ -13,6 +13,7 @@ import LoadingOverlay from '../../../../components/ui/feedback/LoadingOverlay';
 import styles from './CategoriaForm.module.css';
 
 const STATUS_OPTIONS = ['ACTIVO', 'INACTIVO'];
+const RESTRICCIONES_OPTIONS = ['SUPERIOR', 'INFERIOR', 'FALDA', 'VESTIDO', 'UNIFORME', 'GENERAL'];
 
 const CategoriaForm = ({ isOpen, onClose, categoria, onSuccess }) => {
   const isEdit = !!categoria;
@@ -22,6 +23,15 @@ const CategoriaForm = ({ isOpen, onClose, categoria, onSuccess }) => {
     catDesc: categoria?.cat_desc || categoria?.descripcion || '',
     catEst: categoria?.cat_est || categoria?.estado || 'ACTIVO',
   });
+
+  // ─── Arrays de tags ───
+  const [catTipsPrendas, setCatTipsPrendas] = useState([]);
+  const [catTallaRef, setCatTallaRef] = useState([]);
+  const [catRestMed, setCatRestMed] = useState([]);
+
+  const [inputTips, setInputTips] = useState('');
+  const [inputTalla, setInputTalla] = useState('');
+  const [selectRestMed, setSelectRestMed] = useState('');
 
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
@@ -35,6 +45,18 @@ const CategoriaForm = ({ isOpen, onClose, categoria, onSuccess }) => {
       catDesc: categoria?.cat_desc || categoria?.descripcion || '',
       catEst: categoria?.cat_est || categoria?.estado || 'ACTIVO',
     });
+    setCatTipsPrendas(
+      categoria?.catTipsPrendas || categoria?.categoria_tipo_prenda || []
+    );
+    setCatTallaRef(
+      categoria?.catTallaRef || categoria?.categoria_talla_referencia || []
+    );
+    setCatRestMed(
+      categoria?.catRestMed || categoria?.restricciones_medidas || []
+    );
+    setInputTips('');
+    setInputTalla('');
+    setSelectRestMed('');
     setErrors({});
   }, [categoria]);
 
@@ -64,6 +86,61 @@ const CategoriaForm = ({ isOpen, onClose, categoria, onSuccess }) => {
     }
   };
 
+  // ─── Handlers para tags ───
+
+  /** Solo letras (incluye acentos/ñ), sin números ni especiales */
+  const agregarTipsPrenda = () => {
+    const val = inputTips.trim().toUpperCase();
+    if (!val) return;
+    if (!/^[A-ZÁÉÍÓÚÜÑ]+$/.test(val)) return;
+    if (catTipsPrendas.includes(val)) return;
+    setCatTipsPrendas((prev) => [...prev, val]);
+    setInputTips('');
+  };
+
+  const eliminarTipsPrenda = (item) => {
+    setCatTipsPrendas((prev) => prev.filter((t) => t !== item));
+  };
+
+  /** Letras y números, sin especiales */
+  const agregarTallaRef = () => {
+    const val = inputTalla.trim().toUpperCase();
+    if (!val) return;
+    if (!/^[A-ZÁÉÍÓÚÜÑ0-9]+$/.test(val)) return;
+    if (catTallaRef.includes(val)) return;
+    setCatTallaRef((prev) => [...prev, val]);
+    setInputTalla('');
+  };
+
+  const eliminarTallaRef = (item) => {
+    setCatTallaRef((prev) => prev.filter((t) => t !== item));
+  };
+
+  const agregarRestMed = () => {
+    if (!selectRestMed) return;
+    if (catRestMed.includes(selectRestMed)) return;
+    setCatRestMed((prev) => [...prev, selectRestMed]);
+    setSelectRestMed('');
+  };
+
+  const eliminarRestMed = (item) => {
+    setCatRestMed((prev) => prev.filter((t) => t !== item));
+  };
+
+  const handleKeyDownTips = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      agregarTipsPrenda();
+    }
+  };
+
+  const handleKeyDownTalla = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      agregarTallaRef();
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -74,13 +151,14 @@ const CategoriaForm = ({ isOpen, onClose, categoria, onSuccess }) => {
     }
 
     setSubmitting(true);
-    onClose();
-    setLoading(true);
 
     const payload = {
       catNom: form.catNom.trim(),
       catDesc: form.catDesc.trim() || null,
       catEst: form.catEst,
+      catTipsPrendas: catTipsPrendas.length > 0 ? catTipsPrendas : null,
+      catTallaRef: catTallaRef.length > 0 ? catTallaRef : null,
+      catRestMed: catRestMed.length > 0 ? catRestMed : null,
     };
 
     try {
@@ -91,9 +169,9 @@ const CategoriaForm = ({ isOpen, onClose, categoria, onSuccess }) => {
         resp = await createCategoria(payload);
       }
 
-      setLoading(false);
-
       if (resp?.status) {
+        onClose();
+        setLoading(true);
         setAlert({
           type: 'success',
           title: isEdit ? 'Categoría actualizada' : 'Categoría registrada',
@@ -116,13 +194,22 @@ const CategoriaForm = ({ isOpen, onClose, categoria, onSuccess }) => {
         });
       }
     } catch (err) {
-      setLoading(false);
       const serverErrors = err?.response?.data?.errors;
       if (serverErrors) {
         const mapped = {};
-        serverErrors.forEach((e) => {
-          if (e.path) mapped[e.path] = e.msg;
-        });
+        if (Array.isArray(serverErrors)) {
+          // Formato: [{ path: "catNom", msg: "..." }]
+          serverErrors.forEach((e) => {
+            if (e.path) mapped[e.path] = e.msg;
+          });
+        } else {
+          // Formato: { catTipsPrendas: ["..."], catTallaRef: ["..."], ... }
+          Object.entries(serverErrors).forEach(([key, msgs]) => {
+            if (Array.isArray(msgs) && msgs.length > 0) {
+              mapped[key] = msgs.join('. ');
+            }
+          });
+        }
         setErrors(mapped);
       }
       setAlert({
@@ -214,6 +301,116 @@ const CategoriaForm = ({ isOpen, onClose, categoria, onSuccess }) => {
               </div>
             </>
           )}
+
+          {/* ─── Tipos de prenda (tags) ─── */}
+          <div className={styles.field}>
+            <label className={styles.label}>
+              Tipos de prenda
+              <span className={styles.tooltipIcon} title="Tipos de prenda que pertenecen a esta categoría. Solo letras, sin números ni caracteres especiales. Ej: CAMISA, PANTALÓN">
+                <FiHelpCircle />
+              </span>
+            </label>
+            <div className={styles.tagInputRow}>
+              <input
+                className={styles.tagInput}
+                placeholder="Ej: CAMISA"
+                value={inputTips}
+                onChange={(e) => setInputTips(e.target.value.replace(/[^a-zA-ZáéíóúüñÁÉÍÓÚÜÑ]/g, '').toUpperCase())}
+                onKeyDown={handleKeyDownTips}
+                maxLength={20}
+              />
+              <button type="button" className={styles.tagAddBtn} onClick={agregarTipsPrenda} title="Agregar tipo de prenda">
+                <FiPlus />
+              </button>
+            </div>
+            {catTipsPrendas.length > 0 && (
+              <div className={styles.tagsList}>
+                {catTipsPrendas.map((item) => (
+                  <span key={item} className={styles.tag}>
+                    {item}
+                    <button type="button" className={styles.tagRemove} onClick={() => eliminarTipsPrenda(item)}>
+                      <FiX />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+            {errors.catTipsPrendas && <span className={styles.fieldError}>{errors.catTipsPrendas}</span>}
+          </div>
+
+          {/* ─── Tallas de referencia (tags) ─── */}
+          <div className={styles.field}>
+            <label className={styles.label}>
+              Tallas de referencia
+              <span className={styles.tooltipIcon} title="Tallas de referencia disponibles para esta categoría. Puede incluir números y letras, sin caracteres especiales. Ej: S, M, L, 38, 42">
+                <FiHelpCircle />
+              </span>
+            </label>
+            <div className={styles.tagInputRow}>
+              <input
+                className={styles.tagInput}
+                placeholder="Ej: S, M, 38"
+                value={inputTalla}
+                onChange={(e) => setInputTalla(e.target.value.replace(/[^a-zA-ZáéíóúüñÁÉÍÓÚÜÑ0-9]/g, '').toUpperCase())}
+                onKeyDown={handleKeyDownTalla}
+                maxLength={10}
+              />
+              <button type="button" className={styles.tagAddBtn} onClick={agregarTallaRef} title="Agregar talla de referencia">
+                <FiPlus />
+              </button>
+            </div>
+            {catTallaRef.length > 0 && (
+              <div className={styles.tagsList}>
+                {catTallaRef.map((item) => (
+                  <span key={item} className={styles.tag}>
+                    {item}
+                    <button type="button" className={styles.tagRemove} onClick={() => eliminarTallaRef(item)}>
+                      <FiX />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+            {errors.catTallaRef && <span className={styles.fieldError}>{errors.catTallaRef}</span>}
+          </div>
+
+          {/* ─── Restricciones de medidas (tags) ─── */}
+          <div className={styles.field}>
+            <label className={styles.label}>
+              Restricciones de medidas
+              <span className={styles.tooltipIcon} title="Restringe las medidas que aplican a esta categoría. Selecciona del listado las opciones correspondientes. Ej: SUPERIOR, INFERIOR">
+                <FiHelpCircle />
+              </span>
+            </label>
+            <div className={styles.tagInputRow}>
+              <select
+                className={styles.tagSelect}
+                value={selectRestMed}
+                onChange={(e) => setSelectRestMed(e.target.value)}
+              >
+                <option value="">Seleccionar…</option>
+                {RESTRICCIONES_OPTIONS.filter((opt) => !catRestMed.includes(opt)).map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+              <button type="button" className={styles.tagAddBtn} onClick={agregarRestMed} title="Agregar restricción" disabled={!selectRestMed}>
+                <FiPlus />
+              </button>
+            </div>
+            {catRestMed.length > 0 && (
+              <div className={styles.tagsList}>
+                {catRestMed.map((item) => (
+                  <span key={item} className={styles.tag}>
+                    {item}
+                    <button type="button" className={styles.tagRemove} onClick={() => eliminarRestMed(item)}>
+                      <FiX />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+            {errors.catRestMed && <span className={styles.fieldError}>{errors.catRestMed}</span>}
+          </div>
         </form>
       </Drawer>
 

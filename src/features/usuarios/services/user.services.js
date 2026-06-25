@@ -32,7 +32,14 @@ export const updateUsuario = async (id, data) => {
   const response = await axiosInstance.put(`/usuarios/${id}`, data);
   return response.data;
 };
+export const updatePassword = async (id, data) => {
+  const response = await axiosInstance.patch(
+    `/usuarios/${id}/password`,
+    data
+  );
 
+  return response.data;
+};
 
 // ─── Cambiar estado ─────────────────────────────
 

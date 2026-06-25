@@ -213,6 +213,12 @@
   background: var(--bg-elevated);
 }
 
+.select:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: var(--bg-glass);
+}
+
 .inputError {
   border-color: #dc2626;
   background: rgba(220, 38, 38, 0.08);

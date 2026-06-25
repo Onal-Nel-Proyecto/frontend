@@ -218,6 +218,11 @@ select.ncp-input {
   padding-right: 1.5rem;
 }
 
+.ncp-input option {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
 .ncp-field-err {
   font-size: 0.72rem;
   color: #f87171;

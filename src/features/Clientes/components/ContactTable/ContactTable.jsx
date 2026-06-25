@@ -15,10 +15,10 @@ const ContactTable = ({ clients = [], onView, onEdit, onDelete, onReactivate, to
         <thead>
           <tr>
             <th>Nombre del Cliente</th>
+            <th>Documento</th>
             <th>Correo</th>
             <th>Teléfono</th>
             <th>Dirección de Entrega</th>
-            <th>fecha de registro</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -38,15 +38,14 @@ const ContactTable = ({ clients = [], onView, onEdit, onDelete, onReactivate, to
                 </div>
               </td>
 
+              {/* Documento */}
+              <td>
+                <span className="td-doc">{client.documento || '—'}</span>
+              </td>
+
               <td className="td-email">{client.email}</td>
               <td className="td-phone">{client.phone}</td>
               <td className="td-address">{client.address}</td>
-
-              <td>
-                <span className="td-date">
-                  {client.lastOrder ? formatDate(client.lastOrder) : '—'}
-                </span>
-              </td>
 
               {/* Botones de acción */}
               <td>

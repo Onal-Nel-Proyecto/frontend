@@ -61,6 +61,7 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, existingMaterials = []
     tipoMaterial: initialData?.tipo_material || '',
     unidadMedida: initialData?.unidad_medida || '',
     descripcion: initialData?.desc || '',
+    stock: isEditing ? (initialData?.stock ?? 0) : 0,
   })
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
@@ -90,8 +91,9 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, existingMaterials = []
       const sinCambios =
         orig.nombre === form.nombre.trim() &&
         orig.tipoMaterial === form.tipoMaterial &&
-        orig.unidadMedida === form.unidadMedida &&
-        orig.descripcion === form.descripcion?.trim()
+        orig.unidadMedida === form.unidadMedida.trim() &&
+        orig.descripcion === form.descripcion?.trim() &&
+        (Number(form.stock) || 0) === (initialData?.stock ?? 0)
       if (sinCambios) {
         newErrors._general = 'No se detectaron cambios para guardar'
       }
@@ -100,6 +102,27 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, existingMaterials = []
     setErrors(newErrors)
     setTouched({ nombre: true, tipoMaterial: true, unidadMedida: true, descripcion: true })
     if (Object.keys(newErrors).length > 0) return
+
+    // Validar stock solo en edición
+    if (isEditing) {
+      const stockNum = Number(form.stock);
+      const maxStock = initialData?.stock ?? 0;
+      if (isNaN(stockNum) || form.stock === '' || form.stock === null || form.stock === undefined) {
+        setErrors((prev) => ({ ...prev, stock: 'El stock es obligatorio' }));
+        setTouched((prev) => ({ ...prev, stock: true }));
+        return;
+      }
+      if (stockNum < 0) {
+        setErrors((prev) => ({ ...prev, stock: 'El stock no puede ser negativo' }));
+        setTouched((prev) => ({ ...prev, stock: true }));
+        return;
+      }
+      if (stockNum > maxStock) {
+        setErrors((prev) => ({ ...prev, stock: `No puedes aumentar el stock. Máximo permitido: ${maxStock}` }));
+        setTouched((prev) => ({ ...prev, stock: true }));
+        return;
+      }
+    }
 
     setSaving(true)
     try {
@@ -110,6 +133,7 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, existingMaterials = []
         unidadMedida: form.unidadMedida.trim(),
         descripcion: form.descripcion.trim(),
         umbralMinimo: 0,
+        stock: isEditing ? Number(form.stock) : undefined,
       })
     } finally {
       setSaving(false)
@@ -184,6 +208,39 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, existingMaterials = []
             {hasError('unidadMedida') && <p className="rm-err">{errors.unidadMedida}</p>}
           </div>
         </div>
+
+        {isEditing && (
+          <div className="rm-row">
+            <div className="rm-group rm-group--full">
+              <label className="rm-label" htmlFor="rm-stock">Stock actual</label>
+              <div className="rm-input-wrap">
+                <i className="ti ti-package rm-input-icon" />
+                <input id="rm-stock" name="stock" type="text" inputMode="numeric"
+                  className={`rm-input ${hasError('stock') ? 'rm-input--error' : ''}`}
+                  value={form.stock}
+                  onChange={(e) => {
+                    const raw = e.target.value.replace(/\D/g, '');
+                    if (raw === '') {
+                      setForm((prev) => ({ ...prev, stock: '' }));
+                      return;
+                    }
+                    const num = parseInt(raw, 10);
+                    if (!isNaN(num) && num >= 0) {
+                      const maxStock = initialData?.stock ?? 0;
+                      setForm((prev) => ({ ...prev, stock: Math.min(num, maxStock) }));
+                    }
+                  }}
+                  onBlur={handleBlur} />
+              </div>
+              {hasError('stock') && <p className="rm-err">{errors.stock}</p>}
+              {!hasError('stock') && (
+                <p className="rm-hint" style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+                  Stock actual: {initialData?.stock ?? 0}. Solo puedes reducir el stock.
+                </p>
+              )}
+            </div>
+          </div>
+        )}
 
         <div className="rm-row">
           <div className="rm-group rm-group--full">

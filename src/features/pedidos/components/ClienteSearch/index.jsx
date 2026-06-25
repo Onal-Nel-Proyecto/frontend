@@ -23,6 +23,14 @@ const nombreCompleto = (c) => {
   return partes.join(' ') || '';
 };
 
+/** Formatea tipo de documento + número para mostrar en el dropdown.
+ *  "DOCUMENTO" → "DOC", "NIT" → "NIT", etc. */
+const formatearDocumento = (c) => {
+  if (!c || !c.cliente_documento) return '';
+  const tipo = c.cliente_tipo_doc.toUpperCase() === 'DOCUMENTO' ? 'DOC' : (c.cliente_tipo_doc || '');
+  return `${tipo}:${c.cliente_documento}`;
+};
+
 const ClienteSearch = ({ initialNombre = '', onChange, error, onAddCliente }) => {
   const [query, setQuery] = useState(initialNombre);
   const [results, setResults] = useState([]);
@@ -184,7 +192,7 @@ const ClienteSearch = ({ initialNombre = '', onChange, error, onAddCliente }) =>
                   onMouseEnter={() => setHighlightIdx(idx)}
                 >
                   <span>{nombreCompleto(cliente)}</span>
-                  <span className={styles.optionId}>{cliente.cliente_id}</span>
+                  <span className={styles.optionId}>{formatearDocumento(cliente)}</span>
                 </li>
               ))
             ) : (
