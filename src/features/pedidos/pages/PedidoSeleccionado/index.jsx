@@ -117,11 +117,26 @@ const PedidoSeleccionado = () => {
       try {
         const resp = await getPedidoById(id);
         if (cancel) return;
+
+        // Validar que el pedido sea de tipo CLIENTE
+        const origen = resp?.tipo_origen || resp?.tipo_de_origen || '';
+        if (origen && origen !== 'CLIENTE') {
+          console.warn(`[PedidoSeleccionado] Pedido #${id} no es de tipo CLIENTE (${origen}), redirigiendo`);
+          navigate('/pedidos/dash', { replace: true });
+          return;
+        }
+
         setPedido(resp);
       } catch {
         console.warn('[PedidoSeleccionado] API no disponible, cargando datos de ejemplo');
         if (!cancel) {
-          setPedido(PEDIDOS_DETALLE_EJEMPLO[id] || null);
+          const ejemplo = PEDIDOS_DETALLE_EJEMPLO[id];
+          if (ejemplo) {
+            // Los ejemplos no tienen tipo_origen, se muestran normalmente
+            setPedido(ejemplo);
+          } else {
+            setPedido(null);
+          }
         }
       } finally {
         if (!cancel) setLoading(false);
@@ -129,7 +144,7 @@ const PedidoSeleccionado = () => {
     };
     fetch();
     return () => { cancel = true; };
-  }, [id]);
+  }, [id, navigate]);
 
   // ── Redirigir desde /pagos si precio_total es inválido ──
   useEffect(() => {

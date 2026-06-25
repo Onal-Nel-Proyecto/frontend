@@ -19,6 +19,7 @@ export const getPedidos = async (pag = 1, filtros = {}) => {
   if (filtros.estado_pago) params.append("estado_pago", filtros.estado_pago);
   if (filtros.fecha_entrega_desde) params.append("fecha_entrega_desde", filtros.fecha_entrega_desde);
   if (filtros.fecha_entrega_hasta) params.append("fecha_entrega_hasta", filtros.fecha_entrega_hasta);
+  if (filtros.tipo_origen) params.append("tipo_origen", filtros.tipo_origen);
   console.log(`${BASE}?${params}`)
   const res = await axiosInstance.get(`${BASE}?${params}`);
   return res.data;
@@ -113,6 +114,12 @@ export const entregarPedido = async (id, data = {}) => {
 /** Cancelar un pedido */
 export const cancelPedido = async (pedidoId, data) => {
   const res = await axiosInstance.patch(`${BASE}/${pedidoId}/cancelar`, data);
+  return res.data;
+};
+
+/** Devolver un pedido (ANULACION o CORRECCION) */
+export const devolverPedido = async (pedidoId, data) => {
+  const res = await axiosInstance.patch(`${BASE}/${pedidoId}/devolver`, data);
   return res.data;
 };
 

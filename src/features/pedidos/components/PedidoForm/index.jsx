@@ -166,6 +166,7 @@ const PedidoForm = ({ isOpen, onClose, pedido }) => {
       tipo_pedido: form.tipo_pedido || null,
       [isEdit ? 'fecha_estimada_entrega' : 'fecha_estimada']: fechaEntrega,
       recordatorio,
+      tipo_de_origen: "CLIENTE",
     };
 
     try {

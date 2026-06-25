@@ -147,6 +147,9 @@ export const usePedidosTable = () => {
         // Búsqueda server-side por nombre de cliente
         if (searchServer) filtrosLimpios.cliente = searchServer;
 
+        // Siempre filtrar por tipo origen CLIENTE en esta página
+        filtrosLimpios.tipo_origen = "CLIENTE";
+
         const resp = await getPedidos(pagAct, filtrosLimpios);
         if (cancel) return;
         setPedidos(resp.data || []);
