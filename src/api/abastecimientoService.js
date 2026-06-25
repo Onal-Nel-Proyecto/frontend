@@ -33,14 +33,8 @@ export const cancelarAbastecimiento = async (id) => {
   return response.data;
 };
 
-// ── GET proveedores — listar proveedores ──
-// Prueba primero /abastecimientos/proveedores, y si falla usa /proveedores (legacy)
+// ── GET /proveedores — listar proveedores ──
 export const getProveedores = async () => {
-  try {
-    const response = await axiosInstance.get(ABASTECIMIENTO_ENDPOINTS.PROVEEDORES);
-    return response.data;
-  } catch {
-    const response = await axiosInstance.get("/proveedores");
-    return response.data;
-  }
+  const response = await axiosInstance.get("/proveedores");
+  return response.data;
 };

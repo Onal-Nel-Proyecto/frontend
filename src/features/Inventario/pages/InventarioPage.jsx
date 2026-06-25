@@ -520,6 +520,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
           tipoPrenda: data.tipoPrenda,
           categoriaId: data.categoriaId,
           talla: data.talla,
+          cantidadDisponible: data.cantidadDisponible ?? 0,
         })
       }
       setShowDrawerProd(false)

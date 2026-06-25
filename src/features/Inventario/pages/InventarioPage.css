@@ -129,6 +129,8 @@
   padding: 0.85rem 1rem; font-size: 0.68rem; font-weight: 600;
   text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted);
   text-align: left; white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .inv-table td {
   padding: 0.85rem 1rem; font-size: var(--text-xs); color: var(--text-secondary);
@@ -150,9 +152,39 @@
   min-width: 120px;
 }
 
-/* Texto largo se trunca con ellipsis en vez de empujar otras columnas */
-.inv-table td:nth-child(1),
+/* Productos: ancho suficiente para que GÉNERO·TALLA, PRECIO, TIPO PRENDA y CATEGORÍA no se solapen */
+.inv-table[data-tab="productos"] th:nth-child(3),
+.inv-table[data-tab="productos"] td:nth-child(3) {
+  width: 100px;
+  min-width: 100px;
+}
+.inv-table[data-tab="productos"] th:nth-child(4),
+.inv-table[data-tab="productos"] td:nth-child(4) {
+  width: 120px;
+  min-width: 120px;
+}
+.inv-table[data-tab="productos"] th:nth-child(5),
+.inv-table[data-tab="productos"] td:nth-child(5) {
+  width: 140px;
+  min-width: 140px;
+}
+.inv-table[data-tab="productos"] th:nth-child(6),
+.inv-table[data-tab="productos"] td:nth-child(6) {
+  width: 110px;
+  min-width: 110px;
+}
+
+/* Columnas 1 y 2 (PRODUCTO/MATERIAL, DESCRIPCIÓN): ancho mínimo para que no se colapsen */
+.inv-table th:nth-child(1),
+.inv-table td:nth-child(1) {
+  min-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.inv-table th:nth-child(2),
 .inv-table td:nth-child(2) {
+  min-width: 140px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -166,7 +198,7 @@
 .inv-material-name { font-weight: 600; color: var(--text-primary); margin: 0; font-size: var(--text-xs); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .inv-material-ref { font-size: 0.68rem; color: var(--text-muted); margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .inv-cat-tag { display: inline-block; padding: 3px 10px; background: var(--bg-glass); border-radius: 6px; font-size: 0.72rem; font-weight: 500; color: var(--text-muted); }
-.inv-cell-specs { font-size: 0.72rem; color: var(--text-muted); max-width: 200px; }
+.inv-cell-specs { font-size: 0.72rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .inv-cell-price { font-weight: 700; color: var(--text-primary); font-size: var(--text-sm); white-space: nowrap; }
 .inv-cell-unit { font-weight: 400; font-size: 0.68rem; color: var(--text-muted); margin-left: 2px; }
 
@@ -278,20 +310,23 @@
   .inv-table-wrap { overflow-x: auto; }
   .inv-stat-card { padding: 1rem 1.25rem; }
   .inv-stat-value { font-size: 1.25rem; }
+  /* Reducir min-width de columna ESTADO en móvil para evitar scroll de 3px en iPhone */
+  .inv-table th:nth-last-child(2),
+  .inv-table td:nth-last-child(2) { min-width: 110px; }
   /* Ocultar columna DESCRIPCIÓN (4ta) en móvil para evitar interpolación con STOCK — solo tabla de materiales (bug #7) */
   .inv-table[data-tab="materiales"] th:nth-child(4),
   .inv-table[data-tab="materiales"] td:nth-child(4) { display: none; }
-  /* Productos: ocultar CATEGORÍA (3ra), TIPO PRENDA (4ta), GÉNERO·TALLA (5ta), PRECIO (6ta) en móvil */
+  /* Productos: ocultar CATEGORÍA (3ra), TIPO PRENDA (4ta), GÉNERO·TALLA (5ta) en móvil */
+  /* PRECIO (6ta) se mantiene visible — es información crítica */
   .inv-table[data-tab="productos"] th:nth-child(3),
   .inv-table[data-tab="productos"] td:nth-child(3),
   .inv-table[data-tab="productos"] th:nth-child(4),
   .inv-table[data-tab="productos"] td:nth-child(4),
   .inv-table[data-tab="productos"] th:nth-child(5),
-  .inv-table[data-tab="productos"] td:nth-child(5),
-  .inv-table[data-tab="productos"] th:nth-child(6),
-  .inv-table[data-tab="productos"] td:nth-child(6) { display: none; }
+  .inv-table[data-tab="productos"] td:nth-child(5) { display: none; }
   /* Cambiar a table-layout:auto en móvil para que las columnas visibles usen bien el espacio */
   .inv-table[data-tab="productos"] { table-layout: auto !important; }
+  .inv-table[data-tab="materiales"] { table-layout: auto !important; }
 }
 
 @media (max-width: 480px) {

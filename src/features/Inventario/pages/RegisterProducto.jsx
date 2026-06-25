@@ -43,6 +43,7 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
     genero: initialData?.genero === 'Femenino' ? 'F' : initialData?.genero === 'Masculino' ? 'M' : initialData?.genero === 'Unisex' ? 'U' : clean(initialData?.genero),
     talla: clean(initialData?.talla),
     precio: initialData?.price?.toString() || '',
+    cantidadInicial: '',
   })
   const [categorias, setCategorias] = useState([])
   const [errors, setErrors] = useState({})
@@ -146,6 +147,7 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
         genero: form.genero || null,
         talla: form.talla.trim() || null,
         precio: parseFloat(form.precio) || 0,
+        cantidadDisponible: isEditing ? undefined : (Number(form.cantidadInicial) || 0),
       })
     } finally {
       setSaving(false)
@@ -261,7 +263,7 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
         </div> */}
 
         <div className="rp-row">
-          <div className="rp-group rp-group--full">
+          <div className="rp-group">
             <label className="rp-label" htmlFor="rp-precio">Precio de venta ($)</label>
             <div className={`rp-input-wrap ${hasError('precio') ? 'rp-input-wrap--err' : ''}`}>
               <i className="ti ti-currency-dollar" />
@@ -270,6 +272,25 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
             </div>
             {hasError('precio') && <p className="rp-err">{errors.precio}</p>}
           </div>
+          {!isEditing && (
+            <div className="rp-group">
+              <label className="rp-label" htmlFor="rp-cantidadInicial">Cantidad inicial</label>
+              <div className={`rp-input-wrap ${hasError('cantidadInicial') ? 'rp-input-wrap--err' : ''}`}>
+                <i className="ti ti-package" />
+                <input id="rp-cantidadInicial" name="cantidadInicial" type="text" inputMode="numeric" className="rp-input"
+                  placeholder="0" value={form.cantidadInicial}
+                  onChange={(e) => {
+                    const raw = e.target.value.replace(/\D/g, '');
+                    setForm((prev) => ({ ...prev, cantidadInicial: raw }));
+                  }}
+                  onBlur={handleBlur} />
+              </div>
+              {hasError('cantidadInicial') && <p className="rp-err">{errors.cantidadInicial}</p>}
+              <p className="rp-hint" style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+                Cantidad que se registrará en el inventario.
+              </p>
+            </div>
+          )}
         </div>
 
       </form>
