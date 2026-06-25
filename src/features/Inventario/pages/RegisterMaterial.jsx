@@ -14,9 +14,22 @@ const TIPOS_MATERIAL = [
   'APLIQUE', 'ETIQUETA', 'EMPAQUE', 'ACCESORIO',
 ]
 
+const UNIDADES_MEDIDA = [
+  'Metros (mts)',
+  'Centímetros (cm)',
+  'Kilogramos (kg)',
+  'Gramos (g)',
+  'Unidades (uds)',
+  'Rollos',
+  'Conos',
+  'Yardas (yd)',
+  'Litros (L)',
+  'Paquetes',
+]
+
 const SOLO_LETRAS = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/
 
-const validate = (form) => {
+const validate = (form, isEditing, existingMaterials, currentId) => {
   const errs = {}
 
   const nom = form.nombre.trim()
@@ -24,13 +37,15 @@ const validate = (form) => {
   else if (nom.length < 3) errs.nombre = 'Mínimo 3 caracteres'
   else if (nom.length > 50) errs.nombre = 'Máximo 50 caracteres'
   else if (!SOLO_LETRAS.test(nom)) errs.nombre = 'Solo letras y espacios, sin números'
+  else {
+    // Validar nombre duplicado (case-insensitive)
+    const duplicado = existingMaterials.some(
+      (m) => m.name?.toLowerCase() === nom.toLowerCase() && (!isEditing || m.id !== currentId)
+    )
+    if (duplicado) errs.nombre = 'Ya existe un material con este nombre'
+  }
 
   if (!form.tipoMaterial) errs.tipoMaterial = 'Selecciona el tipo de material'
-
-  const uni = form.unidadMedida.trim()
-  if (uni.length > 20) errs.unidadMedida = 'Máximo 20 caracteres'
-  else if (uni.length > 0 && !/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ.,\s]+$/.test(uni))
-    errs.unidadMedida = 'Solo letras, puntos, comas y espacios'
 
   const desc = form.descripcion?.trim()
   if (desc.length > 200) errs.descripcion = 'Máximo 200 caracteres'
@@ -38,7 +53,7 @@ const validate = (form) => {
   return errs
 }
 
-const RegisterMaterial = ({ isOpen, onClose, initialData, onSave }) => {
+const RegisterMaterial = ({ isOpen, onClose, initialData, existingMaterials = [], onSave }) => {
   const isEditing = !!initialData
 
   const [form, setForm] = useState({
@@ -63,22 +78,21 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, onSave }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    const newErrors = validate(form)
+    const newErrors = validate(form, isEditing, existingMaterials, initialData?.id)
 
     // Si es edición y no hay cambios, bloquear el guardado
     if (isEditing && Object.keys(newErrors).length === 0) {
       const orig = {
         nombre: initialData?.name?.trim() || '',
         tipoMaterial: initialData?.tipo_material || '',
-        unidadMedida: initialData?.unidad_medida?.trim() || '',
+        unidadMedida: initialData?.unidad_medida || '',
         descripcion: initialData?.desc?.trim() || '',
       }
       const sinCambios =
         orig.nombre === form.nombre.trim() &&
         orig.tipoMaterial === form.tipoMaterial &&
-        orig.unidadMedida === form.unidadMedida.trim() &&
-        orig.descripcion === form.descripcion?.trim() &&
-        (Number(form.stock) || 0) === (initialData?.stock ?? 0)
+        orig.unidadMedida === form.unidadMedida &&
+        orig.descripcion === form.descripcion?.trim()
       if (sinCambios) {
         newErrors._general = 'No se detectaron cambios para guardar'
       }
@@ -180,10 +194,15 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, onSave }) => {
             <label className="rm-label" htmlFor="rm-unidadMedida">Unidad de medida</label>
             <div className="rm-input-wrap">
               <i className="ti ti-ruler rm-input-icon" />
-              <input id="rm-unidadMedida" name="unidadMedida" type="text" maxLength="20"
-                className={`rm-input ${hasError('unidadMedida') ? 'rm-input--error' : ''}`}
-                placeholder="Ej: mts, kg, unidades, rollos" value={form.unidadMedida}
-                onChange={handleChange} onBlur={handleBlur} />
+              <select id="rm-unidadMedida" name="unidadMedida"
+                className={`rm-input rm-select ${hasError('unidadMedida') ? 'rm-input--error' : ''}`}
+                value={form.unidadMedida}
+                onChange={handleChange} onBlur={handleBlur}>
+                <option value="">Seleccione...</option>
+                {UNIDADES_MEDIDA.map((u) => (
+                  <option key={u} value={u}>{u}</option>
+                ))}
+              </select>
             </div>
             {hasError('unidadMedida') && <p className="rm-err">{errors.unidadMedida}</p>}
           </div>

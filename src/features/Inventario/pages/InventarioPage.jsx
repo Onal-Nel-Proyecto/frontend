@@ -284,6 +284,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
   const [prodTotalPages, setProdTotalPages] = useState(1)
   const [prodTotal, setProdTotal] = useState(0)
   const [absFilters, setAbsFilters] = useState({ category: '', status: '', search: '', categoryOptions: [] })
+  const [selectedAbs, setSelectedAbs] = useState(null)
 
   // Filtro cliente-side para abastecimientos (por estado y búsqueda)
   const filteredAbastecimientos = useMemo(() => {
@@ -688,6 +689,22 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
   const prodColumns = ['PRODUCTO', 'DESCRIPCIÓN', 'CATEGORÍA', 'TIPO PRENDA', 'GÉNERO · TALLA', 'PRECIO', 'STOCK', 'ESTADO', '']
 
   /* ════ Configuración de la tabla de Abastecimientos ════ */
+
+  // Mapa de IDs → nombres para resolver referencias en abastecimientos
+  const refNameMap = useMemo(() => {
+    const map = {}
+    materials.forEach((m) => { map[String(m.id)] = m.name })
+    products.forEach((p) => { map[String(p.id)] = p.name })
+    return map
+  }, [materials, products])
+
+  /** Resuelve el nombre de un detalle, usando el mapa de referencias si no tiene nombre */
+  const resolverNombreDetalle = (d) => {
+    if (d.nombre && !d.nombre.startsWith('Ref #')) return d.nombre
+    const refId = String(d.nombre || '').replace('Ref #', '')
+    return refNameMap[refId] || d.nombre || '—'
+  }
+
   /** Formatea un número como moneda COP para abastecimientos */
   const fmtAbs = (val) => Number(val || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
   const absStats = (items) => {
@@ -708,7 +725,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
     const estadoLabel = a.estado === 'COMPLETADO' ? 'Completado' : a.estado === 'CANCELADO' ? 'Cancelado' : 'Pendiente'
     // Resumen de ítems para mostrar en la tabla (incluye costo unitario)
     const itemsResumen = a.detalles?.length > 0
-      ? a.detalles.map((d) => `${d.nombre} (×${d.cantidad} · ${fmtAbs(d.costo)} c/u)`).join(', ')
+      ? a.detalles.map((d) => `${resolverNombreDetalle(d)} (×${d.cantidad} · ${fmtAbs(d.costo)} c/u)`).join(', ')
       : (a.observacion || `${a.totalItems} ítem(s)`)
 
     return (
@@ -724,6 +741,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
         <td className="inv-cell-price">{fmtAbs(a.costoTotal)}</td>
         <td>
           <div className={`inv-actions ${hovered ? 'inv-actions--visible' : ''}`}>
+            <button className="inv-action-btn" title="Ver detalle" onClick={() => setSelectedAbs(a)}><i className="ti ti-eye" /></button>
             {a.estado === 'PENDIENTE' && (
               <>
                 <button className="inv-action-btn inv-action-btn--success" title="Completar" onClick={() => handleCompletarAbastecimiento(a)}><i className="ti ti-circle-check" /></button>
@@ -806,6 +824,81 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
           proveedores={proveedores}
           onSave={handleSaveAbastecimiento}
         />
+      )}
+
+      {/* ── Modal detalle de abastecimiento ── */}
+      {selectedAbs && (
+        <div className="inv-overlay" onClick={() => setSelectedAbs(null)}>
+          <div className="inv-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="inv-modal-header">
+              <h3>Abastecimiento #{selectedAbs.id}</h3>
+              <button className="inv-modal-close" onClick={() => setSelectedAbs(null)}>
+                <i className="ti ti-x" />
+              </button>
+            </div>
+            <div className="inv-modal-body">
+              <div className="inv-modal-section">
+                <div className="inv-modal-row">
+                  <span className="inv-modal-label">Proveedor</span>
+                  <span className="inv-modal-value">{selectedAbs.proveedorNombre || '—'}</span>
+                </div>
+                <div className="inv-modal-row">
+                  <span className="inv-modal-label">Fecha</span>
+                  <span className="inv-modal-value">
+                    {selectedAbs.fecha
+                      ? new Date(selectedAbs.fecha).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })
+                      : '—'}
+                  </span>
+                </div>
+                <div className="inv-modal-row">
+                  <span className="inv-modal-label">Estado</span>
+                  <span className={`inv-badge ${selectedAbs.estado === 'COMPLETADO' ? 'inv-badge--ok' : selectedAbs.estado === 'CANCELADO' ? 'inv-badge--empty' : 'inv-badge--warn'}`}>
+                    {selectedAbs.estado === 'COMPLETADO' ? 'Completado' : selectedAbs.estado === 'CANCELADO' ? 'Cancelado' : 'Pendiente'}
+                  </span>
+                </div>
+                {selectedAbs.observacion && (
+                  <div className="inv-modal-row">
+                    <span className="inv-modal-label">Observación</span>
+                    <span className="inv-modal-value">{selectedAbs.observacion}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="inv-modal-section">
+                <h4 className="inv-modal-subtitle">Ítems del abastecimiento</h4>
+                <table className="inv-table">
+                  <thead>
+                    <tr>
+                      <th>Producto/Material</th>
+                      <th>Cantidad</th>
+                      <th>Costo unitario</th>
+                      <th>Subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(selectedAbs.detalles || []).map((d, i) => (
+                      <tr key={i}>
+                        <td>{resolverNombreDetalle(d)}</td>
+                        <td>{d.cantidad}</td>
+                        <td>{fmtAbs(d.costo)}</td>
+                        <td>{fmtAbs(d.cantidad * d.costo)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colSpan={3} style={{ textAlign: 'right', fontWeight: 600 }}>Total</td>
+                      <td style={{ fontWeight: 600 }}>{fmtAbs(selectedAbs.costoTotal)}</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+            <div className="inv-modal-footer">
+              <button className="inv-btn-primary" onClick={() => setSelectedAbs(null)}>Cerrar</button>
+            </div>
+          </div>
+        </div>
       )}
 
       {alertState && (
