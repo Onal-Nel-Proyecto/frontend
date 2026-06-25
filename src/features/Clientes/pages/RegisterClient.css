@@ -212,6 +212,11 @@
   color: var(--text-muted);
   font-size: var(--text-xs);
 }
+select.ncp-input {
+  appearance: none;
+  cursor: pointer;
+  padding-right: 1.5rem;
+}
 
 .ncp-field-err {
   font-size: 0.72rem;
