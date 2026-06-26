@@ -19,6 +19,7 @@ import { formatCurrency } from '../../../../utils/format';
 import Alert from '../../../../components/ui/feedback/Alert';
 import LoadingOverlay from '../../../../components/ui/feedback/LoadingOverlay';
 import { usePedidosTable } from '../../hooks/usePedidosTable';
+import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import styles from './TablaPedidos.module.css';
 
 const statusMap = {
@@ -51,13 +52,9 @@ const AccionesMenu = memo(({ pedidoId, estado, onVer, onCancelar }) => {
     return () => document.removeEventListener('mousedown', handleClick);
   }, [open]);
 
-  // Cerrar al hacer scroll — así no queda flotando lejos de su fila
-  useEffect(() => {
-    if (!open) return;
-    const handleScroll = () => setOpen(false);
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [open]);
+  // NOTA: el menú se cierra con click fuera (mousedown listener arriba).
+  // Ya no hay listener de scroll — el portal repositioning (coords check) ya protege
+  // contra desalineación, y quitar el scroll listener reduce trabajo en scroll.
 
   // Ajustar posición después de renderizar el menú (por si la estimación falló)
   useEffect(() => {
@@ -166,6 +163,7 @@ const COLUMNS = {
 // ─── Componente principal ───
 const TablaPedidos = ({ origen = 'CLIENTE' }) => {
   const navigate = useNavigate();
+  const isMobile = useMediaQuery('(max-width: 768px)');
   const isProduccion = origen === 'PRODUCCION';
 
   const {
@@ -393,7 +391,8 @@ const TablaPedidos = ({ origen = 'CLIENTE' }) => {
         </div>
       )}
 
-      {/* Tabla */}
+      {/* Tabla — desktop */}
+      {!isMobile && (
       <div className={styles.tableWrapper}>
         <table className={styles.table} aria-label="Listado de pedidos">
           <thead>
@@ -463,9 +462,11 @@ const TablaPedidos = ({ origen = 'CLIENTE' }) => {
             )}
           </tbody>
         </table>
+      </div>)}
 
-        {/* Vista móvil */}
-        <div className={styles.mobileList}>
+      {/* Vista móvil */}
+      {isMobile && (
+      <div className={styles.mobileList}>
           {loading ? (
             <p className={styles.loadingText}>Cargando pedidos…</p>
           ) : filtered.length === 0 ? (
@@ -500,8 +501,7 @@ const TablaPedidos = ({ origen = 'CLIENTE' }) => {
               );
             })
           )}
-        </div>
-      </div>
+        </div>)}
 
       {/* Paginación (derecha, inteligente) */}
       {maxPag > 1 && (

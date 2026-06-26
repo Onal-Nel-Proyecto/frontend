@@ -2,7 +2,7 @@
    TablaPedidos — Dark theme
    ═══════════════════════════════════════════ */
 
-.card { background: var(--bg-glass); border: 1px solid var(--border-glass); border-radius: var(--radius-xl); padding: 1.75rem 1.75rem 0; }
+.card { background: var(--bg-surface); border: 1px solid var(--border-glass); border-radius: var(--radius-xl); padding: 1.75rem 1.75rem 0; }
 .tableWrapper { overflow-x: auto; }
 .header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
 .headerRight { display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap; }
@@ -93,8 +93,7 @@
 .filterOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.55);
   z-index: 70;
 }
 

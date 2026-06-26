@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams, useLocation } from 'react-router-dom'
 import { FiFileText, FiChevronLeft, FiChevronRight, FiXCircle } from 'react-icons/fi'
 import { useVentas } from '../hooks/useVentas'
 import { useDocumentTitle } from '../../../hooks/useDocumentTitle'
+import { useMediaQuery } from '../../../hooks/useMediaQuery'
 import RegistrarPago from '../components/RegistrarPago'
 import VentaForm from '../components/VentaForm'
 import { getFacturaPdfBlob } from '../services/ventasService'
@@ -43,6 +44,7 @@ const getPageNumbers = (current, total) => {
 };
 
 const VentasPage = () => {
+  const isMobile = useMediaQuery('(max-width: 768px)')
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const location = useLocation()
@@ -59,7 +61,6 @@ const VentasPage = () => {
     }
   }, [location.state]);
 
-  const [hoveredRow, setHoveredRow] = useState(null)
   const [loadingFacturas, setLoadingFacturas] = useState({})
 
   // ── Leer filtros desde URL ──
@@ -88,7 +89,7 @@ const VentasPage = () => {
 
   const maxPag = meta?.paginas_totales || 1
   const pageNumbers = useMemo(() => getPageNumbers(pagAct, maxPag), [pagAct, maxPag])
-  const todayStr = (() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; })()
+  const todayStr = useMemo(() => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }, [])
 
   // ── Sincronizar URL y cargar datos cuando cambian los filtros ──
   useEffect(() => {
@@ -387,7 +388,7 @@ const VentasPage = () => {
       )}
 
       {/* ══ TABLA (escritorio/tablet) ══ */}
-      {!loading && (
+      {!loading && !isMobile && (
       <div className="vtas-table-wrap">
         <table className="vtas-table">
           <thead>
@@ -407,8 +408,6 @@ const VentasPage = () => {
             {ventas.map((v) => (
               <tr key={v.id}
                 className="vtas-row-clickable"
-                onMouseEnter={() => setHoveredRow(v.id)}
-                onMouseLeave={() => setHoveredRow(null)}
               >
                 <td className="vtas-cell-id" onClick={() => irADetalle(v)} style={{ cursor: 'pointer' }}>{v.id}</td>
                 <td onClick={() => irADetalle(v)} style={{ cursor: 'pointer' }}>
@@ -458,7 +457,7 @@ const VentasPage = () => {
                       <FiXCircle size={14} />
                     </button>
                     {v.estado !== 'Pagado' ? (
-                      <div className={`vtas-actions ${hoveredRow === v.id ? 'vtas-actions--visible' : ''}`}>
+                      <div className="vtas-actions">
                         <button className="vtas-btn-pago" onClick={(e) => { e.stopPropagation(); abrirPago(v) }} title="Registrar pago">
                           <i className="ti ti-coin" />
                         </button>
@@ -513,7 +512,7 @@ const VentasPage = () => {
       )}
 
       {/* ══ VISTA MÓVIL / TABLET (tarjetas) ══ */}
-      {!loading && (
+      {!loading && isMobile && (
         <div className="vtas-mobile-list">
           {ventas.length === 0 && !loading ? (
             <div className="vtas-empty-state">

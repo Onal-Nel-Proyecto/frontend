@@ -6,11 +6,12 @@
 // Vista responsive: cards en móvil, tabla en desktop/tablet.
 // ================================================================
 
-import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback, memo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { FiPackage, FiCheckCircle, FiCheck, FiTrendingUp, FiSearch, FiFilter, FiEye, FiExternalLink, FiChevronLeft, FiChevronRight, FiX, FiRotateCcw, FiBox, FiTool } from 'react-icons/fi';
 import { GiTakeMyMoney } from 'react-icons/gi';
 import { useDocumentTitle } from '../../../../hooks/useDocumentTitle';
+import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import Card from '../../../../components/common/Card';
 import Alert from '../../../../components/ui/feedback/Alert';
 import LoadingOverlay from '../../../../components/ui/feedback/LoadingOverlay';
@@ -65,6 +66,7 @@ const getPageNumbers = (current, total) => {
 
 const Entregas = () => {
   useDocumentTitle('Entregas');
+  const isMobile = useMediaQuery('(max-width: 1200px)');
   const navigate = useNavigate();
 
   // ─── Estados de datos ───
@@ -191,13 +193,201 @@ const Entregas = () => {
   // ─── Números de página para la paginación inteligente ───
   const pageNumbers = useMemo(() => getPageNumbers(pagina, maxPag), [pagina, maxPag]);
 
+  // ─── Secciones memorizadas para evitar re-render en cada tecleo ───
+  const headerSection = useMemo(() => (
+    <header className={styles.header}>
+      <div>
+        <h2 className={styles.title}>Entregas</h2>
+        <p className={styles.subtitle}>Historial de pedidos entregados y terminados</p>
+      </div>
+      <button className={styles.btnNew} onClick={() => navigate('/pedidos', { state: { openForm: true } })}>
+        <FiPackage className={styles.btnIcon} />
+        Nuevo Pedido
+      </button>
+    </header>
+  ), []);
+
+  const statsCards = useMemo(() => (
+    <section className={styles.cardsGrid}>
+      <Card className={styles.statCard}>
+        <div className={`${styles.statIcon} ${styles.statIconBlue}`}><FiCheckCircle /></div>
+        <div className={styles.statBody}>
+          <span className={styles.statValue}>{resumen.totalEntregados}</span>
+          <span className={styles.statLabel}>Entregados</span>
+        </div>
+      </Card>
+      <Card className={styles.statCard}>
+        <div className={`${styles.statIcon} ${styles.statIconGreen}`}><FiPackage /></div>
+        <div className={styles.statBody}>
+          <span className={styles.statValue}>{resumen.totalTerminados}</span>
+          <span className={styles.statLabel}>Terminados</span>
+        </div>
+      </Card>
+      <Card className={styles.statCard}>
+        <div className={`${styles.statIcon} ${styles.statIconOrange}`}><GiTakeMyMoney /></div>
+        <div className={styles.statBody}>
+          <span className={styles.statValue}>{formatCurrency(resumen.saldoPendiente)}</span>
+          <span className={styles.statLabel}>Saldo pendiente</span>
+        </div>
+      </Card>
+      <Card className={styles.statCard}>
+        <div className={`${styles.statIcon} ${styles.statIconTeal}`}><FiTrendingUp /></div>
+        <div className={styles.statBody}>
+          <span className={styles.statValue}>{formatCurrency(resumen.valorTotal)}</span>
+          <span className={styles.statLabel}>Valor total</span>
+        </div>
+      </Card>
+    </section>
+  ), [resumen]);
+
+  // ─── Memorizar filas de tabla y tarjetas móviles ───
+  const tableRows = useMemo(() =>
+    entregas.map((entrega) => {
+      const sp = statusPayment[entrega.estado_pago] || {};
+      const so = statusOrder[entrega.estado] || {};
+      const idDisplay = entrega.id || entrega.pedido_id;
+      const clienteDisplay = entrega.cliente_nombres || entrega.cliente || '—';
+      const fechaEstimada = entrega.fecha_entrega_estimada || '—';
+      const fechaReal = entrega.fecha_entrega_real || '—';
+      const total = entrega.precio_total ?? entrega.total ?? 0;
+      const saldo = entrega.saldo ?? entrega.saldo_pendiente ?? 0;
+      return (
+        <tr key={idDisplay} className={styles.tableRow}>
+          <td className={styles.cellId}>#{idDisplay}</td>
+          <td className={styles.cellClient} title={clienteDisplay !== '—' ? clienteDisplay : ''}>{clienteDisplay}</td>
+          <td>{fechaEstimada}</td>
+          <td>{fechaReal}</td>
+          <td className={styles.cellCurrency}>{formatCurrency(total)}</td>
+          <td className={`${styles.cellCurrency} ${saldo > 0 ? styles.cellDanger : ''}`}>
+            {formatCurrency(saldo)}
+          </td>
+          <td>
+            <span className={`${styles.badge} ${styles[sp.className] || ''}`}>
+              {sp.label || entrega.estado_pago}
+            </span>
+          </td>
+          <td>
+            <span className={`${styles.badge} ${styles[so.className] || ''}`}>
+              {so.label || entrega.estado}
+            </span>
+          </td>
+          <td>
+            <div className={styles.actionsCell}>
+              <button className={styles.actionBtn} title="Ver detalle" onClick={() => verDetalle(entrega)}>
+                <FiEye />
+              </button>
+              <button className={styles.actionBtn} title={entrega.venta_id ? "Ver venta asociada" : "Ver pedido"} onClick={() => navigate(entrega.venta_id ? `/ventas/${entrega.venta_id}` : `/pedidos/${idDisplay}`)}>
+                <FiExternalLink />
+              </button>
+              {entrega.estado === 'TERMINADO' && (
+                <button
+                  className={`${styles.actionBtn} ${styles.actionDeliver}`}
+                  title="Marcar como entregado"
+                  onClick={() => { setDeliverTarget(entrega); setDeliverObservacion(''); }}
+                >
+                  <FiCheck />
+                </button>
+              )}
+              {entrega.estado === 'ENTREGADO' && (
+                <button
+                  className={`${styles.actionBtn} ${styles.actionReturn}`}
+                  title="Devolución del pedido"
+                  onClick={() => setDevolucionTarget(entrega)}
+                >
+                  <FiRotateCcw />
+                </button>
+              )}
+            </div>
+          </td>
+        </tr>
+      );
+    }),
+    [entregas, navigate, setDeliverTarget, setDeliverObservacion, setDevolucionTarget]
+  );
+
+  const mobileCards = useMemo(() =>
+    entregas.map((entrega) => {
+      const sp = statusPayment[entrega.estado_pago] || {};
+      const so = statusOrder[entrega.estado] || {};
+      const idDisplay = entrega.id || entrega.pedido_id;
+      const clienteDisplay = entrega.cliente_nombres || entrega.cliente || '—';
+      const fechaEstimada = entrega.fecha_entrega_estimada || '—';
+      const fechaReal = entrega.fecha_entrega_real || '—';
+      const total = entrega.precio_total ?? entrega.total ?? 0;
+      const saldo = entrega.saldo ?? entrega.saldo_pendiente ?? 0;
+      return (
+        <Card key={idDisplay} className={styles.mobileCard}>
+          <div className={styles.mobileHeader}>
+            <span className={styles.cellId}>#{idDisplay}</span>
+            <span className={`${styles.badge} ${styles[so.className] || ''}`}>
+              {so.label || entrega.estado}
+            </span>
+          </div>
+          <p className={styles.mobileClient}>{clienteDisplay}</p>
+          <div className={styles.mobileInfoGrid}>
+            <div>
+              <span className={styles.mobileLabel}>Fecha estimada</span>
+              <span>{fechaEstimada}</span>
+            </div>
+            <div>
+              <span className={styles.mobileLabel}>Fecha de entrega</span>
+              <span>{fechaReal}</span>
+            </div>
+            <div>
+              <span className={styles.mobileLabel}>Total</span>
+              <span className={styles.cellCurrency}>{formatCurrency(total)}</span>
+            </div>
+            <div>
+              <span className={styles.mobileLabel}>Saldo</span>
+              <span className={`${styles.cellCurrency} ${saldo > 0 ? styles.cellDanger : ''}`}>
+                {formatCurrency(saldo)}
+              </span>
+            </div>
+          </div>
+          <div className={styles.mobileFooter}>
+            <span className={`${styles.badge} ${styles[sp.className] || ''}`}>
+              {sp.label || entrega.estado_pago}
+            </span>
+            <div className={styles.actionsCell}>
+              <button className={styles.actionBtn} title="Ver detalle" onClick={() => verDetalle(entrega)}>
+                <FiEye />
+              </button>
+              <button className={styles.actionBtn} title={entrega.venta_id ? "Ver venta asociada" : "Ver pedido"} onClick={() => navigate(entrega.venta_id ? `/ventas/${entrega.venta_id}` : `/pedidos/${idDisplay}`)}>
+                <FiExternalLink />
+              </button>
+              {entrega.estado === 'TERMINADO' && (
+                <button
+                  className={`${styles.actionBtn} ${styles.actionDeliver}`}
+                  title="Marcar como entregado"
+                  onClick={() => { setDeliverTarget(entrega); setDeliverObservacion(''); }}
+                >
+                  <FiCheck />
+                </button>
+              )}
+              {entrega.estado === 'ENTREGADO' && (
+                <button
+                  className={`${styles.actionBtn} ${styles.actionReturn}`}
+                  title="Devolución del pedido"
+                  onClick={() => setDevolucionTarget(entrega)}
+                >
+                  <FiRotateCcw />
+                </button>
+              )}
+            </div>
+          </div>
+        </Card>
+      );
+    }),
+    [entregas, navigate, setDeliverTarget, setDeliverObservacion, setDevolucionTarget]
+  );
+
   // ─── Contar filtros activos ───
   const totalFiltrosActivos = filtrosActivos
     ? Object.values(filtrosActivos).filter(Boolean).length
     : 0;
 
   // ─── Abrir modal de detalle: items desde detalle del pedido, pagos desde endpoint propio ───
-  const verDetalle = async (entrega) => {
+  async function verDetalle(entrega) {
     const id = entrega.id || entrega.pedido_id;
     const ventaId = entrega.venta_id;
     if (!id) return;
@@ -277,7 +467,7 @@ const Entregas = () => {
     } finally {
       setDetalleLoading(false);
     }
-  };
+  }
 
   // ─── Confirmar y marcar como entregado vía API ───
   const handleDeliverConfirm = async () => {
@@ -340,48 +530,10 @@ const Entregas = () => {
   return (
     <div className={styles.page}>
       {/* ─── Encabezado ─── */}
-      <header className={styles.header}>
-        <div>
-          <h2 className={styles.title}>Entregas</h2>
-          <p className={styles.subtitle}>Historial de pedidos entregados y terminados</p>
-        </div>
-        <button className={styles.btnNew} onClick={() => navigate('/pedidos', { state: { openForm: true } })}>
-          <FiPackage className={styles.btnIcon} />
-          Nuevo Pedido
-        </button>
-      </header>
+      {headerSection}
 
       {/* ─── Dashboard de indicadores ─── */}
-      <section className={styles.cardsGrid}>
-        <Card className={styles.statCard}>
-          <div className={`${styles.statIcon} ${styles.statIconBlue}`}><FiCheckCircle /></div>
-          <div className={styles.statBody}>
-            <span className={styles.statValue}>{resumen.totalEntregados}</span>
-            <span className={styles.statLabel}>Entregados</span>
-          </div>
-        </Card>
-        <Card className={styles.statCard}>
-          <div className={`${styles.statIcon} ${styles.statIconGreen}`}><FiPackage /></div>
-          <div className={styles.statBody}>
-            <span className={styles.statValue}>{resumen.totalTerminados}</span>
-            <span className={styles.statLabel}>Terminados</span>
-          </div>
-        </Card>
-        <Card className={styles.statCard}>
-          <div className={`${styles.statIcon} ${styles.statIconOrange}`}><GiTakeMyMoney /></div>
-          <div className={styles.statBody}>
-            <span className={styles.statValue}>{formatCurrency(resumen.saldoPendiente)}</span>
-            <span className={styles.statLabel}>Saldo pendiente</span>
-          </div>
-        </Card>
-        <Card className={styles.statCard}>
-          <div className={`${styles.statIcon} ${styles.statIconTeal}`}><FiTrendingUp /></div>
-          <div className={styles.statBody}>
-            <span className={styles.statValue}>{formatCurrency(resumen.valorTotal)}</span>
-            <span className={styles.statLabel}>Valor total</span>
-          </div>
-        </Card>
-      </section>
+      {statsCards}
 
       {/* ─── Barra de herramientas: búsqueda + botón filtrar ─── */}
       <Card className={styles.toolbarCard}>
@@ -484,7 +636,7 @@ const Entregas = () => {
       )}
 
       {/* ─── Tabla principal (escritorio/tablet) ─── */}
-      <Card className={styles.tableCard}>
+      {!isMobile && <Card className={styles.tableCard}>
         {loading ? (
           <LoadingOverlay title="Cargando entregas…" message="Obteniendo historial" />
         ) : error ? (
@@ -514,66 +666,7 @@ const Entregas = () => {
                       </td>
                     </tr>
                   ) : (
-                    entregas.map((entrega) => {
-                      const sp = statusPayment[entrega.estado_pago] || {};
-                      const so = statusOrder[entrega.estado] || {};
-                      const idDisplay = entrega.id || entrega.pedido_id;
-                      const clienteDisplay = entrega.cliente_nombres || entrega.cliente || '—';
-                      const fechaEstimada = entrega.fecha_entrega_estimada || '—';
-                      const fechaReal = entrega.fecha_entrega_real || '—';
-                      const total = entrega.precio_total ?? entrega.total ?? 0;
-                      const saldo = entrega.saldo ?? entrega.saldo_pendiente ?? 0;
-                      return (
-                        <tr key={idDisplay} className={styles.tableRow}>
-                          <td className={styles.cellId}>#{idDisplay}</td>
-                          <td className={styles.cellClient} title={clienteDisplay !== '—' ? clienteDisplay : ''}>{clienteDisplay}</td>
-                          <td>{fechaEstimada}</td>
-                          <td>{fechaReal}</td>
-                          <td className={styles.cellCurrency}>{formatCurrency(total)}</td>
-                          <td className={`${styles.cellCurrency} ${saldo > 0 ? styles.cellDanger : ''}`}>
-                            {formatCurrency(saldo)}
-                          </td>
-                          <td>
-                            <span className={`${styles.badge} ${styles[sp.className] || ''}`}>
-                              {sp.label || entrega.estado_pago}
-                            </span>
-                          </td>
-                          <td>
-                            <span className={`${styles.badge} ${styles[so.className] || ''}`}>
-                              {so.label || entrega.estado}
-                            </span>
-                          </td>
-                          <td>
-                            <div className={styles.actionsCell}>
-                              <button className={styles.actionBtn} title="Ver detalle" onClick={() => verDetalle(entrega)}>
-                                <FiEye />
-                              </button>
-                              <button className={styles.actionBtn} title={entrega.venta_id ? "Ver venta asociada" : "Ver pedido"} onClick={() => navigate(entrega.venta_id ? `/ventas/${entrega.venta_id}` : `/pedidos/${idDisplay}`)}>
-                                <FiExternalLink />
-                              </button>
-                              {entrega.estado === 'TERMINADO' && (
-                                <button
-                                  className={`${styles.actionBtn} ${styles.actionDeliver}`}
-                                  title="Marcar como entregado"
-                                  onClick={() => { setDeliverTarget(entrega); setDeliverObservacion(''); }}
-                                >
-                                  <FiCheck />
-                                </button>
-                              )}
-                              {entrega.estado === 'ENTREGADO' && (
-                                <button
-                                  className={`${styles.actionBtn} ${styles.actionReturn}`}
-                                  title="Devolución del pedido"
-                                  onClick={() => setDevolucionTarget(entrega)}
-                                >
-                                  <FiRotateCcw />
-                                </button>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })
+                    tableRows
                   )}
                 </tbody>
               </table>
@@ -607,91 +700,20 @@ const Entregas = () => {
             )}
           </>
         )}
-      </Card>
+      </Card>}
 
       {/* ─── Vista móvil: tarjetas ─── */}
-      <div className={styles.mobileList}>
+      {isMobile && <div className={styles.mobileList}>
         {loading ? (
           <p className={styles.loadingText}>Cargando entregas…</p>
         ) : error ? (
           <p className={styles.loadingText}>{error}</p>
         ) : entregas.length === 0 ? (
           <p className={styles.loadingText}>No se encontraron entregas con los filtros seleccionados</p>
-        ) : (
-          entregas.map((entrega) => {
-            const sp = statusPayment[entrega.estado_pago] || {};
-            const so = statusOrder[entrega.estado] || {};
-            const idDisplay = entrega.id || entrega.pedido_id;
-            const clienteDisplay = entrega.cliente_nombres || entrega.cliente || '—';
-            const fechaEstimada = entrega.fecha_entrega_estimada || '—';
-            const fechaReal = entrega.fecha_entrega_real || '—';
-            const total = entrega.precio_total ?? entrega.total ?? 0;
-            const saldo = entrega.saldo ?? entrega.saldo_pendiente ?? 0;
-            return (
-              <Card key={idDisplay} className={styles.mobileCard}>
-                <div className={styles.mobileHeader}>
-                  <span className={styles.cellId}>#{idDisplay}</span>
-                  <span className={`${styles.badge} ${styles[so.className] || ''}`}>
-                    {so.label || entrega.estado}
-                  </span>
-                </div>
-                <p className={styles.mobileClient}>{clienteDisplay}</p>
-                <div className={styles.mobileInfoGrid}>
-                  <div>
-                    <span className={styles.mobileLabel}>Fecha estimada</span>
-                    <span>{fechaEstimada}</span>
-                  </div>
-                  <div>
-                    <span className={styles.mobileLabel}>Fecha de entrega</span>
-                    <span>{fechaReal}</span>
-                  </div>
-                  <div>
-                    <span className={styles.mobileLabel}>Total</span>
-                    <span className={styles.cellCurrency}>{formatCurrency(total)}</span>
-                  </div>
-                  <div>
-                    <span className={styles.mobileLabel}>Saldo</span>
-                    <span className={`${styles.cellCurrency} ${saldo > 0 ? styles.cellDanger : ''}`}>
-                      {formatCurrency(saldo)}
-                    </span>
-                  </div>
-                </div>
-                <div className={styles.mobileFooter}>
-                  <span className={`${styles.badge} ${styles[sp.className] || ''}`}>
-                    {sp.label || entrega.estado_pago}
-                  </span>
-                  <div className={styles.actionsCell}>
-                    <button className={styles.actionBtn} title="Ver detalle" onClick={() => verDetalle(entrega)}>
-                      <FiEye />
-                    </button>
-                    <button className={styles.actionBtn} title={entrega.venta_id ? "Ver venta asociada" : "Ver pedido"} onClick={() => navigate(entrega.venta_id ? `/ventas/${entrega.venta_id}` : `/pedidos/${idDisplay}`)}>
-                      <FiExternalLink />
-                    </button>
-                    {entrega.estado === 'TERMINADO' && (
-                      <button
-                        className={`${styles.actionBtn} ${styles.actionDeliver}`}
-                        title="Marcar como entregado"
-                        onClick={() => { setDeliverTarget(entrega); setDeliverObservacion(''); }}
-                      >
-                        <FiCheck />
-                      </button>
-                    )}
-                    {entrega.estado === 'ENTREGADO' && (
-                      <button
-                        className={`${styles.actionBtn} ${styles.actionReturn}`}
-                        title="Devolución del pedido"
-                        onClick={() => setDevolucionTarget(entrega)}
-                      >
-                        <FiRotateCcw />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </Card>
-            );
-          })
-        )}
-      </div>
+          ) : (
+            mobileCards
+          )}
+      </div>}
 
       {/* ─── Confirmación: marcar como entregado ─── */}
       {deliverTarget && (

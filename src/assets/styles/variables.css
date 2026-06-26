@@ -92,9 +92,9 @@
   --transition-base: 0.25s var(--ease-out);
   --transition-slow: 0.4s var(--ease-out);
 
-  /* ── Blur ── */
-  --blur-glass: blur(12px) saturate(120%);
-  --blur-heavy: blur(20px) saturate(150%);
+  /* ── Blur (reducido para rendimiento) ── */
+  --blur-glass: blur(4px) saturate(110%);
+  --blur-heavy: blur(8px) saturate(130%);
 
   /* ── Compatibilidad con variables legacy ── */
   --color-primary: #FDF0F7;
