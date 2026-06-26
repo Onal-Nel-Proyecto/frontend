@@ -50,7 +50,7 @@
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition: all var(--transition-base);
+  transition: transform var(--transition-base), background var(--transition-base), box-shadow var(--transition-base);
 }
 
 .btnNew:hover {
@@ -218,8 +218,7 @@
 .filterOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.55);
   z-index: 100;
   display: flex;
   justify-content: flex-end;
@@ -550,7 +549,7 @@
   color: var(--text-muted);
   cursor: pointer;
   font-size: 0.95rem;
-  transition: all var(--transition-fast);
+  transition: color var(--transition-fast), background var(--transition-fast);
 }
 
 .actionBtn:hover {

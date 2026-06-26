@@ -113,8 +113,6 @@ img {
 /* ── Glass surface utility ── */
 .glass-surface {
   background: var(--bg-glass);
-  backdrop-filter: var(--blur-glass);
-  -webkit-backdrop-filter: var(--blur-glass);
   border: 1px solid var(--border-glass);
 }
 
