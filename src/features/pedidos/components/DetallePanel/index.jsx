@@ -107,8 +107,8 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle, pedidoEstado }) => {
     [categorias, form.producto_categoria_id]
   );
 
-  const tipoPrendaOptions = categoriaSel?.categoria_tipo_prenda || [];
-  const tallaRefOptions = categoriaSel?.categoria_talla_referencia || [];
+  const tipoPrendaOptions = categoriaSel?.categoria_tipo_prenda || categoriaSel?.catTipsPrendas || [];
+  const tallaRefOptions = categoriaSel?.categoria_talla_referencia || categoriaSel?.catTallaRef || [];
   const restriccionesMedidas = categoriaSel?.restricciones_medidas || [];
 
   // Filtrar medidas disponibles según restricciones de la categoría

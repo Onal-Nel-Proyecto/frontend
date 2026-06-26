@@ -146,7 +146,7 @@ const VentaForm = ({ isOpen, onClose }) => {
         nombre: producto.nombre,
         precio: Number(producto.precioUnitario) || 0,
         cantidad: 1,
-        stock: Number(producto.stock) || 0,
+        stock: Number(producto.cantidadDisponible || producto.stock || 0),
       },
     ]);
     setProdQuery('');
@@ -392,7 +392,7 @@ const VentaForm = ({ isOpen, onClose }) => {
                         <span className={styles.prodOptionMeta}>
                           {p.tipoPrenda || p.tipoProducto || ''}
                           {p.talla ? ` · Talla ${p.talla}` : ''}
-                          {p.stock > 0 ? ` · Stock: ${p.stock}` : ' · Sin stock'}
+                          {(() => { const s = Number(p.cantidadDisponible || p.stock || 0); return s > 0 ? ` · Stock: ${s}` : ' · Sin stock'; })()}
                         </span>
                       </div>
                       <span className={styles.prodOptionPrice}>{fmt(p.precioUnitario)}</span>

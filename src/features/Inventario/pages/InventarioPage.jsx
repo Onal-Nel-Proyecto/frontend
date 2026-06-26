@@ -5,6 +5,7 @@
 // ================================================================
 
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useLocation } from 'react-router-dom'
 import RegisterMaterial from './RegisterMaterial'
 import RegisterProducto from './RegisterProducto'
@@ -472,7 +473,13 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
       await loadMateriales()
       setAlertState({ type: 'success', title: 'Éxito', message: 'Material guardado correctamente', onClose: () => setAlertState(null) })
     } catch (err) {
-      setAlertState({ type: 'error', title: 'Error al guardar', message: err?.response?.data?.message || err?.message, onClose: () => setAlertState(null) })
+      const detail = err?.response?.data?.errors
+        ? Object.values(err.response.data.errors).flat().join('. ')
+        : ''
+      const msg = detail
+        ? `${err?.response?.data?.message || 'Error de validación'}: ${detail}`
+        : err?.response?.data?.message || err?.message
+      setAlertState({ type: 'error', title: 'Error al guardar', message: msg, onClose: () => setAlertState(null) })
     }
   }
 
@@ -509,6 +516,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
           tipoPrenda: data.tipoPrenda,
           categoriaId: data.categoriaId,
           talla: data.talla,
+          umbralMinimo: data.umbralMinimo ?? 0,
         })
       } else {
         await createProducto({
@@ -519,6 +527,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
           categoriaId: data.categoriaId,
           talla: data.talla,
           cantidadDisponible: data.cantidadDisponible ?? 0,
+          umbralMinimo: data.umbralMinimo ?? 0,
         })
       }
       setShowDrawerProd(false)
@@ -526,7 +535,13 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
       await loadProductos()
       setAlertState({ type: 'success', title: 'Éxito', message: 'Producto guardado correctamente', onClose: () => setAlertState(null) })
     } catch (err) {
-      setAlertState({ type: 'error', title: 'Error al guardar', message: err?.response?.data?.message || err?.message, onClose: () => setAlertState(null) })
+      const detail = err?.response?.data?.errors
+        ? Object.values(err.response.data.errors).flat().join('. ')
+        : ''
+      const msg = detail
+        ? `${err?.response?.data?.message || 'Error de validación'}: ${detail}`
+        : err?.response?.data?.message || err?.message
+      setAlertState({ type: 'error', title: 'Error al guardar', message: msg, onClose: () => setAlertState(null) })
     }
   }
 
@@ -825,8 +840,8 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
         />
       )}
 
-      {/* ── Modal detalle de abastecimiento ── */}
-      {selectedAbs && (
+      {/* ── Modal detalle de abastecimiento (portal) ── */}
+      {selectedAbs && createPortal(
         <div className="inv-overlay" onClick={() => setSelectedAbs(null)}>
           <div className="inv-modal" onClick={(e) => e.stopPropagation()}>
             <div className="inv-modal-header">
@@ -897,7 +912,8 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
               <button className="inv-btn-primary" onClick={() => setSelectedAbs(null)}>Cerrar</button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {alertState && (
