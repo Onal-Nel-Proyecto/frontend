@@ -20,6 +20,8 @@ const ProveedorForm = ({ isOpen, onClose, proveedor, onSuccess }) => {
 
   const [form, setForm] = useState({
     prov_nombre: '',
+    prov_tip_ident: '',
+    prov_num_ident: '',
     prov_telefono: '',
     prov_correo: '',
     prov_direccion: '',
@@ -37,6 +39,8 @@ const ProveedorForm = ({ isOpen, onClose, proveedor, onSuccess }) => {
       const currentSuministros = proveedor.prov_suministro || [];
       setForm({
         prov_nombre: proveedor.prov_nombre || '',
+        prov_tip_ident: proveedor.prov_tip_ident || '',
+        prov_num_ident: proveedor.prov_num_ident || '',
         prov_telefono: proveedor.prov_telefono || '',
         prov_correo: proveedor.prov_correo || '',
         prov_direccion: proveedor.prov_direccion || '',
@@ -47,6 +51,8 @@ const ProveedorForm = ({ isOpen, onClose, proveedor, onSuccess }) => {
     } else {
       setForm({
         prov_nombre: '',
+        prov_tip_ident: '',
+        prov_num_ident: '',
         prov_telefono: '',
         prov_correo: '',
         prov_direccion: '',
@@ -60,15 +66,50 @@ const ProveedorForm = ({ isOpen, onClose, proveedor, onSuccess }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     let newValue = value;
-    if (name === 'prov_telefono') {
-      newValue = value.replace(/\D/g, '');
+
+    // Cuando cambia el tipo de documento
+    if (name === "prov_tip_ident") {
+      setForm((prev) => ({
+        ...prev,
+        prov_tip_ident: value,
+        prov_num_ident: "",
+      }));
+
+      setErrors((prev) => ({
+        ...prev,
+        prov_tip_ident: "",
+        prov_num_ident: "",
+      }));
+
+      return;
     }
 
-    if (name === 'prov_nombre') {
-      newValue = value.replace(/[0-9]/g, '');
+    // Teléfono
+    if (name === "prov_telefono") {
+      newValue = value.replace(/\D/g, "");
     }
-    setForm((p) => ({ ...p, [name]: newValue }));
-    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
+
+    // Documento / NIT
+    if (name === "prov_num_ident") {
+      if (form.prov_tip_ident === "DOCUMENTO") {
+        newValue = value.replace(/\D/g, "");
+      } else if (form.prov_tip_ident === "NIT") {
+        // Permite números, puntos y guión
+        newValue = value.replace(/[^0-9.-]/g, "");
+      }
+    }
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: newValue,
+    }));
+
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
+    }
   };
 
   const addSuministro = () => {
@@ -108,16 +149,81 @@ const ProveedorForm = ({ isOpen, onClose, proveedor, onSuccess }) => {
 
   const validate = () => {
     const newErrors = {};
-    
-    // Nombre
-    if (!form.prov_nombre.trim()) {
-      newErrors.prov_nombre = 'El nombre es requerido';
-    } else if (/\d/.test(form.prov_nombre)) {
-      newErrors.prov_nombre = 'El nombre no puede contener números';
-    } else if (form.prov_nombre.length > 200) {
-      newErrors.prov_nombre = 'El nombre es muy largo';
+    if (!form.prov_tip_ident) {
+      newErrors.prov_tip_ident =
+        'Seleccione un tipo de documento';
     }
 
+    // Número de documento
+    if (!form.prov_num_ident.trim()) {
+      newErrors.prov_num_ident =
+        'El número de documento es obligatorio';
+    } else {
+      if (form.prov_tip_ident === 'DOCUMENTO') {
+
+        if (!/^\d+$/.test(form.prov_num_ident)) {
+
+          newErrors.prov_num_ident =
+            'El documento solo puede contener números';
+
+        } else if (form.prov_num_ident.length < 5) {
+
+          newErrors.prov_num_ident =
+            'El documento debe contener entre 5 y 10 dígitos';
+
+        } else if (form.prov_num_ident.length > 10) {
+
+          newErrors.prov_num_ident =
+            'El documento debe contener entre 5 y 10 dígitos';
+
+        }
+
+      }
+      if (form.prov_tip_ident === "NIT") {
+
+        // Quitar únicamente los puntos para validar el formato
+        const nit = form.prov_num_ident.replace(/\./g, "");
+
+        if (!/^\d+(-\d)?$/.test(nit)) {
+
+          newErrors.prov_num_ident =
+            "Formato de NIT inválido. Ejemplo: 900.123.456-7";
+
+        } else {
+
+          // Contar únicamente los dígitos (sin el guion)
+          const soloNumeros = nit.replace("-", "");
+
+          if (soloNumeros.length < 5 || soloNumeros.length > 15) {
+
+            newErrors.prov_num_ident =
+              "El NIT debe contener entre 5 y 15 dígitos.";
+
+          }
+
+        }
+
+      }
+    }
+    // Nombre
+   if (!form.prov_nombre.trim()) {
+      newErrors.prov_nombre =
+        'El nombre del proveedor es requerido';
+
+    } else if (form.prov_nombre.trim().length < 3) {
+      newErrors.prov_nombre =
+        'Debe contener al menos 3 caracteres';
+
+    } else if (form.prov_nombre.length > 200) {
+      newErrors.prov_nombre =
+        'El nombre es muy largo';
+
+    } else if (
+      !/^[A-Za-zÁÉÍÓÚáéíóúÑñ][A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s.&,-]*$/.test(form.prov_nombre)
+    ) {
+      newErrors.prov_nombre =
+        'Debe iniciar con una letra y solo contener letras, números, espacios, punto, coma, guion o &';
+    }
     // Correo (opcional)
     if (form.prov_correo.trim()) {
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.prov_correo)) {
@@ -137,11 +243,27 @@ const ProveedorForm = ({ isOpen, onClose, proveedor, onSuccess }) => {
     }
 
     // Dirección (opcional)
-    if (
-      form.prov_direccion.trim() &&
-      form.prov_direccion.length > 300
-    ) {
-      newErrors.prov_direccion = 'La dirección es muy larga';
+    if (form.prov_direccion.trim()) {
+
+      if (form.prov_direccion.trim().length < 5) {
+
+        newErrors.prov_direccion =
+          'La dirección debe tener al menos 5 caracteres';
+
+      } else if (form.prov_direccion.length > 300) {
+
+        newErrors.prov_direccion =
+          'La dirección es muy larga';
+
+      } else if (
+        !/[A-Za-zÁÉÍÓÚáéíóúÑñ]/.test(form.prov_direccion)
+      ) {
+
+        newErrors.prov_direccion =
+          'La dirección debe contener al menos una letra';
+
+      }
+
     }
     return newErrors;
   };
@@ -159,6 +281,11 @@ const ProveedorForm = ({ isOpen, onClose, proveedor, onSuccess }) => {
 
     const payload = {
       prov_nombre: form.prov_nombre,
+      prov_tip_ident: form.prov_tip_ident,
+      prov_num_ident:
+          form.prov_tip_ident === "NIT"
+        ? form.prov_num_ident.replace(/\./g, "")
+        : form.prov_num_ident,
       prov_telefono: form.prov_telefono,
       prov_correo: form.prov_correo,
       prov_direccion: form.prov_direccion,
@@ -192,6 +319,10 @@ const ProveedorForm = ({ isOpen, onClose, proveedor, onSuccess }) => {
       setSubmitting(false);
     }
   };
+  const documentoMuyLargo =
+  form.prov_tip_ident === "DOCUMENTO"
+    ? form.prov_num_ident.length > 10
+    : form.prov_num_ident.length > 15;
 
   return (
     <>
@@ -211,14 +342,98 @@ const ProveedorForm = ({ isOpen, onClose, proveedor, onSuccess }) => {
         <form className={styles.form} onSubmit={handleSubmit}>
           <p className={styles.sectionTitle}>Datos del proveedor</p>
 
-          <div className={styles.field}>
-            <label className={styles.label}>Nombre *</label>
-            <div className={styles.inputWrap}>
-              <FiUser className={styles.inputIcon} />
-              <input name="prov_nombre" maxLength={200} className={`${styles.input} ${errors.prov_nombre ? styles.inputError : ''}`} placeholder="Ej. Proveedor S.A" value={form.prov_nombre} onChange={handleChange} />
-            </div>
-            {errors.prov_nombre && <span className={styles.fieldError}>{errors.prov_nombre}</span>}
+        {/* Tipo de documento */}
+        <div className={styles.field}>
+          <label className={styles.label}>Tipo de documento *</label>
+
+          <select
+            name="prov_tip_ident"
+            className={`${styles.select} ${
+              errors.prov_tip_ident ? styles.inputError : ''
+            }`}
+            value={form.prov_tip_ident}
+            onChange={handleChange}
+          >
+            <option value="">Seleccione un tipo</option>
+            <option value="DOCUMENTO">DOCUMENTO</option>
+            <option value="NIT">NIT</option>
+          </select>
+
+          {errors.prov_tip_ident && (
+            <span className={styles.fieldError}>
+              {errors.prov_tip_ident}
+            </span>
+          )}
+        </div>
+
+        {/* Número de documento */}
+        <div className={styles.field}>
+          <label className={styles.label}>Número de documento *</label>
+
+          <div className={styles.inputWrap}>
+            <FiUser className={styles.inputIcon} />
+
+            <input
+              type="text"
+              name="prov_num_ident"
+              maxLength={50}
+              className={`${styles.input} ${
+                errors.prov_num_ident || documentoMuyLargo
+                  ? styles.inputError
+                  : ''
+              }`}
+              placeholder={
+                form.prov_tip_ident === 'NIT'
+                  ? 'Ej. 900.123.456-7'
+                  : 'Ingrese el número de documento'
+              }
+              value={form.prov_num_ident}
+              onChange={handleChange}
+            />
           </div>
+
+          {documentoMuyLargo ? (
+              <span className={styles.fieldError}>
+                  {form.prov_tip_ident === "DOCUMENTO"
+                      ? "El documento no puede superar 10 dígitos."
+                      : "El NIT no puede superar 15 caracteres."}
+              </span>
+          ) : (
+              errors.prov_num_ident && (
+                  <span className={styles.fieldError}>
+                      {errors.prov_num_ident}
+                  </span>
+              )
+          )}
+        </div>
+
+        {/* Razón Social */}
+        <div className={styles.field}>
+          <label className={styles.label}>
+            Razón Social / Nombre Comercial *
+          </label>
+
+          <div className={styles.inputWrap}>
+            <FiUser className={styles.inputIcon} />
+
+            <input
+              name="prov_nombre"
+              maxLength={50}
+              className={`${styles.input} ${
+                errors.prov_nombre ? styles.inputError : ''
+              }`}
+              placeholder="Ej. Proveedor S.A"
+              value={form.prov_nombre}
+              onChange={handleChange}
+            />
+          </div>
+
+          {errors.prov_nombre && (
+            <span className={styles.fieldError}>
+              {errors.prov_nombre}
+            </span>
+          )}
+        </div>
 
           <div className={styles.field}>
             <label className={styles.label}>Teléfono </label>

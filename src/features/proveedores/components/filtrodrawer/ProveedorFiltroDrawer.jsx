@@ -4,14 +4,18 @@ import Drawer from '../../../../components/common/Drawer';
 import styles from './ProveedorFiltroDrawer.module.css';
 
 const ProveedorFiltroDrawer = ({ isOpen, onClose, filters, setFilters }) => {
-  const [local, setLocal] = useState({ estado: filters?.estado || '', suministro: filters?.suministro || '' });
+  const [local, setLocal] = useState({
+    estado: filters?.estado || '',
+    suministro: filters?.suministro || '',
+    tipoDocumento: filters?.tipoDocumento || '',
+  });
 
   useEffect(() => {
-    setLocal({ estado: filters?.estado || '', suministro: filters?.suministro || '' });
+    setLocal({ estado: filters?.estado || '', suministro: filters?.suministro || '', tipoDocumento: filters?.tipoDocumento || '', });
   }, [filters]);
 
   const handleClear = () => {
-    const empty = { estado: '', suministro: '' };
+    const empty = { estado: '', suministro: '', tipoDocumento: '', };
     setLocal(empty);
     setFilters(empty);
   };
@@ -47,6 +51,24 @@ const ProveedorFiltroDrawer = ({ isOpen, onClose, filters, setFilters }) => {
             <option value="">Todos</option>
             <option value="ACTIVO">Activo</option>
             <option value="INACTIVO">Inactivo</option>
+          </select>
+        </div>
+        <div className={styles.filterGroup}>
+          <label className={styles.label}>Tipo de documento</label>
+
+          <select
+            className={styles.select}
+            value={local.tipoDocumento}
+            onChange={(e) =>
+              setLocal({
+                ...local,
+                tipoDocumento: e.target.value,
+              })
+            }
+          >
+            <option value="">Todos</option>
+            <option value="DOCUMENTO">DOCUMENTO</option>
+            <option value="NIT">NIT</option>
           </select>
         </div>
 

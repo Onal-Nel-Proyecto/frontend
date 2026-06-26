@@ -219,7 +219,15 @@ console.log("Usuario sesión:", usuarioSesion);
       newErrors.usuPassHash =
         'Mínimo 6 caracteres';
 
-    }
+    } else if (
+          !isEdit &&
+          form.usuPassHash.length > 15
+        ) {
+
+          newErrors.usuPassHash =
+            'Máximo 15 caracteres';
+
+        }
 
     // Confirmación de contraseña
     if (!isEdit && form.usuPassHash && !form.usuPassHashConfirm.trim()) {
@@ -690,6 +698,7 @@ console.log("Usuario sesión:", usuarioSesion);
                   <input
                     type="password"
                     name="usuPassHash"
+                    maxLength={15}
                     className={`${styles.input} ${errors.usuPassHash ? styles.inputError : ''}`}
                     placeholder="Mínimo 6 caracteres"
                     value={form.usuPassHash}
@@ -711,6 +720,7 @@ console.log("Usuario sesión:", usuarioSesion);
                     <input
                       type="password"
                       name="usuPassHashConfirm"
+                      maxLength={19}
                       className={`${styles.input} ${errors.usuPassHashConfirm ? styles.inputError : ''}`}
                       placeholder="Repetir contraseña"
                       value={form.usuPassHashConfirm}
@@ -796,7 +806,10 @@ console.log("Usuario sesión:", usuarioSesion);
 
                 {usuarios
                   ?.filter(
-                    (u) => u.rol === "ADMINISTRADOR"
+                    (u) =>
+                      (u.rol === "ADMINISTRADOR" ||
+                      u.rol === "USUARIO") &&
+                      u.estado === 1
                   )
                   .map((supervisor) => (
                     <option

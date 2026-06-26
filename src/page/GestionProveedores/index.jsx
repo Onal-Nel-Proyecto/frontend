@@ -1,13 +1,14 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { FiPlus, FiArrowLeft } from 'react-icons/fi';
+import { FaHandshakeAngle } from "react-icons/fa6";
 import { useAuth } from '../../features/auth/hooks/usuAuth.js';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import ProveedorForm from '../../components/ModalRegistrarProveedor/ProveedorForm.jsx';
 import TablaProveedores from '../../features/proveedores/components/tablaProveedores/TablaProveedores.jsx';
 import { getProveedores, deleteProveedor } from '../../features/proveedores/services/proveedor.services.js';
 
-import styles from '../GestionUsuarios/gestion-usuarios.module.css';
+import styles from '../GestionProveedores/gestion-proveedores.module.css';
 
 
 
@@ -30,11 +31,12 @@ const GestionProveedores = () => {
 	const [filters, setFilters] = useState(() => ({
 		estado: searchParams.get('estado') || '',
 		suministro: searchParams.get('suministro') || '',
+		tipoDocumento: searchParams.get('tipoDocumento') || '',
 	}));
 	const [loading, setLoading] = useState(false);
 	
 
-	const loadProveedores = useCallback(async ({ nombre, suministro, estado } = {}) => {
+	const loadProveedores = useCallback(async ({ nombre, suministro, estado, tipoDocumento } = {}) => {
 	setLoading(true);
 
 	try {
@@ -52,6 +54,11 @@ const GestionProveedores = () => {
 			estado !== undefined
 				? estado
 				: filters.estado;
+
+		const filtroTipoDocumento =
+			tipoDocumento !== undefined
+				? tipoDocumento
+				: filters.tipoDocumento;		
 
 		if (filtroNombre)
 			params.prov_nombre = filtroNombre;
@@ -85,6 +92,7 @@ useEffect(() => {
 	if (search) params.search = search;
 	if (filters.estado) params.estado = filters.estado;
 	if (filters.suministro) params.suministro = filters.suministro;
+	if (filters.tipoDocumento) params.tipoDocumento = filters.tipoDocumento;
 
 	setSearchParams(params, {
 		replace: true,
@@ -96,8 +104,9 @@ useEffect(() => {
 		nombre: search,
 		suministro: filters.suministro,
 		estado: filters.estado,
+		tipoDocumento: filters.tipoDocumento,
 	});
-}, [search, filters.suministro, filters.estado, loadProveedores]);
+}, [search, filters.suministro, filters.estado, filters.tipoDocumento, loadProveedores]);
 
 	const openCreate = () => {
 		setProveedorSeleccionado(null);
@@ -150,6 +159,7 @@ useEffect(() => {
 					</button>
 
 					<h2 className={styles.title}>
+						<FaHandshakeAngle className={styles.titleIcon} />
 						Gestión de Proveedores
 					</h2>
 					</div>
@@ -177,7 +187,7 @@ useEffect(() => {
 				isOpen={showForm}
 				onClose={closeForm}
 				proveedor={proveedorSeleccionado}
-				onSuccess={() => loadProveedores({ nombre: search, suministro: filters.suministro, estado: filters.estado })}
+				onSuccess={() => loadProveedores({ nombre: search, suministro: filters.suministro, estado: filters.estado, tipoDocumento: filters.tipoDocumento,  })}
 			/>
 		</div>
 	);
