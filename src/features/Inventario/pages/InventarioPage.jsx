@@ -328,80 +328,107 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
       )}
 
       {/* ── Modal detalle de abastecimiento ── */}
-      {selectedAbs && (
-        <div className="inv-overlay" onClick={() => setSelectedAbs(null)}>
-          <div className="inv-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="inv-modal-header">
-              <h3>Abastecimiento #{selectedAbs.id}</h3>
-              <button className="inv-modal-close" onClick={() => setSelectedAbs(null)}>
+      {selectedAbs && (() => {
+        const estado = selectedAbs.estado || 'PENDIENTE'
+        const estadoLabel = estado === 'COMPLETADO' ? 'Completado' : estado === 'CANCELADO' ? 'Cancelado' : 'Pendiente'
+        const estadoIcon = estado === 'COMPLETADO' ? 'ti ti-circle-check-filled' : estado === 'CANCELADO' ? 'ti ti-x-circle-filled' : 'ti ti-clock-filled'
+        const estadoColor = estado === 'COMPLETADO' ? '#10b981' : estado === 'CANCELADO' ? '#6b7280' : '#f59e0b'
+        const totalItems = (selectedAbs.detalles || []).length
+        const fecha = selectedAbs.fecha
+          ? new Date(selectedAbs.fecha).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })
+          : '—'
+        return (
+        <div className="abs-overlay" onClick={() => setSelectedAbs(null)}>
+          <div className="abs-detail-modal" onClick={(e) => e.stopPropagation()}>
+            {/* ── Header con estado ── */}
+            <div className="abs-detail-topbar" style={{ background: estadoColor }}>
+              <div className="abs-detail-topbar-left">
+                <i className={estadoIcon} />
+                <div>
+                  <p className="abs-detail-id">Abastecimiento #{selectedAbs.id}</p>
+                  <p className="abs-detail-status">{estadoLabel}</p>
+                </div>
+              </div>
+              <button className="abs-detail-close" onClick={() => setSelectedAbs(null)}>
                 <i className="ti ti-x" />
               </button>
             </div>
-            <div className="inv-modal-body">
-              <div className="inv-modal-section">
-                <div className="inv-modal-row">
-                  <span className="inv-modal-label">Proveedor</span>
-                  <span className="inv-modal-value">{selectedAbs.proveedorNombre || '—'}</span>
+
+            <div className="abs-detail-body">
+              {/* ── Resumen del proveedor ── */}
+              <div className="abs-info-grid">
+                <div className="abs-info-card">
+                  <i className="ti ti-building-store" />
+                  <span className="abs-info-label">Proveedor</span>
+                  <span className="abs-info-value">{selectedAbs.proveedorNombre || '—'}</span>
                 </div>
-                <div className="inv-modal-row">
-                  <span className="inv-modal-label">Fecha</span>
-                  <span className="inv-modal-value">
-                    {selectedAbs.fecha
-                      ? new Date(selectedAbs.fecha).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })
-                      : '—'}
-                  </span>
+                <div className="abs-info-card">
+                  <i className="ti ti-calendar" />
+                  <span className="abs-info-label">Fecha</span>
+                  <span className="abs-info-value">{fecha}</span>
                 </div>
-                <div className="inv-modal-row">
-                  <span className="inv-modal-label">Estado</span>
-                  <span className={`inv-badge ${selectedAbs.estado === 'COMPLETADO' ? 'inv-badge--ok' : selectedAbs.estado === 'CANCELADO' ? 'inv-badge--empty' : 'inv-badge--warn'}`}>
-                    {selectedAbs.estado === 'COMPLETADO' ? 'Completado' : selectedAbs.estado === 'CANCELADO' ? 'Cancelado' : 'Pendiente'}
-                  </span>
+                <div className="abs-info-card">
+                  <i className="ti ti-box" />
+                  <span className="abs-info-label">Ítems</span>
+                  <span className="abs-info-value">{totalItems} producto(s)</span>
                 </div>
-                {selectedAbs.observacion && (
-                  <div className="inv-modal-row">
-                    <span className="inv-modal-label">Observación</span>
-                    <span className="inv-modal-value">{selectedAbs.observacion}</span>
-                  </div>
-                )}
+                <div className="abs-info-card">
+                  <i className="ti ti-coin" />
+                  <span className="abs-info-label">Total</span>
+                  <span className="abs-info-value abs-total-highlight">{fmtAbs(selectedAbs.costoTotal)}</span>
+                </div>
               </div>
-              <div className="inv-modal-section">
-                <h4 className="inv-modal-subtitle">Ítems del abastecimiento</h4>
-                <div className="inv-modal-table-wrap">
-                  <table className="inv-table">
+
+              {/* ── Observación ── */}
+              {selectedAbs.observacion && (
+                <div className="abs-obs-section">
+                  <i className="ti ti-notes" />
+                  <p>{selectedAbs.observacion}</p>
+                </div>
+              )}
+
+              {/* ── Tabla de ítems ── */}
+              <div className="abs-items-section">
+                <h4 className="abs-items-title">
+                  <i className="ti ti-list-details" />
+                  Productos / Materiales
+                </h4>
+                <div className="abs-table-wrap">
+                  <table className="abs-detail-table">
                     <thead>
                       <tr>
                         <th>Producto/Material</th>
-                        <th>Cantidad</th>
-                        <th>Costo unitario</th>
-                        <th>Subtotal</th>
+                        <th className="abs-th-num">Cantidad</th>
+                        <th className="abs-th-num">Costo unit.</th>
+                        <th className="abs-th-num">Subtotal</th>
                       </tr>
                     </thead>
                     <tbody>
                       {(selectedAbs.detalles || []).map((d, i) => (
                         <tr key={i}>
-                          <td>{resolverNombreDetalle(d)}</td>
-                          <td>{d.cantidad}</td>
-                          <td>{fmtAbs(d.costo)}</td>
-                          <td>{fmtAbs(d.cantidad * d.costo)}</td>
+                          <td>
+                            <span className="abs-item-name">{resolverNombreDetalle(d)}</span>
+                          </td>
+                          <td className="abs-td-num">{d.cantidad}</td>
+                          <td className="abs-td-num">{fmtAbs(d.costo)}</td>
+                          <td className="abs-td-num abs-td-total">{fmtAbs(d.cantidad * d.costo)}</td>
                         </tr>
                       ))}
                     </tbody>
                     <tfoot>
                       <tr>
-                        <td colSpan={3} style={{ textAlign: 'right', fontWeight: 600 }}>Total</td>
-                        <td style={{ fontWeight: 600 }}>{fmtAbs(selectedAbs.costoTotal)}</td>
+                        <td colSpan={3} className="abs-foot-label">Total general</td>
+                        <td className="abs-foot-value">{fmtAbs(selectedAbs.costoTotal)}</td>
                       </tr>
                     </tfoot>
                   </table>
                 </div>
               </div>
             </div>
-            <div className="inv-modal-footer">
-              <button className="inv-btn-primary" onClick={() => setSelectedAbs(null)}>Cerrar</button>
-            </div>
           </div>
         </div>
-      )}
+        )
+      })()}
 
       {/* ── Alertas ── */}
       {alertState && (
