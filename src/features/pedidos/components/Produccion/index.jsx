@@ -5,7 +5,7 @@
 // ================================================================
 
 import { useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useNavigate } from 'react-router-dom';
 import { FiPlay, FiXCircle, FiEdit2, FiClipboard, FiArrowRight } from 'react-icons/fi';
 import Alert from '../../../../components/ui/feedback/Alert';
 import { updateProduccion } from '../../services/pedidosService';
@@ -26,18 +26,18 @@ const getSiguienteEstado = (actual) => {
 };
 
 const labelSiguiente = (actual) => {
-  console.log('ACTUAL:', actual);
   const sig = getSiguienteEstado(actual);
-  console.log('SIGUIENTE:', sig);
   if (!sig) return null;
   return estadoProdConfig[sig]?.label || sig;
 };
 
 const Produccion = () => {
   const { pedido, isCanceled } = useOutletContext();
+  const navigate = useNavigate();
   const [showForm, setShowForm] = useState(false);
   const [confirmTarget, setConfirmTarget] = useState(null); // { produccion_id, detalle_id, estado_actual }
   const [loadingProd, setLoadingProd] = useState(false);
+  const [errorProd, setErrorProd] = useState(null);
 
   const producciones = (pedido.detalles_pedido || []).flatMap(
     (d) =>
@@ -65,22 +65,50 @@ const Produccion = () => {
     if (!confirmTarget) return;
     const { produccion_id, detalle_id, estado_actual } = confirmTarget;
     const sig = getSiguienteEstado(estado_actual);
-    console.log(sig)
-     const nuevoEstado =
-    estado_actual === 'CANCELAR'
-      ? 'CANCELADO'
-      : sig;
+    const nuevoEstado =
+      estado_actual === 'CANCELAR'
+        ? 'CANCELADO'
+        : sig;
 
-  if (!nuevoEstado) return;
+    if (!nuevoEstado) return;
 
     setConfirmTarget(null);
     setLoadingProd(true);
 
     try {
       await updateProduccion(pedido.pedido_id, detalle_id, produccion_id, { estado: nuevoEstado });
-      window.location.reload();
-    } catch {
-      // error silencioso
+
+      // Solo redirigir a Entregas si el pedido completo quedó terminado
+      // (todas las producciones en todos los detalles están TERMINADO/CANCELADO y no hay pendientes)
+      if (nuevoEstado === 'TERMINADO') {
+        const todasProducciones = (pedido.detalles_pedido || []).flatMap((d) =>
+          (d.in_produccion || []).filter((p) => p.estado?.toUpperCase() !== 'CANCELADO')
+        );
+        const todasTerminadas = todasProducciones.every(
+          (p) => p.produccion_id === produccion_id || p.estado?.toUpperCase() === 'TERMINADO'
+        );
+        const sinPendientes = (pedido.detalles_pedido || []).every((d) => {
+          const producido = (d.in_produccion || [])
+            .filter((p) => p.estado?.toUpperCase() !== 'CANCELADO')
+            .reduce((sum, p) => sum + (p.cantidad || 0), 0);
+          return (d.cantidad || 0) - producido <= 0;
+        });
+
+        if (todasTerminadas && sinPendientes) {
+          navigate('/pedidos/entregas');
+        } else {
+          window.location.reload();
+        }
+      } else {
+        window.location.reload();
+      }
+    } catch (err) {
+      setErrorProd({
+        type: 'error',
+        title: 'Error',
+        message: err?.response?.data?.error || 'No se pudo actualizar la producción',
+        onClose: () => setErrorProd(null),
+      });
     } finally {
       setLoadingProd(false);
     }
@@ -204,6 +232,9 @@ const Produccion = () => {
       </div>
 
       <ProduccionForm isOpen={showForm} onClose={() => setShowForm(false)} detalles={pedido.detalles_pedido} />
+
+      {/* Error de producción */}
+      {errorProd && <Alert type={errorProd.type} title={errorProd.title} message={errorProd.message} onClose={errorProd.onClose} />}
 
       {/* Confirmación avanzar / cancelar producción */}
       {confirmTarget && (

@@ -36,5 +36,5 @@ export const cancelarAbastecimiento = async (id) => {
 // ── GET /proveedores — listar proveedores ──
 export const getProveedores = async () => {
   const response = await axiosInstance.get("/proveedores");
-  return response.data; // array de proveedores
+  return response.data;
 };

@@ -13,6 +13,8 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
     tipoDocumento: clienteEdit?.tipoDocumento ?? 'DOCUMENTO',
     nombres:   clienteEdit?.name?.split(' ')[0] ?? '',
     apellidos: clienteEdit?.name?.split(' ').slice(1).join(' ') ?? '',
+    tipo_doc:  clienteEdit?.tipo_doc ?? 'DOCUMENTO',
+    documento: clienteEdit?.documento ?? '',
     correo:    clienteEdit?.email ?? '',
     telefono:  clienteEdit?.telefono ?? '',
     telefono2: clienteEdit?.telefono2 ?? '',
@@ -57,6 +59,11 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
     const tel = form.telefono.trim()
     if (tel && tel.length > 20) errs.telefono = 'Máximo 20 caracteres'
     else if (tel && !TELEFONO_RE.test(tel)) errs.telefono = 'Solo números, +, - y espacios'
+
+    // Tipo de documento
+    if (!form.tipo_doc) errs.tipo_doc = 'Selecciona el tipo de documento'
+
+
 
     // Dirección opcional
     const dir = form.direccion.trim()
@@ -114,6 +121,8 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
       cliente_tipo_doc: form.tipoDocumento,
       cliente_nombre: form.nombres.trim(),
       cliente_apellido: form.apellidos.trim(),
+      cliente_tipo_doc: form.tipo_doc,
+      cliente_documento: form.documento.trim(),
       cliente_email: form.correo.trim(),
       cliente_direccion: form.direccion.trim(),
       telefono: telefonos,
@@ -250,6 +259,35 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
               <span style={{fontSize:'0.65rem', color:'var(--text-muted)', marginLeft:'auto'}}>Opcional</span>
               </div>
               {errors.apellidos && touched.apellidos && <p className="ncp-field-err">{errors.apellidos}</p>}
+            </div>
+          </div>
+
+          {/* Tipo documento + Número documento */}
+          <div className="ncp-row">
+            <div className="ncp-group">
+              <label className="ncp-label" htmlFor="tipo_doc">Tipo de documento</label>
+              <div className={`ncp-input-wrap ${errors.tipo_doc && touched.tipo_doc ? 'ncp-input-wrap--err' : ''}`}>
+                <i className="ti ti-id" aria-hidden="true" />
+                <select id="tipo_doc" name="tipo_doc" className="ncp-input"
+                  value={form.tipo_doc} onChange={handleChange}>
+                  <option value="DOCUMENTO">Documento</option>
+                  <option value="NIT">NIT</option>
+                </select>
+              </div>
+              {errors.tipo_doc && touched.tipo_doc && <p className="ncp-field-err">{errors.tipo_doc}</p>}
+            </div>
+            <div className="ncp-group">
+              <label className="ncp-label" htmlFor="documento">Número de documento</label>
+              <div className={`ncp-input-wrap ${errors.documento && touched.documento ? 'ncp-input-wrap--err' : ''}`}>
+                <i className="ti ti-hash" aria-hidden="true" />
+                <input
+                  id="documento" name="documento" type="text" maxLength="20"
+                  className="ncp-input"
+                  placeholder="1234567890"
+                  value={form.documento} onChange={handleChange} required
+                />
+              </div>
+              {errors.documento && touched.documento && <p className="ncp-field-err">{errors.documento}</p>}
             </div>
           </div>
 

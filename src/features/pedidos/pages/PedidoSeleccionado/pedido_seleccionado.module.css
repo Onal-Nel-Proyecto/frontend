@@ -1090,6 +1090,9 @@
 .detalleMobileValue {
   font-weight: 600;
   color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ── Responsive ── */
