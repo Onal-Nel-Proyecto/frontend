@@ -15,7 +15,11 @@ const validate = (form) => {
   else if (nom.length > 70) errs.nombre = 'Máximo 70 caracteres'
   else if (!SOLO_LETRAS.test(nom)) errs.nombre = 'Solo letras y espacios, sin números'
 
-  if (!form.tipoProducto) errs.tipoProducto = 'Selecciona el tipo de producto'
+  if (form.cantidadInicial !== '') {
+    const cant = Number(form.cantidadInicial)
+    if (!Number.isInteger(cant) || cant < 0) errs.cantidadInicial = 'La cantidad debe ser un número entero ≥ 0'
+    else if (cant > 1000) errs.cantidadInicial = 'Máximo 1000 unidades'
+  }
 
   const precioStr = form.precio?.toString().trim()
   if (precioStr === '') errs.precio = 'Ingresa un precio válido'
@@ -37,7 +41,6 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
 
   const [form, setForm] = useState({
     nombre: initialData?.name || '',
-    tipoProducto: 'INVENTARIO',
     tipoPrenda: clean(initialData?.tipo_prenda),
     categoria: clean(initialData?.categoria),
     genero: initialData?.genero === 'Femenino' ? 'F' : initialData?.genero === 'Masculino' ? 'M' : initialData?.genero === 'Unisex' ? 'U' : clean(initialData?.genero),
@@ -112,7 +115,6 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
     if (isEditing && Object.keys(newErrors).length === 0) {
       const orig = {
         nombre: initialData?.name?.trim() || '',
-        tipoProducto: 'INVENTARIO',
         tipoPrenda: clean(initialData?.tipo_prenda),
         categoria: clean(initialData?.categoria),
         genero: initialData?.genero === 'Femenino' ? 'F' : initialData?.genero === 'Masculino' ? 'M' : initialData?.genero === 'Unisex' ? 'U' : clean(initialData?.genero),
@@ -121,7 +123,6 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
       }
       const sinCambios =
         orig.nombre === form.nombre.trim() &&
-        orig.tipoProducto === form.tipoProducto &&
         orig.tipoPrenda === form.tipoPrenda &&
         orig.categoria === form.categoria &&
         orig.genero === form.genero &&
@@ -141,7 +142,6 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
       await onSave({
         id: initialData?.id,
         nombre: form.nombre.trim(),
-        tipoProducto: form.tipoProducto,
         tipoPrenda: form.tipoPrenda || null,
         categoriaId: form.categoria || null,
         genero: form.genero || null,
@@ -281,7 +281,14 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
                   placeholder="0" value={form.cantidadInicial}
                   onChange={(e) => {
                     const raw = e.target.value.replace(/\D/g, '');
-                    setForm((prev) => ({ ...prev, cantidadInicial: raw }));
+                    if (raw === '') {
+                      setForm((prev) => ({ ...prev, cantidadInicial: '' }));
+                    } else {
+                      const num = parseInt(raw, 10);
+                      if (!isNaN(num)) {
+                        setForm((prev) => ({ ...prev, cantidadInicial: String(Math.min(num, 1000)) }));
+                      }
+                    }
                   }}
                   onBlur={handleBlur} />
               </div>

@@ -13,8 +13,6 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
     tipoDocumento: clienteEdit?.tipoDocumento ?? 'DOCUMENTO',
     nombres:   clienteEdit?.name?.split(' ')[0] ?? '',
     apellidos: clienteEdit?.name?.split(' ').slice(1).join(' ') ?? '',
-    tipo_doc:  clienteEdit?.tipo_doc ?? 'DOCUMENTO',
-    documento: clienteEdit?.documento ?? '',
     correo:    clienteEdit?.email ?? '',
     telefono:  clienteEdit?.telefono ?? '',
     telefono2: clienteEdit?.telefono2 ?? '',
@@ -28,7 +26,7 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
 
   const SOLO_LETRAS = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  const TELEFONO_RE = /^[+\d\s-]{7,20}$/
+  const TELEFONO_RE = /^\+?\d{7,20}$/
 
   const validate = (form) => {
     const errs = {}
@@ -57,13 +55,19 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
 
     // Teléfono opcional
     const tel = form.telefono.trim()
-    if (tel && tel.length > 20) errs.telefono = 'Máximo 20 caracteres'
-    else if (tel && !TELEFONO_RE.test(tel)) errs.telefono = 'Solo números, +, - y espacios'
+    if (tel) {
+      if (tel.length > 20) errs.telefono = 'Máximo 20 caracteres'
+      else if ((tel.match(/\+/g) || []).length > 1) errs.telefono = 'Solo se permite un signo +'
+      else if (!TELEFONO_RE.test(tel)) errs.telefono = 'Solo números y un único + al inicio'
+    }
 
-    // Tipo de documento
-    if (!form.tipo_doc) errs.tipo_doc = 'Selecciona el tipo de documento'
-
-
+    // Teléfono 2 opcional
+    const tel2 = form.telefono2.trim()
+    if (tel2) {
+      if (tel2.length > 20) errs.telefono2 = 'Máximo 20 caracteres'
+      else if ((tel2.match(/\+/g) || []).length > 1) errs.telefono2 = 'Solo se permite un signo +'
+      else if (!TELEFONO_RE.test(tel2)) errs.telefono2 = 'Solo números y un único + al inicio'
+    }
 
     // Dirección opcional
     const dir = form.direccion.trim()
@@ -91,7 +95,20 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    setForm((prev) => ({ ...prev, [name]: value }))
+    if (name === 'telefono' || name === 'telefono2') {
+      // Solo dígitos y un único +
+      const sanitized = value.replace(/[^\d+]/g, '')
+      const plusCount = (sanitized.match(/\+/g) || []).length
+      if (plusCount > 1) {
+        setErrors(prev => ({ ...prev, [name]: 'Solo se permite un signo +' }))
+        setTouched(prev => ({ ...prev, [name]: true }))
+      } else {
+        setErrors(prev => ({ ...prev, [name]: undefined }))
+      }
+      setForm((prev) => ({ ...prev, [name]: sanitized }))
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }))
+    }
   }
 
   const handleSubmit = async (e) => {
@@ -121,8 +138,6 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
       cliente_tipo_doc: form.tipoDocumento,
       cliente_nombre: form.nombres.trim(),
       cliente_apellido: form.apellidos.trim(),
-      cliente_tipo_doc: form.tipo_doc,
-      cliente_documento: form.documento.trim(),
       cliente_email: form.correo.trim(),
       cliente_direccion: form.direccion.trim(),
       telefono: telefonos,
@@ -262,35 +277,6 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
             </div>
           </div>
 
-          {/* Tipo documento + Número documento */}
-          <div className="ncp-row">
-            <div className="ncp-group">
-              <label className="ncp-label" htmlFor="tipo_doc">Tipo de documento</label>
-              <div className={`ncp-input-wrap ${errors.tipo_doc && touched.tipo_doc ? 'ncp-input-wrap--err' : ''}`}>
-                <i className="ti ti-id" aria-hidden="true" />
-                <select id="tipo_doc" name="tipo_doc" className="ncp-input"
-                  value={form.tipo_doc} onChange={handleChange}>
-                  <option value="DOCUMENTO">Documento</option>
-                  <option value="NIT">NIT</option>
-                </select>
-              </div>
-              {errors.tipo_doc && touched.tipo_doc && <p className="ncp-field-err">{errors.tipo_doc}</p>}
-            </div>
-            <div className="ncp-group">
-              <label className="ncp-label" htmlFor="documento">Número de documento</label>
-              <div className={`ncp-input-wrap ${errors.documento && touched.documento ? 'ncp-input-wrap--err' : ''}`}>
-                <i className="ti ti-hash" aria-hidden="true" />
-                <input
-                  id="documento" name="documento" type="text" maxLength="20"
-                  className="ncp-input"
-                  placeholder="1234567890"
-                  value={form.documento} onChange={handleChange} required
-                />
-              </div>
-              {errors.documento && touched.documento && <p className="ncp-field-err">{errors.documento}</p>}
-            </div>
-          </div>
-
           {/* Correo */}
           <div className="ncp-row">
             <div className="ncp-group ncp-group--full">
@@ -327,7 +313,7 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
             </div>
             <div className="ncp-group">
               <label className="ncp-label" htmlFor="telefono2">Teléfono 2</label>
-              <div className="ncp-input-wrap">
+              <div className={`ncp-input-wrap ${errors.telefono2 && touched.telefono2 ? 'ncp-input-wrap--err' : ''}`}>
                 <i className="ti ti-phone" aria-hidden="true" />
                 <input
                   id="telefono2" name="telefono2" type="tel" maxLength="20"
@@ -337,6 +323,7 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
                 />
               <span style={{fontSize:'0.65rem', color:'var(--text-muted)', marginLeft:'auto'}}>Opcional</span>
               </div>
+              {errors.telefono2 && touched.telefono2 && <p className="ncp-field-err">{errors.telefono2}</p>}
             </div>
           </div>
           <div className="ncp-row">

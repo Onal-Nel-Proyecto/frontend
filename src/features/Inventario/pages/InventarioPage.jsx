@@ -333,7 +333,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
   const loadProductos = useCallback(async (filtros = {}, pagina = 1) => {
     setLoadingProd(true)
     try {
-      const params = { limite: 15, pagina, tipoProducto: 'INVENTARIO', ...filtros }
+      const params = { limite: 15, pagina, ...filtros }
       const res = await getProductos(params)
       const items = Array.isArray(res?.data) ? res.data.map(mapperProducto) : []
       setProducts(items)
@@ -395,7 +395,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
 
   // Recargar productos al cambiar filtros
   useEffect(() => {
-    const params = { tipoProducto: 'INVENTARIO' }
+    const params = {}
     if (debouncedProdSearch) params.nombre = debouncedProdSearch
     const estado = mapEstadoProducto(prodFilters.status)
     if (estado != null) params.estado = estado
@@ -404,7 +404,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
   }, [loadProductos, debouncedProdSearch, prodFilters.status, prodFilters.category])
 
   const handleProdPageChange = (page) => {
-    const params = { tipoProducto: 'INVENTARIO' }
+    const params = {}
     if (prodFilters.search) params.nombre = prodFilters.search
     const estado = mapEstadoProducto(prodFilters.status)
     if (estado != null) params.estado = estado
@@ -504,7 +504,6 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
       if (data.id) {
         await updateProducto(data.id, {
           nombre: data.nombre,
-          tipoProducto: data.tipoProducto,
           precioUnitario: data.precio || 0,
           genero: data.genero,
           tipoPrenda: data.tipoPrenda,
@@ -514,7 +513,6 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
       } else {
         await createProducto({
           nombre: data.nombre,
-          tipoProducto: data.tipoProducto,
           precioUnitario: data.precio || 0,
           genero: data.genero,
           tipoPrenda: data.tipoPrenda,
