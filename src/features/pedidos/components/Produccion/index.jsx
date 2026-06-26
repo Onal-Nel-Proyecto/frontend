@@ -38,6 +38,7 @@ const Produccion = () => {
   const [showForm, setShowForm] = useState(false);
   const [confirmTarget, setConfirmTarget] = useState(null); // { produccion_id, detalle_id, estado_actual }
   const [loadingProd, setLoadingProd] = useState(false);
+  const [alert, setAlert] = useState(null);
 
   const producciones = (pedido.detalles_pedido || []).flatMap(
     (d) =>
@@ -65,22 +66,42 @@ const Produccion = () => {
     if (!confirmTarget) return;
     const { produccion_id, detalle_id, estado_actual } = confirmTarget;
     const sig = getSiguienteEstado(estado_actual);
-    console.log(sig)
-     const nuevoEstado =
-    estado_actual === 'CANCELAR'
-      ? 'CANCELADO'
-      : sig;
+    const nuevoEstado =
+      estado_actual === 'CANCELAR'
+        ? 'CANCELADO'
+        : sig;
 
-  if (!nuevoEstado) return;
+    if (!nuevoEstado) return;
 
     setConfirmTarget(null);
     setLoadingProd(true);
 
     try {
-      await updateProduccion(pedido.pedido_id, detalle_id, produccion_id, { estado: nuevoEstado });
-      window.location.reload();
-    } catch {
-      // error silencioso
+      const resp = await updateProduccion(pedido.pedido_id, detalle_id, produccion_id, { estado: nuevoEstado });
+
+      if (resp?.status) {
+        setAlert({
+          type: 'success',
+          title: 'Producción actualizada',
+          message: resp.msg || `Producción ${nuevoEstado === 'CANCELADO' ? 'cancelada' : 'avanzada a ' + (estadoProdConfig[nuevoEstado]?.label || nuevoEstado)}`,
+          onConfirm: () => { setAlert(null); window.location.reload(); },
+          onClose: () => { setAlert(null); window.location.reload(); },
+        });
+      } else {
+        setAlert({
+          type: 'error',
+          title: 'Error',
+          message: resp?.error || resp?.msg || 'No se pudo actualizar la producción',
+          onClose: () => setAlert(null),
+        });
+      }
+    } catch (err) {
+      setAlert({
+        type: 'error',
+        title: 'Error',
+        message: err?.response?.data?.error || err?.response?.data?.msg || 'Error de conexión al actualizar la producción',
+        onClose: () => setAlert(null),
+      });
     } finally {
       setLoadingProd(false);
     }
@@ -223,6 +244,8 @@ const Produccion = () => {
           onConfirm={handleConfirmAction}
         />
       )}
+
+      {alert && <Alert type={alert.type} title={alert.title} message={alert.message} onClose={alert.onClose} onConfirm={alert.onConfirm} />}
     </>
   );
 };
