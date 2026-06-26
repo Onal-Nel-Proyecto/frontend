@@ -272,7 +272,7 @@ const ViewClientModal = ({ cliente, onClose }) => {
                   const fecha = order.fecha_entrega || order.fecha_entrega_estimada || order.fecha_creacion || ''
 
                   return (
-                    <div key={order.id} className="vcm-order-item" onClick={() => navigate(`/pedidos/${order.id}`)}>
+                    <div key={order.id} className="vcm-order-item" onClick={() => navigate((order.tipo_origen == 'PRODUCCION'? `/pedidos/orden-produccion/${order.id}` :`/pedidos/${order.id}`))}>
                       <div className="vcm-order-item__head">
                         <span className="vcm-order-item__id">#{order.id}</span>
                         <span className={`vcm-status-badge ${st.className || ''}`}>

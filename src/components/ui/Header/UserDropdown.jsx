@@ -189,7 +189,7 @@ const UserDropdown = () => {
               </button>
 
               {/* Ayuda (solo móvil) */}
-              <button className={styles.helpBtn} title="Ayuda / Help">
+              <button className={styles.helpBtn} title="Ayuda / Help" onClick={() => window.open('https://manuales-tecnico-usuario-pyt-onal-n.vercel.app/usuario/primeros-pasos', '_blank')}>
                 <FiHelpCircle />
                 Ayuda / Help
               </button>

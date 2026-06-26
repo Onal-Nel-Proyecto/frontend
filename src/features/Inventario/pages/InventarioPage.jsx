@@ -1,68 +1,293 @@
 // ================================================================
 // InventarioPage — Página principal del módulo de Inventario
-// Orquestra las 3 pestañas: Materiales, Productos, Abastecimiento
+// Gestiona tres sub-pestañas: Materiales, Productos, Abastecimiento
+// Cada pestaña tiene su propia tabla, filtros, estadísticas y CRUD
 // ================================================================
 
-import { useState, useMemo, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useLocation } from 'react-router-dom'
-import { useDocumentTitle } from '../../../hooks/useDocumentTitle'
-import { useAbastecimiento } from '../../../hooks/useAbastecimiento'
-import Alert from '../../../components/ui/feedback/Alert'
-import TablaSection from '../components/TablaSection'
 import RegisterMaterial from './RegisterMaterial'
 import RegisterProducto from './RegisterProducto'
 import RegisterAbastecimiento from './RegisterAbastecimiento'
-import { useMateriales } from '../materiales/useMateriales'
-import { useProductos } from '../productos/useProductos'
-import { matColumns } from '../materiales/materialColumns'
-import { matRenderRow } from '../materiales/materialRenderRow'
-import { prodColumns } from '../productos/productColumns'
-import { prodRenderRow } from '../productos/productRenderRow'
-import { absColumns } from '../abastecimientos/absColumns'
-import { absRenderRow } from '../abastecimientos/absRenderRow'
+import { useAbastecimiento } from '../../../hooks/useAbastecimiento'
+import { useDocumentTitle } from '../../../hooks/useDocumentTitle'
+import { getMateriales, createMaterial, updateMaterial, changeMaterialEstado } from '../../../api/materialesService'
+import { getProductos, createProducto, updateProducto, changeProductoEstado } from '../../../api/productosApiService'
+import Alert from '../../../components/ui/feedback/Alert'
 import './InventarioPage.css'
 
-const fmtAbs = (val) => Number(val || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
+// ════════════════════════════════════════════
+//  UTILIDADES
+// ════════════════════════════════════════════
+
+/** Formatea un número como moneda COP (sin decimales) */
+const fmt = (val) =>
+  Number(val || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
+
+// ════════════════════════════════════════════
+//  TRANSFORMADORES API → TABLA (mappers)
+//  Convierten la respuesta cruda del backend
+//  al formato que espera la tabla (TablaSection)
+// ════════════════════════════════════════════
+
+const mapperMaterial = (m) => ({
+  id: m.id,
+  name: m.nombre || '—',
+  ref: m.referencia || m.id || '—',
+  tipo_material: m.tipoMaterial || '—',
+  unidad_medida: m.unidadMedida || '—',
+  desc: m.descripcion || '—',
+  stock: Number(m.cantidadDisponible || 0),
+  minStock: Number(m.umbralMinimo || 0),
+  status: (m.estado || '').toLowerCase(),
+})
+
+const mapperProducto = (p) => ({
+  id: p.id,
+  name: p.nombre || '—',
+  ref: p.referencia || p.id || '—',
+  descripcion: p.descripcion || '—',
+  tipo_prenda: p.tipoPrenda || '—',
+  categoria: p.categoria || '—',
+  genero: p.genero || '—',
+  talla: p.talla || '—',
+  price: Number(p.precioUnitario || 0),
+  stock: Number(p.cantidadDisponible || 0),
+  minStock: Number(p.umbralMinimo || 0),
+  tipoProducto: p.tipoProducto || 'INVENTARIO',
+  status: typeof p.estado === 'string' ? p.estado.toLowerCase() : p.estado === 1 ? 'disponible' : p.estado === 2 ? 'agotado' : 'eliminado',
+})
+
+// ════════════════════════════════════════════
+//  COMPONENTES INTERNOS
+// ════════════════════════════════════════════
+
+/**
+ * StockBar — Barra de progreso visual del stock
+ * @param {number} current - Stock actual
+ * @param {number} min     - Stock mínimo (umbral)
+ * Color verde si hay stock suficiente,
+ * naranja si está cerca del mínimo, rojo si está en 0
+ */
+const StockBar = ({ current, min }) => {
+  const pct = Math.min((current / Math.max(min, 1)) * 100, 100)
+  const color = current === 0 ? '#e74c3c' : current <= min ? '#e67e22' : '#2e7d32'
+  return (
+    <div className="inv-stockbar-track">
+      <div className="inv-stockbar-fill" style={{ width: `${pct}%`, background: color }} />
+      <span className="inv-stockbar-label" style={{ color }}>
+        {current} <small>{current <= min ? '⚠' : ''}</small>
+      </span>
+    </div>
+  )
+}
+
+/**
+ * useDebounce — Hook que retrasa la actualización de un valor
+ * Útil para evitar llamadas a la API en cada pulsación de teclado
+ * @param {any}  value - Valor a debouncear
+ * @param {number} delay - Milisegundos de retardo (default 400ms)
+ */
+const useDebounce = (value, delay = 400) => {
+  const [debounced, setDebounced] = useState(value)
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(value), delay)
+    return () => clearTimeout(t)
+  }, [value, delay])
+  return debounced
+}
+
+/**
+ * TablaSection — Componente reutilizable de tabla + filtros + estadísticas
+ * 
+ * Props:
+ * @param {Array}  items     - Datos filtrados a mostrar
+ * @param {boolean} loading   - Estado de carga
+ * @param {string} tipo       - Etiqueta del tipo (materiales/productos/abastecimientos)
+ * @param {Array}  columns    - Nombres de las columnas (array de strings)
+ * @param {Function} renderRow - Función que renderiza una fila (<td>...</td>)
+ * @param {Function} statConfig - Función que calcula las tarjetas de estadísticas
+ * @param {Object} filters    - Estado actual de los filtros
+ * @param {Function} onFiltersChange - Callback para cambiar los filtros
+ * 
+ * Los filtros (búsqueda y estado) se envían al backend via useEffect en el padre.
+ * Este componente solo muestra los datos que recibe como items.
+ */
+const TablaSection = ({ items, loading, tipo, columns, renderRow, statConfig, filters, onFiltersChange, statusOptions, pagination, totalItems }) => {
+  const [hoveredRow, setHoveredRow] = useState(null)
+  const stats = statConfig(items)
+
+  if (loading) {
+    return <div className="inv-loading"><i className="ti ti-loader ti-spin" /> Cargando {tipo}...</div>
+  }
+
+  return (
+    <>
+      <div className="inv-stats">
+        {stats.map((s, i) => (
+          <div className="inv-stat-card" key={i} style={{ '--delay': `${i * 0.08}s` }}>
+            <div className={`inv-stat-icon inv-stat-icon--${s.color}`}>
+              <i className={s.icon} />
+            </div>
+            <div>
+              <p className={`inv-stat-value ${s.valueRed ? 'inv-stat-value--red' : ''}`}>
+                {s.value}<span className="inv-stat-unit">{s.unit}</span>
+              </p>
+              <p className="inv-stat-label">
+                {s.label}
+                {s.tag && <span className="inv-stat-tag">{s.tag}</span>}
+              </p>
+              {s.sub && <p className="inv-stat-sub">{s.sub}</p>}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="inv-filters">
+        <div className="inv-filters__left">
+          {filters.categoryOptions?.length > 0 && (
+            <div className="inv-filter-group">
+              <i className="ti ti-category" />
+              <select className="inv-select" value={filters.category}
+                onChange={(e) => onFiltersChange({ ...filters, category: e.target.value })}>
+                <option value="">Categoría: Todos</option>
+                {filters.categoryOptions?.map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+            </div>
+          )}
+          <div className="inv-filter-group">
+            <i className="ti ti-filter" />
+            <select className="inv-select" value={filters.status}
+              onChange={(e) => onFiltersChange({ ...filters, status: e.target.value })}>
+              <option value="">Estado: Todos</option>
+              {(statusOptions || [
+                { value: 'disponible', label: 'Disponible' },
+                { value: 'agotado', label: 'Agotado' },
+                { value: 'eliminado', label: 'Eliminado' },
+              ]).map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
+          <div className="inv-search">
+            <i className="ti ti-search" />
+            <input type="text" maxLength={50} placeholder={`Buscar ${tipo}...`}
+              value={filters.search}
+              onChange={(e) => onFiltersChange({ ...filters, search: e.target.value })}
+            />
+          </div>
+        </div>
+        <p className="inv-filters__count">
+          {items.length} {tipo}
+        </p>
+      </div>
+
+      <div className="inv-table-wrap">
+        <table className="inv-table" data-tab={tipo}>
+          <thead>
+            <tr>{columns.map((col, i) => <th key={i}>{col}</th>)}</tr>
+          </thead>
+          <tbody>
+            {items.map((item) => (
+              <tr key={item.id}
+                className={`${item.status === 'agotado' ? 'inv-row--warning' : ''} ${hoveredRow === item.id ? 'inv-row--hover' : ''}`}
+                onMouseEnter={() => setHoveredRow(item.id)}
+                onMouseLeave={() => setHoveredRow(null)}
+              >
+                {renderRow(item, hoveredRow === item.id)}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {items.length === 0 && (
+          <div className="inv-empty-state">
+            <i className="ti ti-search-off" />
+            <p>No se encontraron {tipo} con esos filtros.</p>
+            <button className="inv-empty-btn" onClick={() => onFiltersChange({ ...filters, category: '', status: '', search: '' })}>
+              Limpiar filtros
+            </button>
+          </div>
+        )}
+      </div>
+      {pagination && pagination.totalPages > 1 && (
+        <div className="inv-pagination">
+          <button className="inv-pagination-btn" disabled={pagination.page <= 1}
+            onClick={() => pagination.onPageChange(pagination.page - 1)} title="Anterior">
+            <i className="ti ti-chevron-left" />
+          </button>
+          {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((p) => (
+            <button key={p} className={`inv-pagination-btn ${p === pagination.page ? 'inv-pagination-btn--active' : ''}`}
+              onClick={() => pagination.onPageChange(p)}>
+              {p}
+            </button>
+          ))}
+          <button className="inv-pagination-btn" disabled={pagination.page >= pagination.totalPages}
+            onClick={() => pagination.onPageChange(pagination.page + 1)} title="Siguiente">
+            <i className="ti ti-chevron-right" />
+          </button>
+          {totalItems != null && (
+            <span className="inv-pagination-info">{totalItems} total</span>
+          )}
+        </div>
+      )}
+    </>
+  )
+}
+
+// ════════════════════════════════════════════
+//  COMPONENTE PRINCIPAL
+// ════════════════════════════════════════════
 
 /**
  * InventarioPage — Página principal del módulo de inventario
  * @param {string} tipo - Pestaña activa: 'materiales' | 'productos' | 'abastecimiento'
+ * 
+ * Flujo de datos:
+ * 1. Carga inicial via useEffect → loadMateriales() / loadProductos()
+ * 2. Filtros cambian → useEffect detecta cambios debounced → recarga con parámetros
+ * 3. CRUD (crear/editar/eliminar) → handlers llaman a la API → recargan lista
  */
 const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
   const titulo = activeTab === 'materiales' ? 'Inventario | Materiales' : activeTab === 'productos' ? 'Inventario | Productos' : 'Inventario | Abastecimiento'
   useDocumentTitle(titulo)
 
-  const [alertState, setAlertState] = useState(null)
-  const [selectedAbs, setSelectedAbs] = useState(null)
-
-  // ── Hooks de cada módulo ──
-  const mat = useMateriales({ setAlertState })
-  const prod = useProductos({ setAlertState })
-
-  const {
-    abastecimientos,
-    proveedores,
-    meta: absMeta,
-    loading: absLoading,
-    loadAbastecimientos,
-    addAbastecimiento,
-    completar: completarAbs,
-    cancelar: cancelarAbs,
-  } = useAbastecimiento()
-
-  const absPage = absMeta?.pagina_actual || 1
-  const absTotalPages = absMeta?.total_paginas || Math.ceil((absMeta?.total || 0) / 15) || 1
-  const absTotal = absMeta?.total || 0
-
-  // ── Estado local ──
+  const [materials, setMaterials] = useState([])
+  const [products, setProducts] = useState([])
+  const [loadingMat, setLoadingMat] = useState(false)
+  const [loadingProd, setLoadingProd] = useState(false)
   const [showDrawerMat, setShowDrawerMat] = useState(false)
   const [showDrawerProd, setShowDrawerProd] = useState(false)
   const [showDrawerAbs, setShowDrawerAbs] = useState(false)
   const [editingMaterial, setEditingMaterial] = useState(null)
   const [editingProduct, setEditingProduct] = useState(null)
-  const [absFilters, setAbsFilters] = useState({ category: '', status: '', search: '', categoryOptions: [] })
+  const [alertState, setAlertState] = useState(null)
 
-  // Filtro cliente-side para abastecimientos
+  const {
+    abastecimientos,
+    proveedores,
+    loading: absLoading,
+    addAbastecimiento,
+    completar: completarAbs,
+    cancelar: cancelarAbs,
+  } = useAbastecimiento()
+
+  const [matResumen, setMatResumen] = useState(null)
+  const [matFilters, setMatFilters] = useState({ category: '', status: '', search: '', categoryOptions: [] })
+  const [matPage, setMatPage] = useState(1)
+  const [matTotalPages, setMatTotalPages] = useState(1)
+  const [matTotal, setMatTotal] = useState(0)
+  const [prodResumen, setProdResumen] = useState(null)
+  const [prodFilters, setProdFilters] = useState({ category: '', status: '', search: '', categoryOptions: [] })
+  const [prodPage, setProdPage] = useState(1)
+  const [prodTotalPages, setProdTotalPages] = useState(1)
+  const [prodTotal, setProdTotal] = useState(0)
+  const [absFilters, setAbsFilters] = useState({ category: '', status: '', search: '', categoryOptions: [] })
+  const [selectedAbs, setSelectedAbs] = useState(null)
+
+  // Filtro cliente-side para abastecimientos (por estado y búsqueda)
   const filteredAbastecimientos = useMemo(() => {
     let items = abastecimientos
     if (absFilters.status) {
@@ -80,99 +305,115 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
     return items
   }, [abastecimientos, absFilters.status, absFilters.search])
 
-  // Resolver nombres de detalle (mapea IDs de materiales/productos)
-  const refNameMap = useMemo(() => {
-    const map = {}
-    mat.materials.forEach((m) => { map[String(m.id)] = m.name })
-    prod.products.forEach((p) => { map[String(p.id)] = p.name })
-    return map
-  }, [mat.materials, prod.products])
-
-  const resolverNombreDetalle = (d) => {
-    if (d.nombre && !d.nombre.startsWith('Ref #')) return d.nombre
-    const refId = String(d.nombre || '').replace('Ref #', '')
-    return refNameMap[refId] || d.nombre || '—'
-  }
-
-  // ── Handlers ──
-  const handleAddMaterial = () => { setEditingMaterial(null); setShowDrawerMat(true) }
-  const handleEditMaterial = (item) => { setEditingMaterial(item); setShowDrawerMat(true) }
-  const handleDeleteMaterial = (item) => mat.handleDelete(item)
-
-  const handleSaveMaterial = async (data) => {
-    await mat.handleSave(data, {
-      onSuccess: () => { setShowDrawerMat(false); setEditingMaterial(null) },
-      onError: (err) => setAlertState({ type: 'error', title: 'Error al guardar', message: err?.response?.data?.message || err?.message, onClose: () => setAlertState(null) }),
-    })
-  }
-
-  const handleAddProduct = () => { setEditingProduct(null); setShowDrawerProd(true) }
-  const handleEditProduct = (item) => { setEditingProduct(item); setShowDrawerProd(true) }
-  const handleDeleteProduct = (item) => prod.handleDelete(item)
-
-  const handleSaveProduct = async (data) => {
-    await prod.handleSave(data, {
-      onSuccess: () => { setShowDrawerProd(false); setEditingProduct(null) },
-      onError: (err) => setAlertState({ type: 'error', title: 'Error al guardar', message: err?.response?.data?.message || err?.message, onClose: () => setAlertState(null) }),
-    })
-  }
-
-  const handleAddAbastecimiento = () => setShowDrawerAbs(true)
-  const handleSaveAbastecimiento = async (data) => {
+  /** Carga la lista de materiales desde el backend, aplicando filtros opcionales */
+  const loadMateriales = useCallback(async (filtros = {}, pagina = 1) => {
+    setLoadingMat(true)
     try {
-      await addAbastecimiento(data)
-      setShowDrawerAbs(false)
-      const itemsMsg = data.detalles?.length
-        ? 'Ítems: ' + data.detalles.map((d) => `${d.detAbsRefNombre || `Ref #${d.detAbsRefId}`} (×${d.detAbsCant})`).join(', ')
-        : ''
-      setAlertState({ type: 'success', title: 'Éxito', message: `Abastecimiento registrado correctamente.\n${itemsMsg}`, onClose: () => setAlertState(null) })
-      mat.load()
-      prod.load()
+      const params = { limite: 15, pagina, ...filtros }
+      const res = await getMateriales(params)
+      const items = Array.isArray(res?.data) ? res.data.map(mapperMaterial) : []
+      setMaterials(items)
+      setMatPage(pagina)
+      if (res?.resumen) setMatResumen(res.resumen)
+      if (res?.paginacion) {
+        setMatTotalPages(res.paginacion.totalPaginas || 1)
+        setMatTotal(res.paginacion.total || items.length)
+      } else {
+        setMatTotalPages(1)
+        setMatTotal(items.length)
+      }
     } catch (err) {
-      const msg = err?.response?.data?.error || err?.response?.data?.message || err?.message || 'Error desconocido'
-      setAlertState({ type: 'error', title: 'Error al registrar', message: msg, onClose: () => setAlertState(null) })
+      console.warn('Error al cargar materiales:', err)
+      setMaterials([])
+    } finally {
+      setLoadingMat(false)
     }
+  }, [])
+
+  /** Carga la lista de productos desde el backend, aplicando filtros opcionales */
+  const loadProductos = useCallback(async (filtros = {}, pagina = 1) => {
+    setLoadingProd(true)
+    try {
+      const params = { limite: 15, pagina, ...filtros }
+      const res = await getProductos(params)
+      const items = Array.isArray(res?.data) ? res.data.map(mapperProducto) : []
+      setProducts(items)
+      setProdPage(pagina)
+      if (res?.resumen) setProdResumen(res.resumen)
+      if (res?.paginacion) {
+        setProdTotalPages(res.paginacion.totalPaginas || 1)
+        setProdTotal(res.paginacion.total || items.length)
+      } else {
+        setProdTotalPages(1)
+        setProdTotal(items.length)
+      }
+    } catch (err) {
+      console.warn('Error al cargar productos:', err)
+      setProducts([])
+    } finally {
+      setLoadingProd(false)
+    }
+  }, [])
+
+  // Debounce para búsqueda (evita llamadas API en cada tecla)
+  const debouncedMatSearch = useDebounce(matFilters.search, 500)
+  const debouncedProdSearch = useDebounce(prodFilters.search, 500)
+
+  /** Mapea el valor del filtro al string que espera el backend de materiales (DISPONIBLE, AGOTADO, ELIMINADO) */
+  const mapEstadoMaterial = (statusFilter) => {
+    if (statusFilter === 'disponible') return 'DISPONIBLE'
+    if (statusFilter === 'agotado') return 'AGOTADO'
+    if (statusFilter === 'eliminado') return 'ELIMINADO'
+    return null
   }
 
-  const handleCompletarAbastecimiento = async (item) => {
-    setAlertState({
-      type: 'confirm',
-      title: 'Completar abastecimiento',
-      message: `¿Completar el abastecimiento #${item.id}?\n\nEsto actualizará el stock de los ítems.`,
-      onConfirm: async () => {
-        setAlertState(null)
-        try {
-          await completarAbs(item.id)
-          mat.load()
-          prod.load()
-        } catch (err) {
-          setAlertState({ type: 'error', title: 'Error', message: err?.response?.data?.message || err?.message, onClose: () => setAlertState(null) })
-        }
-      },
-      onCancel: () => setAlertState(null),
-    })
+  /** Mapea el valor del filtro al número que espera el backend de productos (1=activo, 2=agotado, 3=inactivo) */
+  const mapEstadoProducto = (statusFilter) => {
+    if (statusFilter === 'disponible') return 1
+    if (statusFilter === 'agotado') return 2
+    if (statusFilter === 'eliminado') return 3
+    return null
   }
 
-  const handleCancelarAbastecimiento = async (item) => {
-    setAlertState({
-      type: 'confirm',
-      title: 'Cancelar abastecimiento',
-      message: `¿Cancelar el abastecimiento #${item.id}?`,
-      onConfirm: async () => {
-        setAlertState(null)
-        try {
-          await cancelarAbs(item.id)
-          mat.load()
-          prod.load()
-        } catch (err) {
-          setAlertState({ type: 'error', title: 'Error', message: err?.response?.data?.message || err?.message, onClose: () => setAlertState(null) })
-        }
-      },
-      onCancel: () => setAlertState(null),
-    })
+  // Recargar materiales al cambiar filtros (búsqueda debounced, estado/categoría inmediato)
+  useEffect(() => {
+    const params = {}
+    if (debouncedMatSearch) params.nombre = debouncedMatSearch
+    const estado = mapEstadoMaterial(matFilters.status)
+    if (estado != null) params.estado = estado
+    if (matFilters.category) params.tipoMaterial = matFilters.category
+    loadMateriales(params, 1)
+  }, [loadMateriales, debouncedMatSearch, matFilters.status, matFilters.category])
+
+  const handleMatPageChange = (page) => {
+    const params = {}
+    if (matFilters.search) params.nombre = matFilters.search
+    const estado = mapEstadoMaterial(matFilters.status)
+    if (estado != null) params.estado = estado
+    if (matFilters.category) params.tipoMaterial = matFilters.category
+    loadMateriales(params, page)
   }
 
-  // Abrir formulario de abastecimiento si se navegó con openForm:true
+  // Recargar productos al cambiar filtros
+  useEffect(() => {
+    const params = {}
+    if (debouncedProdSearch) params.nombre = debouncedProdSearch
+    const estado = mapEstadoProducto(prodFilters.status)
+    if (estado != null) params.estado = estado
+    if (prodFilters.category) params.categoria = prodFilters.category
+    loadProductos(params, 1)
+  }, [loadProductos, debouncedProdSearch, prodFilters.status, prodFilters.category])
+
+  const handleProdPageChange = (page) => {
+    const params = {}
+    if (prodFilters.search) params.nombre = prodFilters.search
+    const estado = mapEstadoProducto(prodFilters.status)
+    if (estado != null) params.estado = estado
+    if (prodFilters.category) params.categoria = prodFilters.category
+    loadProductos(params, page)
+  }
+
+  // Abrir formulario de abastecimiento si se navegó con openForm:true (ej: desde acceso rápido del dashboard)
   const location = useLocation()
   const openFormHandled = useRef(false)
   useEffect(() => {
@@ -183,22 +424,303 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
     }
   }, [location.state, activeTab])
 
-  const handleAbsPageChange = (page) => {
-    loadAbastecimientos(page)
+  /* ── Handlers Materiales ── */
+  /** Abre el drawer para crear un nuevo material */
+  const handleAddMaterial = () => { setEditingMaterial(null); setShowDrawerMat(true) }
+  const handleEditMaterial = (item) => { setEditingMaterial(item); setShowDrawerMat(true) }
+
+  const handleDeleteMaterial = async (item) => {
+    setAlertState({
+      type: 'confirm',
+      title: 'Desactivar material',
+      message: `¿Desactivar "${item.name}"?`,
+      onConfirm: async () => {
+        setAlertState(null)
+        try {
+          await changeMaterialEstado(item.id, 'ELIMINADO')
+          await loadMateriales()
+        } catch (err) {
+          setAlertState({ type: 'error', title: 'Error', message: err?.response?.data?.message || err?.message, onClose: () => setAlertState(null) })
+        }
+      },
+      onCancel: () => setAlertState(null),
+    })
   }
 
-  const handleAddBtn = () => {
-    if (activeTab === 'materiales') handleAddMaterial()
-    else if (activeTab === 'productos') handleAddProduct()
-    else handleAddAbastecimiento()
+  const handleSaveMaterial = async (data) => {
+    try {
+      if (data.id) {
+        await updateMaterial(data.id, {
+          nombre: data.nombre,
+          descripcion: data.descripcion,
+          umbralMinimo: data.umbralMinimo ?? 0,
+          stock: data.stock,
+          unidadMedida: data.unidadMedida,
+          tipoMaterial: data.tipoMaterial,
+        })
+      } else {
+        await createMaterial({
+          nombre: data.nombre,
+          descripcion: data.descripcion,
+          umbralMinimo: data.umbralMinimo ?? 0,
+          cantidadDisponible: data.cantidadDisponible ?? 0,
+          unidadMedida: data.unidadMedida,
+          tipoMaterial: data.tipoMaterial,
+        })
+      }
+      setShowDrawerMat(false)
+      setEditingMaterial(null)
+      await loadMateriales()
+      setAlertState({ type: 'success', title: 'Éxito', message: 'Material guardado correctamente', onClose: () => setAlertState(null) })
+    } catch (err) {
+      const detail = err?.response?.data?.errors
+        ? Object.values(err.response.data.errors).flat().join('. ')
+        : ''
+      const msg = detail
+        ? `${err?.response?.data?.message || 'Error de validación'}: ${detail}`
+        : err?.response?.data?.message || err?.message
+      setAlertState({ type: 'error', title: 'Error al guardar', message: msg, onClose: () => setAlertState(null) })
+    }
   }
 
-  // Handlers para pasar a las filas de las tablas
-  const matHandlers = { handleEditMaterial, handleDeleteMaterial }
-  const prodHandlers = { handleEditProduct, handleDeleteProduct }
-  const absHandlers = { handleCompletarAbastecimiento, handleCancelarAbastecimiento, setSelectedAbs }
+  /* ── Handlers Productos ── */
+  /** Abre el drawer para crear un nuevo producto */
+  const handleAddProduct = () => { setEditingProduct(null); setShowDrawerProd(true) }
+  const handleEditProduct = (item) => { setEditingProduct(item); setShowDrawerProd(true) }
 
-  // Stats de abastecimientos (inline porque necesita datos del hook)
+  const handleDeleteProduct = async (item) => {
+    setAlertState({
+      type: 'confirm',
+      title: 'Desactivar producto',
+      message: `¿Desactivar "${item.name}"?`,
+      onConfirm: async () => {
+        setAlertState(null)
+        try {
+          await changeProductoEstado(item.id, 3)
+          await loadProductos()
+        } catch (err) {
+          setAlertState({ type: 'error', title: 'Error', message: err?.response?.data?.message || err?.message, onClose: () => setAlertState(null) })
+        }
+      },
+      onCancel: () => setAlertState(null),
+    })
+  }
+
+  const handleSaveProduct = async (data) => {
+    try {
+      if (data.id) {
+        await updateProducto(data.id, {
+          nombre: data.nombre,
+          precioUnitario: data.precio || 0,
+          genero: data.genero,
+          tipoPrenda: data.tipoPrenda,
+          categoriaId: data.categoriaId,
+          talla: data.talla,
+          umbralMinimo: data.umbralMinimo ?? 0,
+        })
+      } else {
+        await createProducto({
+          nombre: data.nombre,
+          precioUnitario: data.precio || 0,
+          genero: data.genero,
+          tipoPrenda: data.tipoPrenda,
+          categoriaId: data.categoriaId,
+          talla: data.talla,
+          cantidadDisponible: data.cantidadDisponible ?? 0,
+          umbralMinimo: data.umbralMinimo ?? 0,
+        })
+      }
+      setShowDrawerProd(false)
+      setEditingProduct(null)
+      await loadProductos()
+      setAlertState({ type: 'success', title: 'Éxito', message: 'Producto guardado correctamente', onClose: () => setAlertState(null) })
+    } catch (err) {
+      const detail = err?.response?.data?.errors
+        ? Object.values(err.response.data.errors).flat().join('. ')
+        : ''
+      const msg = detail
+        ? `${err?.response?.data?.message || 'Error de validación'}: ${detail}`
+        : err?.response?.data?.message || err?.message
+      setAlertState({ type: 'error', title: 'Error al guardar', message: msg, onClose: () => setAlertState(null) })
+    }
+  }
+
+  /* ── Handlers Abastecimiento ── */
+  /** Abre el drawer para crear un nuevo abastecimiento */
+  const handleAddAbastecimiento = () => setShowDrawerAbs(true)
+  const handleSaveAbastecimiento = async (data) => {
+    try {
+      await addAbastecimiento(data)
+      setShowDrawerAbs(false)
+      const itemsMsg = data.detalles?.length
+        ? 'Ítems: ' + data.detalles.map((d) => `${d.detAbsRefNombre || `Ref #${d.detAbsRefId}`} (×${d.detAbsCant})`).join(', ')
+        : ''
+      setAlertState({ type: 'success', title: 'Éxito', message: `Abastecimiento registrado correctamente.\n${itemsMsg}`, onClose: () => setAlertState(null) })
+    } catch (err) {
+      const msg = err?.response?.data?.error || err?.response?.data?.message || err?.message || 'Error desconocido'
+      setAlertState({ type: 'error', title: 'Error al registrar', message: msg, onClose: () => setAlertState(null) })
+    }
+  }
+  const handleCompletarAbastecimiento = async (item) => {
+    setAlertState({
+      type: 'confirm',
+      title: 'Completar abastecimiento',
+      message: `¿Completar el abastecimiento #${item.id}?\n\nEsto actualizará el stock de los ítems.`,
+      onConfirm: async () => {
+        setAlertState(null)
+        try {
+          await completarAbs(item.id)
+          await loadMateriales()
+          await loadProductos()
+        } catch (err) {
+          setAlertState({ type: 'error', title: 'Error', message: err?.response?.data?.message || err?.message, onClose: () => setAlertState(null) })
+        }
+      },
+      onCancel: () => setAlertState(null),
+    })
+  }
+  const handleCancelarAbastecimiento = async (item) => {
+    setAlertState({
+      type: 'confirm',
+      title: 'Cancelar abastecimiento',
+      message: `¿Cancelar el abastecimiento #${item.id}?`,
+      onConfirm: async () => {
+        setAlertState(null)
+        try {
+          await cancelarAbs(item.id)
+          await loadMateriales()
+          await loadProductos()
+        } catch (err) {
+          setAlertState({ type: 'error', title: 'Error', message: err?.response?.data?.message || err?.message, onClose: () => setAlertState(null) })
+        }
+      },
+      onCancel: () => setAlertState(null),
+    })
+  }
+
+  /* ════ Configuración de la tabla de Materiales ════ */
+  const matStats = (items) => {
+    // Usar resumen global del backend SIEMPRE que esté disponible (bug #5)
+    if (matResumen) {
+      const s = matResumen.total_stock
+      return [
+        { color: 'blue', icon: 'ti ti-stack', value: s.total.toLocaleString('es-CO'), unit: ' mts', label: 'Stock Total', sub: `${s.materiales_registrados} materiales registrados` },
+        { color: 'red', icon: 'ti ti-alert-triangle', value: matResumen.alertas_stock, unit: '', label: 'Alertas de Stock', valueRed: true, sub: 'requieren reposición' },
+        { color: 'green', icon: 'ti ti-package', value: s.materiales_registrados, unit: '', label: 'Materiales Registrados', sub: 'total en catálogo' },
+      ]
+    }
+    // Fallback: si el backend no envió resumen, calcular desde items (filtrados)
+    const totalStock = items.reduce((s, m) => s + m.stock, 0)
+    const lowCount = items.filter((m) => m.status === 'agotado').length
+    return [
+      { color: 'blue', icon: 'ti ti-stack', value: totalStock.toLocaleString('es-CO'), unit: ' mts', label: 'Stock Total', sub: `${items.length} materiales registrados` },
+      { color: 'red', icon: 'ti ti-alert-triangle', value: lowCount, unit: '', label: 'Alertas de Stock', valueRed: true, sub: 'requieren reposición' },
+      { color: 'green', icon: 'ti ti-package', value: items.length, unit: '', label: 'Materiales Registrados', sub: 'total en catálogo' },
+    ]
+  }
+
+  const matRenderRow = (m, hovered) => (
+    <>
+      <td>
+        <div className="inv-cell-name">
+          <p className="inv-material-name">{m.name}</p>
+          <p className="inv-material-ref">{m.ref}</p>
+        </div>
+      </td>
+      <td><span className="inv-cat-tag">{m.tipo_material || '—'}</span></td>
+      <td className="inv-cell-specs">{m.unidad_medida || '—'}</td>
+      <td className="inv-cell-specs">{m.desc || '—'}</td>
+      <td><StockBar current={m.stock} min={m.minStock} /></td>
+      <td>
+        <span className={`inv-badge ${m.status === 'agotado' ? 'inv-badge--empty' : m.status === 'eliminado' ? 'inv-badge--empty' : 'inv-badge--ok'}`}>
+          <i className={`ti ti-${m.status === 'disponible' ? 'circle-check' : 'x-circle'}`} />
+          {m.status === 'disponible' ? 'Disponible' : m.status === 'agotado' ? 'Agotado' : 'Eliminado'}
+        </span>
+      </td>
+      <td>
+        <div className={`inv-actions ${hovered ? 'inv-actions--visible' : ''}`}>
+          <button className="inv-action-btn" title="Editar" onClick={() => handleEditMaterial(m)}><i className="ti ti-edit" /></button>
+          {m.status !== 'eliminado' && (
+            <button className="inv-action-btn inv-action-btn--danger" title="Desactivar" onClick={() => handleDeleteMaterial(m)}><i className="ti ti-trash" /></button>
+          )}
+        </div>
+      </td>
+    </>
+  )
+
+  const matColumns = ['MATERIAL', 'TIPO', 'UNIDAD', 'DESCRIPCIÓN', 'STOCK', 'ESTADO', '']
+
+  /* ════ Configuración de la tabla de Productos ════ */
+  const prodStats = (items) => {
+    // Usar resumen global del backend SIEMPRE que esté disponible
+    if (prodResumen) {
+      return [
+        { color: 'blue', icon: 'ti ti-hanger', value: prodResumen.total_productos, unit: '', label: 'Total Productos', sub: 'en catálogo' },
+        { color: 'red', icon: 'ti ti-alert-triangle', value: prodResumen.alertas_stock, unit: '', label: 'Alertas de Stock', valueRed: true, sub: 'requieren reposición' },
+        { color: 'green', icon: 'ti ti-coin', value: fmt(prodResumen.valor_total), unit: '', label: 'Valor del Catálogo', sub: 'precio de venta total' },
+      ]
+    }
+    const totalVal = items.reduce((s, p) => s + p.price * p.stock, 0)
+    const lowCount = items.filter((p) => p.status === 'agotado').length
+    return [
+      { color: 'blue', icon: 'ti ti-hanger', value: items.length, unit: '', label: 'Total Productos', sub: 'en catálogo' },
+      { color: 'red', icon: 'ti ti-alert-triangle', value: lowCount, unit: '', label: 'Alertas de Stock', valueRed: true, sub: 'requieren reposición' },
+      { color: 'green', icon: 'ti ti-coin', value: fmt(totalVal), unit: '', label: 'Valor del Catálogo', sub: 'precio de venta total' },
+    ]
+  }
+
+  const prodRenderRow = (p, hovered) => (
+    <>
+      <td>
+        <div className="inv-cell-name">
+          <p className="inv-material-name">{p.name}</p>
+          <p className="inv-material-ref">{p.ref}</p>
+        </div>
+      </td>
+      <td className="inv-cell-specs">{p.descripcion || '—'}</td>
+      <td><span className="inv-cat-tag">{p.categoria || '—'}</span></td>
+      <td><span className="inv-cat-tag">{p.tipo_prenda || '—'}</span></td>
+      <td className="inv-cell-specs">{p.genero} · {p.talla}</td>
+      <td className="inv-cell-price">{fmt(p.price)}</td>
+      <td><StockBar current={p.stock} min={p.minStock} /></td>
+      <td>
+        <span className={`inv-badge ${p.status === 'agotado' ? 'inv-badge--empty' : p.status === 'eliminado' ? 'inv-badge--empty' : 'inv-badge--ok'}`}>
+          <i className={`ti ti-${p.status === 'disponible' ? 'circle-check' : 'x-circle'}`} />
+          {p.status === 'disponible' ? 'Disponible' : p.status === 'agotado' ? 'Agotado' : 'Eliminado'}
+        </span>
+      </td>
+      <td>
+        <div className={`inv-actions ${hovered ? 'inv-actions--visible' : ''}`}>
+          <button className="inv-action-btn" title="Editar" onClick={() => handleEditProduct(p)}><i className="ti ti-edit" /></button>
+          {p.status !== 'eliminado' && (
+            <button className="inv-action-btn inv-action-btn--danger" title="Desactivar" onClick={() => handleDeleteProduct(p)}><i className="ti ti-trash" /></button>
+          )}
+        </div>
+      </td>
+    </>
+  )
+
+  const prodColumns = ['PRODUCTO', 'DESCRIPCIÓN', 'CATEGORÍA', 'TIPO PRENDA', 'GÉNERO · TALLA', 'PRECIO', 'STOCK', 'ESTADO', '']
+
+  /* ════ Configuración de la tabla de Abastecimientos ════ */
+
+  // Mapa de IDs → nombres para resolver referencias en abastecimientos
+  const refNameMap = useMemo(() => {
+    const map = {}
+    materials.forEach((m) => { map[String(m.id)] = m.name })
+    products.forEach((p) => { map[String(p.id)] = p.name })
+    return map
+  }, [materials, products])
+
+  /** Resuelve el nombre de un detalle, usando el mapa de referencias si no tiene nombre */
+  const resolverNombreDetalle = (d) => {
+    if (d.nombre && !d.nombre.startsWith('Ref #')) return d.nombre
+    const refId = String(d.nombre || '').replace('Ref #', '')
+    return refNameMap[refId] || d.nombre || '—'
+  }
+
+  /** Formatea un número como moneda COP para abastecimientos */
+  const fmtAbs = (val) => Number(val || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
   const absStats = (items) => {
     const pendientes = items.filter((a) => a.estado === 'PENDIENTE').length
     const completados = items.filter((a) => a.estado === 'COMPLETADO').length
@@ -211,9 +733,51 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
     ]
   }
 
+  const absRenderRow = (a, hovered) => {
+    const fecha = a.fecha ? new Date(a.fecha).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'
+    const estadoClass = a.estado === 'COMPLETADO' ? 'inv-badge--ok' : a.estado === 'CANCELADO' ? 'inv-badge--empty' : 'inv-badge--warn'
+    const estadoLabel = a.estado === 'COMPLETADO' ? 'Completado' : a.estado === 'CANCELADO' ? 'Cancelado' : 'Pendiente'
+    // Resumen de ítems para mostrar en la tabla (incluye costo unitario)
+    const itemsResumen = a.detalles?.length > 0
+      ? a.detalles.map((d) => `${resolverNombreDetalle(d)} (×${d.cantidad} · ${fmtAbs(d.costo)} c/u)`).join(', ')
+      : (a.observacion || `${a.totalItems} ítem(s)`)
+
+    return (
+      <>
+        <td>
+          <div className="inv-cell-name">
+            <p className="inv-material-name">#{a.id} — {a.proveedorNombre}</p>
+            <p className="inv-material-ref">{fecha}</p>
+          </div>
+        </td>
+        <td className="inv-cell-specs" title={itemsResumen}>{itemsResumen}</td>
+        <td><span className={`inv-badge ${estadoClass}`}><i className={`ti ti-${a.estado === 'COMPLETADO' ? 'circle-check' : a.estado === 'CANCELADO' ? 'x-circle' : 'clock'}`} />{estadoLabel}</span></td>
+        <td className="inv-cell-price">{fmtAbs(a.costoTotal)}</td>
+        <td>
+          <div className={`inv-actions ${hovered ? 'inv-actions--visible' : ''}`}>
+            <button className="inv-action-btn" title="Ver detalle" onClick={() => setSelectedAbs(a)}><i className="ti ti-eye" /></button>
+            {a.estado === 'PENDIENTE' && (
+              <>
+                <button className="inv-action-btn inv-action-btn--success" title="Completar" onClick={() => handleCompletarAbastecimiento(a)}><i className="ti ti-circle-check" /></button>
+                <button className="inv-action-btn inv-action-btn--danger" title="Cancelar" onClick={() => handleCancelarAbastecimiento(a)}><i className="ti ti-trash" /></button>
+              </>
+            )}
+          </div>
+        </td>
+      </>
+    )
+  }
+
+  const absColumns = ['ABASTECIMIENTO', 'ÍTEMS', 'ESTADO', 'COSTO TOTAL', '']
+
+  const handleAddBtn = () => {
+    if (activeTab === 'materiales') handleAddMaterial()
+    else if (activeTab === 'productos') handleAddProduct()
+    else handleAddAbastecimiento()
+  }
+
   return (
     <div className="inv-content">
-      {/* ── Header ── */}
       <div className="inv-header">
         <div className="inv-header-left">
           <div className="inv-header-icon"><i className="ti ti-package" /></div>
@@ -228,97 +792,34 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
         </button>
       </div>
 
-      {/* ── Tabla de Materiales ── */}
       {activeTab === 'materiales' && (
-        <TablaSection
-          items={mat.materials}
-          loading={mat.loading}
-          tipo="materiales"
-          columns={matColumns}
-          renderRow={(item, hovered) => matRenderRow(item, hovered, matHandlers)}
-          statConfig={(items) => {
-            if (mat.resumen) {
-              const s = mat.resumen.total_stock
-              return [
-                { color: 'blue', icon: 'ti ti-stack', value: s.total.toLocaleString('es-CO'), unit: ' mts', label: 'Stock Total', sub: `${s.materiales_registrados} materiales registrados` },
-                { color: 'red', icon: 'ti ti-alert-triangle', value: mat.resumen.alertas_stock, unit: '', label: 'Alertas de Stock', valueRed: true, sub: 'requieren reposición' },
-                { color: 'green', icon: 'ti ti-package', value: s.materiales_registrados, unit: '', label: 'Materiales Registrados', sub: 'total en catálogo' },
-              ]
-            }
-            const totalStock = items.reduce((s, m) => s + m.stock, 0)
-            const lowCount = items.filter((m) => m.status === 'agotado').length
-            return [
-              { color: 'blue', icon: 'ti ti-stack', value: totalStock.toLocaleString('es-CO'), unit: ' mts', label: 'Stock Total', sub: `${items.length} materiales registrados` },
-              { color: 'red', icon: 'ti ti-alert-triangle', value: lowCount, unit: '', label: 'Alertas de Stock', valueRed: true, sub: 'requieren reposición' },
-              { color: 'green', icon: 'ti ti-package', value: items.length, unit: '', label: 'Materiales Registrados', sub: 'total en catálogo' },
-            ]
-          }}
-          filters={mat.filters}
-          onFiltersChange={mat.setFilters}
-          pagination={{ page: mat.page, totalPages: mat.totalPages, onPageChange: mat.handlePageChange }}
-          totalItems={mat.total}
+        <TablaSection items={materials} loading={loadingMat} tipo="materiales" columns={matColumns} renderRow={matRenderRow} statConfig={matStats} filters={matFilters} onFiltersChange={setMatFilters}
+          pagination={{ page: matPage, totalPages: matTotalPages, onPageChange: handleMatPageChange }}
+          totalItems={matTotal}
         />
       )}
-
-      {/* ── Tabla de Productos ── */}
       {activeTab === 'productos' && (
-        <TablaSection
-          items={prod.products}
-          loading={prod.loading}
-          tipo="productos"
-          columns={prodColumns}
-          renderRow={(item, hovered) => prodRenderRow(item, hovered, prodHandlers)}
-          statConfig={(items) => {
-            if (prod.resumen) {
-              return [
-                { color: 'blue', icon: 'ti ti-hanger', value: prod.resumen.total_productos, unit: '', label: 'Total Productos', sub: 'en catálogo' },
-                { color: 'red', icon: 'ti ti-alert-triangle', value: prod.resumen.alertas_stock, unit: '', label: 'Alertas de Stock', valueRed: true, sub: 'requieren reposición' },
-                { color: 'green', icon: 'ti ti-coin', value: fmtAbs(prod.resumen.valor_total), unit: '', label: 'Valor del Catálogo', sub: 'precio de venta total' },
-              ]
-            }
-            const totalVal = items.reduce((s, p) => s + p.price * p.stock, 0)
-            const lowCount = items.filter((p) => p.status === 'agotado').length
-            return [
-              { color: 'blue', icon: 'ti ti-hanger', value: items.length, unit: '', label: 'Total Productos', sub: 'en catálogo' },
-              { color: 'red', icon: 'ti ti-alert-triangle', value: lowCount, unit: '', label: 'Alertas de Stock', valueRed: true, sub: 'requieren reposición' },
-              { color: 'green', icon: 'ti ti-coin', value: fmtAbs(totalVal), unit: '', label: 'Valor del Catálogo', sub: 'precio de venta total' },
-            ]
-          }}
-          filters={prod.filters}
-          onFiltersChange={prod.setFilters}
-          pagination={{ page: prod.page, totalPages: prod.totalPages, onPageChange: prod.handlePageChange }}
-          totalItems={prod.total}
+        <TablaSection items={products} loading={loadingProd} tipo="productos" columns={prodColumns} renderRow={prodRenderRow} statConfig={prodStats} filters={prodFilters} onFiltersChange={setProdFilters}
+          pagination={{ page: prodPage, totalPages: prodTotalPages, onPageChange: handleProdPageChange }}
+          totalItems={prodTotal}
         />
       )}
-
-      {/* ── Tabla de Abastecimientos ── */}
       {activeTab === 'abastecimiento' && (
-        <TablaSection
-          items={filteredAbastecimientos}
-          loading={absLoading}
-          tipo="abastecimientos"
-          columns={absColumns}
-          renderRow={(item, hovered) => absRenderRow(item, hovered, absHandlers, resolverNombreDetalle, fmtAbs)}
-          statConfig={absStats}
-          filters={absFilters}
-          onFiltersChange={setAbsFilters}
+        <TablaSection items={filteredAbastecimientos} loading={absLoading} tipo="abastecimientos" columns={absColumns} renderRow={absRenderRow} statConfig={absStats} filters={absFilters} onFiltersChange={setAbsFilters}
           statusOptions={[
             { value: 'PENDIENTE', label: 'Pendiente' },
             { value: 'COMPLETADO', label: 'Completado' },
             { value: 'CANCELADO', label: 'Cancelado' },
           ]}
-          pagination={{ page: absPage, totalPages: absTotalPages, onPageChange: handleAbsPageChange }}
-          totalItems={absTotal}
         />
       )}
 
-      {/* ── Drawers ── */}
       {showDrawerMat && (
         <RegisterMaterial
           isOpen={showDrawerMat}
           onClose={() => { setShowDrawerMat(false); setEditingMaterial(null) }}
           initialData={editingMaterial}
-          existingMaterials={mat.materials}
+          existingMaterials={materials}
           onSave={handleSaveMaterial}
         />
       )}
@@ -339,110 +840,82 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
         />
       )}
 
-      {/* ── Modal detalle de abastecimiento ── */}
-      {selectedAbs && (() => {
-        const estado = selectedAbs.estado || 'PENDIENTE'
-        const estadoLabel = estado === 'COMPLETADO' ? 'Completado' : estado === 'CANCELADO' ? 'Cancelado' : 'Pendiente'
-        const estadoIcon = estado === 'COMPLETADO' ? 'ti ti-circle-check-filled' : estado === 'CANCELADO' ? 'ti ti-x-circle-filled' : 'ti ti-clock-filled'
-        const estadoColor = estado === 'COMPLETADO' ? '#10b981' : estado === 'CANCELADO' ? '#6b7280' : '#f59e0b'
-        const totalItems = (selectedAbs.detalles || []).length
-        const fecha = selectedAbs.fecha
-          ? new Date(selectedAbs.fecha).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })
-          : '—'
-        return (
-        <div className="abs-overlay" onClick={() => setSelectedAbs(null)}>
-          <div className="abs-detail-modal" onClick={(e) => e.stopPropagation()}>
-            {/* ── Header con estado ── */}
-            <div className="abs-detail-topbar" style={{ background: estadoColor }}>
-              <div className="abs-detail-topbar-left">
-                <i className={estadoIcon} />
-                <div>
-                  <p className="abs-detail-id">Abastecimiento #{selectedAbs.id}</p>
-                  <p className="abs-detail-status">{estadoLabel}</p>
-                </div>
-              </div>
-              <button className="abs-detail-close" onClick={() => setSelectedAbs(null)}>
+      {/* ── Modal detalle de abastecimiento (portal) ── */}
+      {selectedAbs && createPortal(
+        <div className="inv-overlay" onClick={() => setSelectedAbs(null)}>
+          <div className="inv-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="inv-modal-header">
+              <h3>Abastecimiento #{selectedAbs.id}</h3>
+              <button className="inv-modal-close" onClick={() => setSelectedAbs(null)}>
                 <i className="ti ti-x" />
               </button>
             </div>
-
-            <div className="abs-detail-body">
-              {/* ── Resumen del proveedor ── */}
-              <div className="abs-info-grid">
-                <div className="abs-info-card">
-                  <i className="ti ti-building-store" />
-                  <span className="abs-info-label">Proveedor</span>
-                  <span className="abs-info-value">{selectedAbs.proveedorNombre || '—'}</span>
+            <div className="inv-modal-body">
+              <div className="inv-modal-section">
+                <div className="inv-modal-row">
+                  <span className="inv-modal-label">Proveedor</span>
+                  <span className="inv-modal-value">{selectedAbs.proveedorNombre || '—'}</span>
                 </div>
-                <div className="abs-info-card">
-                  <i className="ti ti-calendar" />
-                  <span className="abs-info-label">Fecha</span>
-                  <span className="abs-info-value">{fecha}</span>
+                <div className="inv-modal-row">
+                  <span className="inv-modal-label">Fecha</span>
+                  <span className="inv-modal-value">
+                    {selectedAbs.fecha
+                      ? new Date(selectedAbs.fecha).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })
+                      : '—'}
+                  </span>
                 </div>
-                <div className="abs-info-card">
-                  <i className="ti ti-box" />
-                  <span className="abs-info-label">Ítems</span>
-                  <span className="abs-info-value">{totalItems} producto(s)</span>
+                <div className="inv-modal-row">
+                  <span className="inv-modal-label">Estado</span>
+                  <span className={`inv-badge ${selectedAbs.estado === 'COMPLETADO' ? 'inv-badge--ok' : selectedAbs.estado === 'CANCELADO' ? 'inv-badge--empty' : 'inv-badge--warn'}`}>
+                    {selectedAbs.estado === 'COMPLETADO' ? 'Completado' : selectedAbs.estado === 'CANCELADO' ? 'Cancelado' : 'Pendiente'}
+                  </span>
                 </div>
-                <div className="abs-info-card">
-                  <i className="ti ti-coin" />
-                  <span className="abs-info-label">Total</span>
-                  <span className="abs-info-value abs-total-highlight">{fmtAbs(selectedAbs.costoTotal)}</span>
-                </div>
+                {selectedAbs.observacion && (
+                  <div className="inv-modal-row">
+                    <span className="inv-modal-label">Observación</span>
+                    <span className="inv-modal-value">{selectedAbs.observacion}</span>
+                  </div>
+                )}
               </div>
 
-              {/* ── Observación ── */}
-              {selectedAbs.observacion && (
-                <div className="abs-obs-section">
-                  <i className="ti ti-notes" />
-                  <p>{selectedAbs.observacion}</p>
-                </div>
-              )}
-
-              {/* ── Tabla de ítems ── */}
-              <div className="abs-items-section">
-                <h4 className="abs-items-title">
-                  <i className="ti ti-list-details" />
-                  Productos / Materiales
-                </h4>
-                <div className="abs-table-wrap">
-                  <table className="abs-detail-table">
-                    <thead>
-                      <tr>
-                        <th>Producto/Material</th>
-                        <th className="abs-th-num">Cantidad</th>
-                        <th className="abs-th-num">Costo unit.</th>
-                        <th className="abs-th-num">Subtotal</th>
+              <div className="inv-modal-section">
+                <h4 className="inv-modal-subtitle">Ítems del abastecimiento</h4>
+                <table className="inv-table">
+                  <thead>
+                    <tr>
+                      <th>Producto/Material</th>
+                      <th>Cantidad</th>
+                      <th>Costo unitario</th>
+                      <th>Subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(selectedAbs.detalles || []).map((d, i) => (
+                      <tr key={i}>
+                        <td>{resolverNombreDetalle(d)}</td>
+                        <td>{d.cantidad}</td>
+                        <td>{fmtAbs(d.costo)}</td>
+                        <td>{fmtAbs(d.cantidad * d.costo)}</td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {(selectedAbs.detalles || []).map((d, i) => (
-                        <tr key={i}>
-                          <td>
-                            <span className="abs-item-name">{resolverNombreDetalle(d)}</span>
-                          </td>
-                          <td className="abs-td-num">{d.cantidad}</td>
-                          <td className="abs-td-num">{fmtAbs(d.costo)}</td>
-                          <td className="abs-td-num abs-td-total">{fmtAbs(d.cantidad * d.costo)}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                    <tfoot>
-                      <tr>
-                        <td colSpan={3} className="abs-foot-label">Total general</td>
-                        <td className="abs-foot-value">{fmtAbs(selectedAbs.costoTotal)}</td>
-                      </tr>
-                    </tfoot>
-                  </table>
-                </div>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colSpan={3} style={{ textAlign: 'right', fontWeight: 600 }}>Total</td>
+                      <td style={{ fontWeight: 600 }}>{fmtAbs(selectedAbs.costoTotal)}</td>
+                    </tr>
+                  </tfoot>
+                </table>
               </div>
             </div>
+            <div className="inv-modal-footer">
+              <button className="inv-btn-primary" onClick={() => setSelectedAbs(null)}>Cerrar</button>
+            </div>
           </div>
-        </div>
-        )
-      })()}
+        </div>,
+        document.body
+      )}
 
-      {/* ── Alertas ── */}
       {alertState && (
         <Alert
           type={alertState.type}

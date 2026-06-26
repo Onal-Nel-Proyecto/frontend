@@ -45,7 +45,7 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle, pedidoEstado }) => {
   // ─── Cargar catálogos del backend al abrir el drawer ───
   useEffect(() => {
     let cancelled = false;
-    if (isOpen && (isCreate || editMode)) {
+    if (isOpen) {
       const fetchCatalogos = async () => {
         try {
           const [catRes, medRes] = await Promise.all([

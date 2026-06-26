@@ -47,6 +47,12 @@ const validate = (form, isEditing, existingMaterials, currentId) => {
 
   if (!form.tipoMaterial) errs.tipoMaterial = 'Selecciona el tipo de material'
 
+  if (form.cantidadInicial !== '') {
+    const cant = Number(form.cantidadInicial)
+    if (!Number.isInteger(cant) || cant < 0) errs.cantidadInicial = 'La cantidad debe ser un número entero ≥ 0'
+    else if (cant > 1000) errs.cantidadInicial = 'Máximo 1000 unidades'
+  }
+
   const desc = form.descripcion?.trim()
   if (desc.length > 200) errs.descripcion = 'Máximo 200 caracteres'
 
@@ -252,7 +258,14 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, existingMaterials = []
                   placeholder="0" value={form.cantidadInicial}
                   onChange={(e) => {
                     const raw = e.target.value.replace(/\D/g, '');
-                    setForm((prev) => ({ ...prev, cantidadInicial: raw }));
+                    if (raw === '') {
+                      setForm((prev) => ({ ...prev, cantidadInicial: '' }));
+                    } else {
+                      const num = parseInt(raw, 10);
+                      if (!isNaN(num)) {
+                        setForm((prev) => ({ ...prev, cantidadInicial: String(Math.min(num, 1000)) }));
+                      }
+                    }
                   }}
                   onBlur={handleBlur} />
               </div>
