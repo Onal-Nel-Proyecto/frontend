@@ -42,11 +42,17 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
   const {
     abastecimientos,
     proveedores,
+    meta: absMeta,
     loading: absLoading,
+    loadAbastecimientos,
     addAbastecimiento,
     completar: completarAbs,
     cancelar: cancelarAbs,
   } = useAbastecimiento()
+
+  const absPage = absMeta?.pagina_actual || 1
+  const absTotalPages = absMeta?.total_paginas || Math.ceil((absMeta?.total || 0) / 15) || 1
+  const absTotal = absMeta?.total || 0
 
   // ── Estado local ──
   const [showDrawerMat, setShowDrawerMat] = useState(false)
@@ -177,6 +183,10 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
     }
   }, [location.state, activeTab])
 
+  const handleAbsPageChange = (page) => {
+    loadAbastecimientos(page)
+  }
+
   const handleAddBtn = () => {
     if (activeTab === 'materiales') handleAddMaterial()
     else if (activeTab === 'productos') handleAddProduct()
@@ -297,6 +307,8 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
             { value: 'COMPLETADO', label: 'Completado' },
             { value: 'CANCELADO', label: 'Cancelado' },
           ]}
+          pagination={{ page: absPage, totalPages: absTotalPages, onPageChange: handleAbsPageChange }}
+          totalItems={absTotal}
         />
       )}
 
