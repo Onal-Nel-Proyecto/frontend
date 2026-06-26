@@ -25,7 +25,7 @@ const DetallePedido = () => {
   const [viewerImage, setViewerImage] = useState(null);
   const fileInputRef = useRef(null);
   const API_URL = import.meta.env.VITE_API_URL || '';
-  console.log(`${API_URL}${pedido.fotos_pedido[0]?.foto_url}`)
+
   // Cargar fotos existentes del pedido desde la API
   useEffect(() => {
     if (pedido.fotos_pedido?.length > 0) {

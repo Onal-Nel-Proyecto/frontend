@@ -5,7 +5,7 @@
 // ================================================================
 
 import { useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, useNavigate } from 'react-router-dom';
 import { FiPlay, FiXCircle, FiEdit2, FiClipboard, FiArrowRight } from 'react-icons/fi';
 import Alert from '../../../../components/ui/feedback/Alert';
 import { updateProduccion } from '../../services/pedidosService';
@@ -26,19 +26,19 @@ const getSiguienteEstado = (actual) => {
 };
 
 const labelSiguiente = (actual) => {
-  console.log('ACTUAL:', actual);
   const sig = getSiguienteEstado(actual);
-  console.log('SIGUIENTE:', sig);
   if (!sig) return null;
   return estadoProdConfig[sig]?.label || sig;
 };
 
 const Produccion = () => {
   const { pedido, isCanceled } = useOutletContext();
+  const navigate = useNavigate();
   const [showForm, setShowForm] = useState(false);
   const [confirmTarget, setConfirmTarget] = useState(null); // { produccion_id, detalle_id, estado_actual }
   const [loadingProd, setLoadingProd] = useState(false);
   const [alert, setAlert] = useState(null);
+  const [errorProd, setErrorProd] = useState(null);
 
   const producciones = (pedido.detalles_pedido || []).flatMap(
     (d) =>
@@ -225,6 +225,9 @@ const Produccion = () => {
       </div>
 
       <ProduccionForm isOpen={showForm} onClose={() => setShowForm(false)} detalles={pedido.detalles_pedido} />
+
+      {/* Error de producción */}
+      {errorProd && <Alert type={errorProd.type} title={errorProd.title} message={errorProd.message} onClose={errorProd.onClose} />}
 
       {/* Confirmación avanzar / cancelar producción */}
       {confirmTarget && (

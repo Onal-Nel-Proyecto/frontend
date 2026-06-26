@@ -44,22 +44,27 @@ const DetallePanel = ({ isOpen, onClose, modo, detalle, pedidoEstado }) => {
 
   // ─── Cargar catálogos del backend al abrir el drawer ───
   useEffect(() => {
-    if (!isOpen) return;
-    const fetchCatalogos = async () => {
-      try {
-        const [catRes, medRes] = await Promise.all([
-          getCategorias(1, { estado: 'ACTIVO' }),
-          getMedidas(1, { estado: 'ACTIVO' }),
-        ]);
-        setCategorias(Array.isArray(catRes.data) ? catRes.data : []);
-        setMedidasList(Array.isArray(medRes.data) ? medRes.data : []);
-      } catch {
-        setCategorias([]);
-        setMedidasList([]);
-      }
-    };
-    fetchCatalogos();
-  }, [isOpen]);
+    let cancelled = false;
+    if (isOpen && (isCreate || editMode)) {
+      const fetchCatalogos = async () => {
+        try {
+          const [catRes, medRes] = await Promise.all([
+            getCategorias(1, { estado: 'ACTIVO' }),
+            getMedidas(1, { estado: 'ACTIVO' }),
+          ]);
+          if (cancelled) return;
+          setCategorias(Array.isArray(catRes.data) ? catRes.data : []);
+          setMedidasList(Array.isArray(medRes.data) ? medRes.data : []);
+        } catch {
+          if (cancelled) return;
+          setCategorias([]);
+          setMedidasList([]);
+        }
+      };
+      fetchCatalogos();
+    }
+    return () => { cancelled = true; };
+  }, [isOpen, isCreate, editMode]);
 
   const [form, setForm] = useState({
     producto_nombre: detalle?.producto?.nombre || '',

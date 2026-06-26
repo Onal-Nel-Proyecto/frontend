@@ -4,7 +4,7 @@
 // producción) y campo de cantidad.
 // ================================================================
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { FiPlay, FiPackage } from 'react-icons/fi';
 import Drawer from '../../../../components/common/Drawer';
@@ -36,6 +36,8 @@ const ProduccionForm = ({ isOpen, onClose, detalles, onSuccess }) => {
   const [alert, setAlert] = useState(null);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const mountedRef = useRef(true);
+  useEffect(() => () => { mountedRef.current = false; }, []);
 
   const detallesPendientes = calcularDetallesPendientes(detalles);
   const [form, setForm] = useState({
@@ -85,6 +87,7 @@ const ProduccionForm = ({ isOpen, onClose, detalles, onSuccess }) => {
         detalle_id: form.detalle_id,
         producto_id: detalleSeleccionado?.producto?.producto_id || '',
       });
+      if (!mountedRef.current) return;
       setLoading(false);
       if (resp?.status) {
         setAlert({

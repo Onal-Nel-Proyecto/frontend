@@ -4,7 +4,7 @@
 // Cada pestaña tiene su propia tabla, filtros, estadísticas y CRUD
 // ================================================================
 
-import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
 import RegisterMaterial from './RegisterMaterial'
 import RegisterProducto from './RegisterProducto'
@@ -23,14 +23,6 @@ import './InventarioPage.css'
 /** Formatea un número como moneda COP (sin decimales) */
 const fmt = (val) =>
   Number(val || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
-
-/** Convierte un código de género (F/M/U) a su etiqueta visible */
-const displayGenero = (g) => {
-  if (g === 'F' || g === 'Femenino') return 'Femenino'
-  if (g === 'M' || g === 'Masculino') return 'Masculino'
-  if (g === 'U' || g === 'Unisex') return 'Unisex'
-  return g || '—'
-}
 
 // ════════════════════════════════════════════
 //  TRANSFORMADORES API → TABLA (mappers)
@@ -292,6 +284,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
   const [prodTotalPages, setProdTotalPages] = useState(1)
   const [prodTotal, setProdTotal] = useState(0)
   const [absFilters, setAbsFilters] = useState({ category: '', status: '', search: '', categoryOptions: [] })
+  const [selectedAbs, setSelectedAbs] = useState(null)
 
   // Filtro cliente-side para abastecimientos (por estado y búsqueda)
   const filteredAbastecimientos = useMemo(() => {
@@ -317,12 +310,9 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
     try {
       const params = { limite: 15, pagina, ...filtros }
       const res = await getMateriales(params)
-      let items = Array.isArray(res?.data) ? res.data.map(mapperMaterial) : []
-      // Si no se pidió explícitamente "eliminado", filtrarlos fuera
-      if (filtros.estado !== 'ELIMINADO') {
-        items = items.filter((m) => m.status !== 'eliminado')
-      }
+      const items = Array.isArray(res?.data) ? res.data.map(mapperMaterial) : []
       setMaterials(items)
+      setMatPage(pagina)
       if (res?.resumen) setMatResumen(res.resumen)
       if (res?.paginacion) {
         setMatTotalPages(res.paginacion.totalPaginas || 1)
@@ -345,14 +335,9 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
     try {
       const params = { limite: 15, pagina, tipoProducto: 'INVENTARIO', ...filtros }
       const res = await getProductos(params)
-      let items = Array.isArray(res?.data) ? res.data.map(mapperProducto) : []
-      // Filtrar productos que no son de inventario (ej: PERSONALIZADO de pedidos)
-      items = items.filter((p) => p.tipoProducto === 'INVENTARIO')
-      // Filtrar eliminados/inactivos/inhabilitados, salvo que el filtro sea específicamente "eliminado" (estado=3)
-      if (filtros.estado !== 3) {
-        items = items.filter((p) => p.status !== 'eliminado' && p.status !== 'inactivo' && p.status !== 'inhabilitado')
-      }
+      const items = Array.isArray(res?.data) ? res.data.map(mapperProducto) : []
       setProducts(items)
+      setProdPage(pagina)
       if (res?.resumen) setProdResumen(res.resumen)
       if (res?.paginacion) {
         setProdTotalPages(res.paginacion.totalPaginas || 1)
@@ -392,16 +377,14 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
   // Recargar materiales al cambiar filtros (búsqueda debounced, estado/categoría inmediato)
   useEffect(() => {
     const params = {}
-    if (matFilters.search) params.nombre = matFilters.search
+    if (debouncedMatSearch) params.nombre = debouncedMatSearch
     const estado = mapEstadoMaterial(matFilters.status)
     if (estado != null) params.estado = estado
     if (matFilters.category) params.tipoMaterial = matFilters.category
-    setMatPage(1) // reset a primera página al cambiar filtros
     loadMateriales(params, 1)
   }, [loadMateriales, debouncedMatSearch, matFilters.status, matFilters.category])
 
   const handleMatPageChange = (page) => {
-    setMatPage(page)
     const params = {}
     if (matFilters.search) params.nombre = matFilters.search
     const estado = mapEstadoMaterial(matFilters.status)
@@ -413,16 +396,14 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
   // Recargar productos al cambiar filtros
   useEffect(() => {
     const params = { tipoProducto: 'INVENTARIO' }
-    if (prodFilters.search) params.nombre = prodFilters.search
+    if (debouncedProdSearch) params.nombre = debouncedProdSearch
     const estado = mapEstadoProducto(prodFilters.status)
     if (estado != null) params.estado = estado
     if (prodFilters.category) params.categoria = prodFilters.category
-    setProdPage(1) // reset a primera página al cambiar filtros
     loadProductos(params, 1)
   }, [loadProductos, debouncedProdSearch, prodFilters.status, prodFilters.category])
 
   const handleProdPageChange = (page) => {
-    setProdPage(page)
     const params = { tipoProducto: 'INVENTARIO' }
     if (prodFilters.search) params.nombre = prodFilters.search
     const estado = mapEstadoProducto(prodFilters.status)
@@ -433,8 +414,10 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
 
   // Abrir formulario de abastecimiento si se navegó con openForm:true (ej: desde acceso rápido del dashboard)
   const location = useLocation()
+  const openFormHandled = useRef(false)
   useEffect(() => {
-    if (location.state?.openForm && activeTab === 'abastecimiento') {
+    if (location.state?.openForm && activeTab === 'abastecimiento' && !openFormHandled.current) {
+      openFormHandled.current = true
       setShowDrawerAbs(true)
       window.history.replaceState(null, '')
     }
@@ -453,7 +436,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
       onConfirm: async () => {
         setAlertState(null)
         try {
-          await changeMaterialEstado(item.id, 3)
+          await changeMaterialEstado(item.id, 'ELIMINADO')
           await loadMateriales()
         } catch (err) {
           setAlertState({ type: 'error', title: 'Error', message: err?.response?.data?.message || err?.message, onClose: () => setAlertState(null) })
@@ -537,6 +520,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
           tipoPrenda: data.tipoPrenda,
           categoriaId: data.categoriaId,
           talla: data.talla,
+          cantidadDisponible: data.cantidadDisponible ?? 0,
         })
       }
       setShowDrawerProd(false)
@@ -591,6 +575,8 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
         setAlertState(null)
         try {
           await cancelarAbs(item.id)
+          await loadMateriales()
+          await loadProductos()
         } catch (err) {
           setAlertState({ type: 'error', title: 'Error', message: err?.response?.data?.message || err?.message, onClose: () => setAlertState(null) })
         }
@@ -704,6 +690,22 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
   const prodColumns = ['PRODUCTO', 'DESCRIPCIÓN', 'CATEGORÍA', 'TIPO PRENDA', 'GÉNERO · TALLA', 'PRECIO', 'STOCK', 'ESTADO', '']
 
   /* ════ Configuración de la tabla de Abastecimientos ════ */
+
+  // Mapa de IDs → nombres para resolver referencias en abastecimientos
+  const refNameMap = useMemo(() => {
+    const map = {}
+    materials.forEach((m) => { map[String(m.id)] = m.name })
+    products.forEach((p) => { map[String(p.id)] = p.name })
+    return map
+  }, [materials, products])
+
+  /** Resuelve el nombre de un detalle, usando el mapa de referencias si no tiene nombre */
+  const resolverNombreDetalle = (d) => {
+    if (d.nombre && !d.nombre.startsWith('Ref #')) return d.nombre
+    const refId = String(d.nombre || '').replace('Ref #', '')
+    return refNameMap[refId] || d.nombre || '—'
+  }
+
   /** Formatea un número como moneda COP para abastecimientos */
   const fmtAbs = (val) => Number(val || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 })
   const absStats = (items) => {
@@ -724,7 +726,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
     const estadoLabel = a.estado === 'COMPLETADO' ? 'Completado' : a.estado === 'CANCELADO' ? 'Cancelado' : 'Pendiente'
     // Resumen de ítems para mostrar en la tabla (incluye costo unitario)
     const itemsResumen = a.detalles?.length > 0
-      ? a.detalles.map((d) => `${d.nombre} (×${d.cantidad} · ${fmtAbs(d.costo)} c/u)`).join(', ')
+      ? a.detalles.map((d) => `${resolverNombreDetalle(d)} (×${d.cantidad} · ${fmtAbs(d.costo)} c/u)`).join(', ')
       : (a.observacion || `${a.totalItems} ítem(s)`)
 
     return (
@@ -740,6 +742,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
         <td className="inv-cell-price">{fmtAbs(a.costoTotal)}</td>
         <td>
           <div className={`inv-actions ${hovered ? 'inv-actions--visible' : ''}`}>
+            <button className="inv-action-btn" title="Ver detalle" onClick={() => setSelectedAbs(a)}><i className="ti ti-eye" /></button>
             {a.estado === 'PENDIENTE' && (
               <>
                 <button className="inv-action-btn inv-action-btn--success" title="Completar" onClick={() => handleCompletarAbastecimiento(a)}><i className="ti ti-circle-check" /></button>
@@ -822,6 +825,81 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
           proveedores={proveedores}
           onSave={handleSaveAbastecimiento}
         />
+      )}
+
+      {/* ── Modal detalle de abastecimiento ── */}
+      {selectedAbs && (
+        <div className="inv-overlay" onClick={() => setSelectedAbs(null)}>
+          <div className="inv-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="inv-modal-header">
+              <h3>Abastecimiento #{selectedAbs.id}</h3>
+              <button className="inv-modal-close" onClick={() => setSelectedAbs(null)}>
+                <i className="ti ti-x" />
+              </button>
+            </div>
+            <div className="inv-modal-body">
+              <div className="inv-modal-section">
+                <div className="inv-modal-row">
+                  <span className="inv-modal-label">Proveedor</span>
+                  <span className="inv-modal-value">{selectedAbs.proveedorNombre || '—'}</span>
+                </div>
+                <div className="inv-modal-row">
+                  <span className="inv-modal-label">Fecha</span>
+                  <span className="inv-modal-value">
+                    {selectedAbs.fecha
+                      ? new Date(selectedAbs.fecha).toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })
+                      : '—'}
+                  </span>
+                </div>
+                <div className="inv-modal-row">
+                  <span className="inv-modal-label">Estado</span>
+                  <span className={`inv-badge ${selectedAbs.estado === 'COMPLETADO' ? 'inv-badge--ok' : selectedAbs.estado === 'CANCELADO' ? 'inv-badge--empty' : 'inv-badge--warn'}`}>
+                    {selectedAbs.estado === 'COMPLETADO' ? 'Completado' : selectedAbs.estado === 'CANCELADO' ? 'Cancelado' : 'Pendiente'}
+                  </span>
+                </div>
+                {selectedAbs.observacion && (
+                  <div className="inv-modal-row">
+                    <span className="inv-modal-label">Observación</span>
+                    <span className="inv-modal-value">{selectedAbs.observacion}</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="inv-modal-section">
+                <h4 className="inv-modal-subtitle">Ítems del abastecimiento</h4>
+                <table className="inv-table">
+                  <thead>
+                    <tr>
+                      <th>Producto/Material</th>
+                      <th>Cantidad</th>
+                      <th>Costo unitario</th>
+                      <th>Subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(selectedAbs.detalles || []).map((d, i) => (
+                      <tr key={i}>
+                        <td>{resolverNombreDetalle(d)}</td>
+                        <td>{d.cantidad}</td>
+                        <td>{fmtAbs(d.costo)}</td>
+                        <td>{fmtAbs(d.cantidad * d.costo)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colSpan={3} style={{ textAlign: 'right', fontWeight: 600 }}>Total</td>
+                      <td style={{ fontWeight: 600 }}>{fmtAbs(selectedAbs.costoTotal)}</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+            <div className="inv-modal-footer">
+              <button className="inv-btn-primary" onClick={() => setSelectedAbs(null)}>Cerrar</button>
+            </div>
+          </div>
+        </div>
       )}
 
       {alertState && (

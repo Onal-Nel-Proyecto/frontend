@@ -64,7 +64,6 @@ export const createProduccion = async (pedidoId, detalleId, data) => {
 /** Actualizar producción */
 export const updateProduccion = async (pedidoId, detalleId, produccionId, data) => {
   const res = await axiosInstance.patch(`${BASE}/${pedidoId}/detalles/${detalleId}/produccion/${produccionId}`, data);
-  console.log(data)
   return res.data;
 };
 

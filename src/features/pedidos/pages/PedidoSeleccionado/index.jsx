@@ -129,9 +129,8 @@ const PedidoSeleccionado = ({ origen = 'CLIENTE' }) => {
 
         setPedido(resp);
       } catch {
-        console.warn('[PedidoSeleccionado] API no disponible, cargando datos de ejemplo');
         if (!cancel) {
-          const ejemplo = PEDIDOS_DETALLE_EJEMPLO[id];
+        const ejemplo = PEDIDOS_DETALLE_EJEMPLO[id];
           if (ejemplo) {
             // Los ejemplos no tienen tipo_origen, se muestran normalmente
             setPedido(ejemplo);
@@ -155,7 +154,8 @@ const PedidoSeleccionado = ({ origen = 'CLIENTE' }) => {
     return SUB_PAGES_BASE;
   }, [isProduccion]);
 
-  // ── Redirigir desde /pagos si no aplica ──
+  // ── Redirigir desde /pagos si precio_total es inválido ──
+  const location = useLocation();
   useEffect(() => {
     if (!pedido) return;
     const precioTotal = Number(pedido.precio_total ?? pedido.total_general ?? 0);
