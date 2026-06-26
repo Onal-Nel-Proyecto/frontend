@@ -177,7 +177,7 @@
 /* Columnas 1 y 2 (PRODUCTO/MATERIAL, DESCRIPCIÓN): ancho mínimo para que no se colapsen */
 .inv-table th:nth-child(1),
 .inv-table td:nth-child(1) {
-  min-width: 150px;
+  min-width: 250px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -327,6 +327,22 @@
   /* Cambiar a table-layout:auto en móvil para que las columnas visibles usen bien el espacio */
   .inv-table[data-tab="productos"] { table-layout: auto !important; }
   .inv-table[data-tab="materiales"] { table-layout: auto !important; }
+  /* En móvil: el nombre del producto NO se trunca, sino que envuelve el texto */
+  .inv-table th:nth-child(1),
+  .inv-table td:nth-child(1) {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    word-break: break-word;
+    min-width: 160px;
+  }
+  .inv-cell-name { overflow: visible; }
+  .inv-material-name {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    word-break: break-word;
+  }
 }
 
 @media (max-width: 480px) {
@@ -385,4 +401,60 @@
 .inv-modal-footer {
   display: flex; justify-content: flex-end; gap: 0.75rem;
   padding: 1rem 1.5rem; border-top: 1px solid var(--border-glass);
+}
+
+/* ── Modal detalle abastecimiento — Responsive ── */
+.inv-modal-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.inv-modal-table-wrap .inv-table {
+  min-width: 500px;
+  table-layout: auto;
+}
+/* Anular min-width excesivos de la tabla general para que quepan las 4 columnas */
+.inv-modal-table-wrap .inv-table th:nth-child(1),
+.inv-modal-table-wrap .inv-table td:nth-child(1),
+.inv-modal-table-wrap .inv-table th:nth-child(2),
+.inv-modal-table-wrap .inv-table td:nth-child(2) {
+  min-width: unset;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+}
+.inv-modal-table-wrap .inv-table th:last-child,
+.inv-modal-table-wrap .inv-table td:last-child {
+  min-width: unset;
+  width: auto;
+  text-align: right;
+}
+
+@media (max-width: 768px) {
+  .inv-overlay { padding: 0.75rem; }
+  .inv-modal { max-width: 95%; width: 95%; }
+  .inv-modal-header { padding: 1rem 1.25rem; }
+  .inv-modal-header h3 { font-size: 1rem; }
+  .inv-modal-body { padding: 1rem 1.25rem; }
+  .inv-modal-footer { padding: 0.85rem 1.25rem; }
+  .inv-modal-row { gap: 0.75rem; }
+  .inv-modal-label { min-width: 100px; font-size: 0.7rem; }
+  .inv-modal-value { font-size: 0.7rem; }
+  .inv-modal-subtitle { font-size: var(--text-xs); }
+}
+
+@media (max-width: 480px) {
+  .inv-overlay { padding: 0.5rem; align-items: flex-end; }
+  .inv-modal {
+    max-width: 100%; width: 100%;
+    max-height: 90vh; border-radius: var(--radius-md) var(--radius-md) 0 0;
+  }
+  .inv-modal-header { padding: 0.85rem 1rem; }
+  .inv-modal-body { padding: 0.85rem 1rem; }
+  .inv-modal-footer { padding: 0.75rem 1rem; }
+  .inv-modal-row {
+    flex-direction: column; gap: 0.15rem;
+    padding: 0.4rem 0;
+  }
+  .inv-modal-label { min-width: unset; font-size: 0.65rem; }
+  .inv-modal-value { font-size: var(--text-xs); }
 }
