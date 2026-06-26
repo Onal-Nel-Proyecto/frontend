@@ -236,8 +236,7 @@
 /* 6.5rem = 2 botones (2rem c/u) + gap (4px) + padding horizontal (2rem) */
 .inv-table th:last-child,
 .inv-table td:last-child { width: 8rem; min-width: 8rem; white-space: nowrap; text-align: right; }
-.inv-actions { display: flex; gap: 4px; justify-content: flex-end; opacity: 0; transition: opacity 0.2s ease; }
-.inv-actions--visible { opacity: 1; }
+.inv-actions { display: flex; gap: 4px; justify-content: flex-end; }
 .inv-action-btn {
   width: 2rem; height: 2rem; border: none; border-radius: var(--radius-xs);
   background: transparent; cursor: pointer;
@@ -316,6 +315,12 @@
   /* Ocultar columna DESCRIPCIÓN (4ta) en móvil para evitar interpolación con STOCK — solo tabla de materiales (bug #7) */
   .inv-table[data-tab="materiales"] th:nth-child(4),
   .inv-table[data-tab="materiales"] td:nth-child(4) { display: none; }
+  /* Abastecimientos: ocultar ÍTEMS (2da) y COSTO TOTAL (4ta) en móvil */
+  .inv-table[data-tab="abastecimientos"] th:nth-child(2),
+  .inv-table[data-tab="abastecimientos"] td:nth-child(2),
+  .inv-table[data-tab="abastecimientos"] th:nth-child(4),
+  .inv-table[data-tab="abastecimientos"] td:nth-child(4) { display: none; }
+  .inv-table[data-tab="abastecimientos"] { table-layout: auto !important; }
   /* Productos: ocultar CATEGORÍA (3ra), TIPO PRENDA (4ta), GÉNERO·TALLA (5ta) en móvil */
   /* PRECIO (6ta) se mantiene visible — es información crítica */
   .inv-table[data-tab="productos"] th:nth-child(3),
@@ -360,6 +365,9 @@
   /* Productos: ocultar DESCRIPCIÓN (2da) en pantallas muy pequeñas */
   .inv-table[data-tab="productos"] th:nth-child(2),
   .inv-table[data-tab="productos"] td:nth-child(2) { display: none; }
+  /* Abastecimientos: ocultar ESTADO (3ra) en pantallas muy pequeñas */
+  .inv-table[data-tab="abastecimientos"] th:nth-child(3),
+  .inv-table[data-tab="abastecimientos"] td:nth-child(3) { display: none; }
 }
 
 /* ── Modal detalle de abastecimiento (rediseñado) ── */

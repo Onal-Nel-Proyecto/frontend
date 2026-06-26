@@ -26,7 +26,7 @@ const mapperProducto = (p) => ({
   genero: p.genero || '—',
   talla: p.talla || '—',
   price: Number(p.precioUnitario || 0),
-  stock: Number(p.cantidadDisponible || 0),
+  stock: Number(p.cantidadDisponible || p.stock || 0),
   minStock: Number(p.umbralMinimo || 0),
   tipoProducto: p.tipoProducto || 'INVENTARIO',
   status: typeof p.estado === 'string' ? p.estado.toLowerCase() : p.estado === 1 ? 'disponible' : p.estado === 2 ? 'agotado' : 'eliminado',
@@ -122,6 +122,7 @@ export function useProductos({ setAlertState }) {
           tipoPrenda: data.tipoPrenda,
           categoriaId: data.categoriaId,
           talla: data.talla,
+          umbralMinimo: data.umbralMinimo ?? 0,
         })
       } else {
         await createProducto({
@@ -133,12 +134,13 @@ export function useProductos({ setAlertState }) {
           categoriaId: data.categoriaId,
           talla: data.talla,
           cantidadDisponible: data.cantidadDisponible ?? 0,
+          umbralMinimo: data.umbralMinimo ?? 0,
         })
       }
       await load()
       onSuccess?.()
     } catch (err) {
-      onError?.(err)
+      try { onError?.(err) } catch { /* onError falló silenciosamente */ }
     }
   }
 

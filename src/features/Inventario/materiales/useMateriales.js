@@ -23,7 +23,7 @@ const mapperMaterial = (m) => ({
   tipo_material: m.tipoMaterial || '—',
   unidad_medida: m.unidadMedida || '—',
   desc: m.descripcion || '—',
-  stock: Number(m.cantidadDisponible || 0),
+  stock: Number(m.cantidadDisponible || m.stock || 0),
   minStock: Number(m.umbralMinimo || 0),
   status: (m.estado || '').toLowerCase(),
 })

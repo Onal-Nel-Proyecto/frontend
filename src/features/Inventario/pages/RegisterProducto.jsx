@@ -21,6 +21,12 @@ const validate = (form) => {
     else if (cant > 1000) errs.cantidadInicial = 'Máximo 1000 unidades'
   }
 
+  if (form.umbralMinimo !== '' && form.umbralMinimo !== undefined && form.umbralMinimo !== null) {
+    const num = Number(form.umbralMinimo)
+    if (isNaN(num) || num < 0) errs.umbralMinimo = 'Debe ser un número mayor o igual a 0'
+    else if (num > 100) errs.umbralMinimo = 'Máximo 100'
+  }
+
   const precioStr = form.precio?.toString().trim()
   if (precioStr === '') errs.precio = 'Ingresa un precio válido'
   else if (!/^\d+(\.\d{1,2})?$/.test(precioStr)) errs.precio = 'Solo números (máx 2 decimales)'
@@ -47,6 +53,7 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
     talla: clean(initialData?.talla),
     precio: initialData?.price?.toString() || '',
     cantidadInicial: '',
+    umbralMinimo: initialData?.minStock?.toString() || '',
   })
   const [categorias, setCategorias] = useState([])
   const [errors, setErrors] = useState({})
@@ -84,17 +91,25 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
     [categorias, form.categoria]
   )
 
-  const tipoPrendaOptions = categoriaSel?.categoria_tipo_prenda || []
-  const tallaOptions = categoriaSel?.categoria_talla_referencia || []
+  const tipoPrendaOptions = categoriaSel?.categoria_tipo_prenda || categoriaSel?.catTipsPrendas || []
+  const tallaOptions = categoriaSel?.categoria_talla_referencia || categoriaSel?.catTallaRef || []
 
   // ─── Resetear tipoPrenda / talla al cambiar de categoría ───
+  // Solo resetea si el valor actual NO viene de initialData (producto existente)
+  const tipoPrendaOriginal = isEditing && initialData?.tipo_prenda ? clean(initialData?.tipo_prenda) : null
+  const tallaOriginal = isEditing && initialData?.talla ? clean(initialData?.talla) : null
+
   useEffect(() => {
     if (!form.categoria) return
     if (form.tipoPrenda && tipoPrendaOptions.length > 0 && !tipoPrendaOptions.includes(form.tipoPrenda)) {
-      setForm((prev) => ({ ...prev, tipoPrenda: '' }))
+      if (form.tipoPrenda !== tipoPrendaOriginal) {
+        setForm((prev) => ({ ...prev, tipoPrenda: '' }))
+      }
     }
     if (form.talla && tallaOptions.length > 0 && !tallaOptions.includes(form.talla)) {
-      setForm((prev) => ({ ...prev, talla: '' }))
+      if (form.talla !== tallaOriginal) {
+        setForm((prev) => ({ ...prev, talla: '' }))
+      }
     }
   }, [form.categoria, tipoPrendaOptions, tallaOptions])
 
@@ -111,6 +126,11 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
     e.preventDefault()
     const newErrors = validate(form)
 
+    // Validar tipo de prenda si la categoría tiene opciones definidas
+    if (form.categoria && tipoPrendaOptions.length > 0 && !form.tipoPrenda) {
+      newErrors.tipoPrenda = 'Selecciona el tipo de prenda'
+    }
+
     // Si es edición y no hay cambios, bloquear el guardado
     if (isEditing && Object.keys(newErrors).length === 0) {
       const orig = {
@@ -120,6 +140,7 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
         genero: initialData?.genero === 'Femenino' ? 'F' : initialData?.genero === 'Masculino' ? 'M' : initialData?.genero === 'Unisex' ? 'U' : clean(initialData?.genero),
         talla: clean(initialData?.talla),
         precio: initialData?.price?.toString() || '',
+        umbralMinimo: initialData?.minStock?.toString() || '',
       }
       const sinCambios =
         orig.nombre === form.nombre.trim() &&
@@ -127,7 +148,8 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
         orig.categoria === form.categoria &&
         orig.genero === form.genero &&
         orig.talla === form.talla.trim() &&
-        orig.precio === form.precio?.toString().trim()
+        orig.precio === form.precio?.toString().trim() &&
+        orig.umbralMinimo === form.umbralMinimo
       if (sinCambios) {
         newErrors._general = 'No se detectaron cambios para guardar'
       }
@@ -148,7 +170,11 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
         talla: form.talla.trim() || null,
         precio: parseFloat(form.precio) || 0,
         cantidadDisponible: isEditing ? undefined : (Number(form.cantidadInicial) || 0),
+        umbralMinimo: Number(form.umbralMinimo) || 0,
       })
+    } catch (err) {
+      console.error('Error al guardar producto:', err)
+      setErrors((prev) => ({ ...prev, _general: err?.response?.data?.message || err?.message || 'Error al guardar' }))
     } finally {
       setSaving(false)
     }
@@ -272,7 +298,20 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
             </div>
             {hasError('precio') && <p className="rp-err">{errors.precio}</p>}
           </div>
-          {!isEditing && (
+          {isEditing ? (
+            <div className="rp-group">
+              <label className="rp-label">Stock actual</label>
+              <div className="rp-input-wrap" style={{ opacity: 0.7 }}>
+                <i className="ti ti-package" />
+                <span className="rp-input" style={{ padding: '0.6rem 0', fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>
+                  {initialData?.stock ?? 0}
+                </span>
+              </div>
+              <p className="rp-hint" style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+                Stock disponible en inventario.
+              </p>
+            </div>
+          ) : (
             <div className="rp-group">
               <label className="rp-label" htmlFor="rp-cantidadInicial">Cantidad inicial</label>
               <div className={`rp-input-wrap ${hasError('cantidadInicial') ? 'rp-input-wrap--err' : ''}`}>
@@ -298,6 +337,25 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
               </p>
             </div>
           )}
+          <div className="rp-group">
+            <label className="rp-label" htmlFor="rp-umbralMinimo">Umbral mínimo</label>
+            <div className={`rp-input-wrap ${hasError('umbralMinimo') ? 'rp-input-wrap--err' : ''}`}>
+              <i className="ti ti-alert-triangle" />
+              <input id="rp-umbralMinimo" name="umbralMinimo" type="text" inputMode="numeric" className="rp-input"
+                placeholder="0" value={form.umbralMinimo}
+                onChange={(e) => {
+                  const raw = e.target.value.replace(/\D/g, '');
+                  if (raw === '' || parseInt(raw, 10) <= 100) {
+                    setForm((prev) => ({ ...prev, umbralMinimo: raw }));
+                  }
+                }}
+                onBlur={handleBlur} />
+            </div>
+            {hasError('umbralMinimo') && <p className="rp-err">{errors.umbralMinimo}</p>}
+            <p className="rp-hint" style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+              0 = sin alerta. Máximo 100.
+            </p>
+          </div>
         </div>
 
       </form>
