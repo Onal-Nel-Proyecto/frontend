@@ -34,8 +34,7 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
     // Documento
     const doc = form.documento.trim()
     if (!doc) errs.documento = 'El documento es obligatorio'
-    else if (!/^\d+$/.test(doc)) errs.documento = 'Solo números, sin letras ni caracteres especiales'
-    else if (doc.length > 15) errs.documento = 'Máximo 15 caracteres'
+    else if (!/^[0-9]{5,15}(-[0-9])?$/.test(doc)) errs.documento = 'Formato inválido: 5-15 dígitos, opcionalmente seguido de - dígito verificador (ej. 900123456-7)'
 
     const nom = form.nombres.trim()
     if (!nom) errs.nombres = 'El nombre es obligatorio'
@@ -174,12 +173,22 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
               <div className={`ncp-input-wrap ${errors.documento && touched.documento ? 'ncp-input-wrap--err' : ''}`}>
                 <i className="ti ti-id" aria-hidden="true" />
                 <input
-                  id="documento" name="documento" type="text" inputMode="numeric" maxLength="15"
+                  id="documento" name="documento" type="text" maxLength="17"
                   className="ncp-input"
-                  placeholder="Número de documento"
+                  placeholder="Número de documento (ej. 900123456-7)"
                   value={form.documento}
                   onChange={(e) => {
-                    const raw = e.target.value.replace(/\D/g, '');
+                    let raw = e.target.value;
+                    // Solo dígitos y un único guion opcional
+                    raw = raw.replace(/[^0-9-]/g, '');
+                    // No más de un guion
+                    const idx = raw.indexOf('-');
+                    if (idx !== -1) {
+                      const after = raw.slice(idx + 1).replace(/-/g, '');
+                      raw = raw.slice(0, idx + 1) + after;
+                    }
+                    // El guion no puede ir al inicio
+                    if (raw.startsWith('-')) raw = raw.slice(1);
                     setForm((prev) => ({ ...prev, documento: raw }));
                   }}
                   disabled={!puedeEditarDoc}

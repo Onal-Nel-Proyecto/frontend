@@ -57,23 +57,20 @@
   min-width: 110px;
   position: sticky;
   right: 0;
-  z-index: 1;
+  z-index: 2;
+  background: var(--bg-elevated);
+  box-shadow: -6px 0 6px -6px rgba(0,0,0,0.15);
 }
-.contact-table th:nth-child(6) { background: var(--bg-glass); }
-.contact-table td:nth-child(6) { background: var(--bg-elevated); }
-.contact-table tbody tr:hover td:nth-child(6) { background: var(--bg-glass-hover); }
 
-/* Sombra en el borde izquierdo de la columna sticky al hacer scroll */
-.contact-table th:nth-child(6)::before,
-.contact-table td:nth-child(6)::before {
-  content: '';
-  position: absolute;
-  left: -6px;
-  top: 0;
-  bottom: 0;
-  width: 6px;
-  background: linear-gradient(to left, rgba(0,0,0,0.08), transparent);
-  pointer-events: none;
+.contact-table tbody tr:hover td:nth-child(6) {
+  background: var(--bg-elevated);
+}
+
+.contact-table tbody tr:hover td:nth-child(6) .action-btn {
+  background: var(--bg-glass-hover);
+}
+.contact-table tbody tr:hover td:nth-child(6) .action-btn:hover {
+  background: var(--bg-glass-hover);
 }
 
 .contact-table tbody tr:last-child td { border-bottom: none; }

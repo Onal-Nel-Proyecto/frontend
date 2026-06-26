@@ -63,8 +63,8 @@ const ViewClientModal = ({ cliente, onClose }) => {
 
     const fetchOrders = async () => {
       try {
-        const clientName = cliente.name || ''
-        const resp = await getPedidos(1, { cliente: clientName })
+        const documento = cliente.documento || ''
+        const resp = await getPedidos(1, { cliente: documento })
         const data = Array.isArray(resp)
           ? resp
           : resp?.data && Array.isArray(resp.data)

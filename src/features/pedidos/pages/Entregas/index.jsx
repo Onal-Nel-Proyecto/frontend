@@ -8,13 +8,13 @@
 
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { FiPackage, FiCheckCircle, FiCheck, FiTrendingUp, FiSearch, FiFilter, FiEye, FiExternalLink, FiChevronLeft, FiChevronRight, FiX } from 'react-icons/fi';
+import { FiPackage, FiCheckCircle, FiCheck, FiTrendingUp, FiSearch, FiFilter, FiEye, FiExternalLink, FiChevronLeft, FiChevronRight, FiX, FiRotateCcw, FiBox, FiTool } from 'react-icons/fi';
 import { GiTakeMyMoney } from 'react-icons/gi';
 import { useDocumentTitle } from '../../../../hooks/useDocumentTitle';
 import Card from '../../../../components/common/Card';
 import Alert from '../../../../components/ui/feedback/Alert';
 import LoadingOverlay from '../../../../components/ui/feedback/LoadingOverlay';
-import { getEntregas, getEntregaById, getPagosByVenta, entregarPedido } from '../../services/pedidosService';
+import { getEntregas, getEntregaById, getPagosByVenta, entregarPedido, devolverPedido } from '../../services/pedidosService';
 import EntregasModal from '../../components/EntregasModal';
 import { formatCurrency } from '../../../../utils/format';
 import styles from './entregas.module.css';
@@ -135,6 +135,14 @@ const Entregas = () => {
   const [deliverObservacion, setDeliverObservacion] = useState('');
   const [deliverLoading, setDeliverLoading] = useState(false);
   const [deliverResult, setDeliverResult] = useState(null);
+
+  // ─── Devolución ───
+  const [devolucionTarget, setDevolucionTarget] = useState(null);
+  const [devolucionConfirm, setDevolucionConfirm] = useState(null); // { tipo, entrega }
+  const [devolucionMotivo, setDevolucionMotivo] = useState('');
+  const [devolucionMotivoError, setDevolucionMotivoError] = useState('');
+  const [devolucionLoading, setDevolucionLoading] = useState(false);
+  const [devolucionResult, setDevolucionResult] = useState(null);
 
   // ─── Carga de datos desde la API ───
   useEffect(() => {
@@ -552,6 +560,15 @@ const Entregas = () => {
                                   <FiCheck />
                                 </button>
                               )}
+                              {entrega.estado === 'ENTREGADO' && (
+                                <button
+                                  className={`${styles.actionBtn} ${styles.actionReturn}`}
+                                  title="Devolución del pedido"
+                                  onClick={() => setDevolucionTarget(entrega)}
+                                >
+                                  <FiRotateCcw />
+                                </button>
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -659,6 +676,15 @@ const Entregas = () => {
                         <FiCheck />
                       </button>
                     )}
+                    {entrega.estado === 'ENTREGADO' && (
+                      <button
+                        className={`${styles.actionBtn} ${styles.actionReturn}`}
+                        title="Devolución del pedido"
+                        onClick={() => setDevolucionTarget(entrega)}
+                      >
+                        <FiRotateCcw />
+                      </button>
+                    )}
                   </div>
                 </div>
               </Card>
@@ -692,6 +718,180 @@ const Entregas = () => {
       {/* ─── Resultado de la operación ─── */}
       {deliverResult && (
         <Alert type={deliverResult.type} title={deliverResult.title} message={deliverResult.message} onClose={deliverResult.onClose} />
+      )}
+
+      {/* ─── Modal de devolución ─── */}
+      {devolucionTarget && (
+        <div className={styles.returnOverlay} onClick={() => setDevolucionTarget(null)}>
+          <div className={styles.returnModal} onClick={(e) => e.stopPropagation()}>
+            <button className={styles.returnClose} onClick={() => setDevolucionTarget(null)} title="Cerrar">
+              <FiX />
+            </button>
+
+            <div className={styles.returnIconWrapper}>
+              <FiRotateCcw />
+            </div>
+
+            <h3 className={styles.returnTitle}>¿Quieres hacer la devolución del pedido?</h3>
+            <p className={styles.returnSubtitle}>
+              El pedido <strong>#{devolucionTarget.id || devolucionTarget.pedido_id}</strong> de{' '}
+              <strong>{devolucionTarget.cliente_nombres || devolucionTarget.cliente}</strong> será
+              marcado como devuelto. Selecciona el motivo de la devolución:
+            </p>
+
+            <div className={styles.returnOptions}>
+              <button
+                className={styles.returnOption}
+                onClick={() => {
+                  setDevolucionConfirm({ tipo: 'ANULACION', entrega: devolucionTarget });
+                  setDevolucionTarget(null);
+                }}
+              >
+                <FiBox className={styles.returnOptionIcon} />
+                <div className={styles.returnOptionContent}>
+                  <span className={styles.returnOptionTitle}>Devolver producto al inventario</span>
+                  <span className={styles.returnOptionDesc}>
+                    El producto devuelto estará disponible nuevamente para la venta o para otros pedidos
+                  </span>
+                </div>
+              </button>
+
+              <button
+                className={styles.returnOption}
+                onClick={() => {
+                  setDevolucionConfirm({ tipo: 'CORRECCION', entrega: devolucionTarget });
+                  setDevolucionTarget(null);
+                }}
+              >
+                <FiTool className={styles.returnOptionIcon} />
+                <div className={styles.returnOptionContent}>
+                  <span className={styles.returnOptionTitle}>Devolver para correcciones o modificaciones</span>
+                  <span className={styles.returnOptionDesc}>
+                    El pedido requiere ajustes, reparaciones o modificaciones antes de ser entregado nuevamente
+                  </span>
+                </div>
+              </button>
+            </div>
+
+            <button className={styles.returnCancel} onClick={() => setDevolucionTarget(null)}>
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Modal de confirmación de devolución (motivo) ─── */}
+      {devolucionConfirm && (
+        <div className={styles.returnOverlay} onClick={() => { setDevolucionConfirm(null); setDevolucionMotivo(''); setDevolucionMotivoError(''); }}>
+          <div className={styles.returnModalConfirm} onClick={(e) => e.stopPropagation()}>
+            <button className={styles.returnClose} onClick={() => { setDevolucionConfirm(null); setDevolucionMotivo(''); setDevolucionMotivoError(''); }} title="Cerrar">
+              <FiX />
+            </button>
+
+            <div className={styles.returnIconWrapper}>
+              <FiRotateCcw />
+            </div>
+
+            <h3 className={styles.returnTitle}>Confirmar devolución del pedido</h3>
+            <p className={styles.returnSubtitle}>
+              Pedido <strong>#{devolucionConfirm.entrega.id || devolucionConfirm.entrega.pedido_id}</strong> de{' '}
+              <strong>{devolucionConfirm.entrega.cliente_nombres || devolucionConfirm.entrega.cliente}</strong>
+              <br />
+              Tipo de devolución:{' '}
+              <strong>{devolucionConfirm.tipo === 'ANULACION' ? 'Devolver producto al inventario' : 'Devolver para correcciones o modificaciones'}</strong>
+            </p>
+
+            <div className={styles.returnConfirmField}>
+              <label className={styles.returnConfirmLabel}>
+                Motivo de la devolución <span className={styles.required}>*</span>
+              </label>
+              <textarea
+                className={`${styles.returnConfirmTextarea} ${devolucionMotivoError ? styles.returnConfirmTextareaError : ''}`}
+                placeholder="Describe el motivo de la devolución…"
+                value={devolucionMotivo}
+                onChange={(e) => {
+                  setDevolucionMotivo(e.target.value);
+                  if (devolucionMotivoError) setDevolucionMotivoError('');
+                }}
+                rows={4}
+                maxLength={300}
+              />
+              {devolucionMotivoError && (
+                <span className={styles.returnConfirmError}>{devolucionMotivoError}</span>
+              )}
+              <span className={styles.returnCharCounter}>
+                {devolucionMotivo.length}/300
+              </span>
+            </div>
+
+            <div className={styles.returnConfirmActions}>
+              <button
+                className={styles.returnConfirmCancel}
+                onClick={() => { setDevolucionConfirm(null); setDevolucionMotivo(''); setDevolucionMotivoError(''); }}
+              >
+                Cancelar
+              </button>
+              <button
+                className={styles.returnConfirmBtn}
+                onClick={async () => {
+                  const motivo = devolucionMotivo.trim();
+                  if (!motivo) {
+                    setDevolucionMotivoError('El motivo de la devolución es obligatorio');
+                    return;
+                  }
+                  setDevolucionMotivoError('');
+                  const { tipo, entrega } = devolucionConfirm;
+                  const id = entrega.id || entrega.pedido_id;
+                  setDevolucionConfirm(null);
+                  setDevolucionMotivo('');
+                  setDevolucionLoading(true);
+
+                  try {
+                    const resp = await devolverPedido(id, {
+                      tipo_devolucion: tipo,
+                      motivo,
+                    });
+                    setDevolucionLoading(false);
+
+                    if (resp?.status) {
+                      setDevolucionResult({
+                        type: 'success',
+                        title: 'Devolución registrada',
+                        message: resp.msg || `El pedido #${id} ha sido devuelto correctamente.`,
+                        onClose: () => window.location.reload(),
+                      });
+                    } else {
+                      setDevolucionResult({
+                        type: 'error',
+                        title: 'Error',
+                        message: resp?.msg || 'Error al registrar la devolución',
+                        onClose: () => setDevolucionResult(null),
+                      });
+                    }
+                  } catch (err) {
+                    setDevolucionLoading(false);
+                    setDevolucionResult({
+                      type: 'error',
+                      title: 'Error',
+                      message: err?.response?.data?.error || 'No se pudo procesar la devolución',
+                      onClose: () => setDevolucionResult(null),
+                    });
+                  }
+                }}
+              >
+                Confirmar devolución
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Loading durante la devolución ─── */}
+      {devolucionLoading && <LoadingOverlay title="Procesando devolución…" message="Registrando la devolución del pedido" />}
+
+      {/* ─── Resultado de la devolución ─── */}
+      {devolucionResult && (
+        <Alert type={devolucionResult.type} title={devolucionResult.title} message={devolucionResult.message} onClose={devolucionResult.onClose} />
       )}
 
       {/* ─── Loading mientras se obtiene el detalle ─── */}

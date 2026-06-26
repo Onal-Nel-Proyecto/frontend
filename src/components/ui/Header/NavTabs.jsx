@@ -16,6 +16,7 @@ import {
   FiPackage,
   FiDollarSign,
   FiBarChart2,
+  FiTool,
 } from 'react-icons/fi';
 import { TfiRulerPencil } from "react-icons/tfi";
 import { isAdmin } from '../../../utils/session.js';
@@ -26,8 +27,9 @@ const modules = [
     path: '/pedidos',
     tabs: [
       { label: 'Inicio',    to: '/pedidos/dash', icon: <FiHome /> },
-      { label: 'Pedidos',   to: '/pedidos', icon: <FiShoppingBag />, matchPattern: /^\/pedidos\/(?!dash$|entregas).+/ },
+      { label: 'Pedidos',   to: '/pedidos', icon: <FiShoppingBag />, matchPattern: /^\/pedidos\/(?!dash$|entregas$|ordenes-produccion$|orden-produccion\/).+/ },
       { label: 'Entregas',  to: '/pedidos/entregas', icon: <FiTruck /> },
+      { label: 'Órdenes Producción', icon: <FiTool />, to: '/pedidos/ordenes-produccion',  matchPattern: /^\/pedidos\/(ordenes-produccion|orden-produccion\/.+)$/ },
     ],
   },
   {

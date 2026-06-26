@@ -107,7 +107,7 @@ const VentaForm = ({ isOpen, onClose }) => {
     }
     setProdLoading(true);
     try {
-      const data = await searchProductos(query);
+      const data = await searchProductos(query, { tipo_origen: 'PRODUCCION' });
       setProdResults(data);
       setProdOpen(true);
       setProdHighlight(-1);

@@ -4,7 +4,7 @@
 // sub-componentes vía Outlet context.
 // ================================================================
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate, useLocation, Outlet, NavLink } from 'react-router-dom';
 import { FiArrowLeft, FiEdit2, FiXCircle } from 'react-icons/fi';
 import { useDocumentTitle } from '../../../../hooks/useDocumentTitle';
@@ -24,7 +24,7 @@ const statusConfig = {
   CANCELADO:  { label: 'Cancelado',  className: 'cancelled' },
 };
 
-const subPages = [
+const SUB_PAGES_BASE = [
   { label: 'Detalle Pedido', to: '' },
   { label: 'Producción',     to: 'produccion' },
   { label: 'Cobro',          to: 'pagos' },
@@ -96,10 +96,11 @@ const PEDIDOS_DETALLE_EJEMPLO = {
   },
 };
 
-const PedidoSeleccionado = () => {
+const PedidoSeleccionado = ({ origen = 'CLIENTE' }) => {
+  const isProduccion = origen === 'PRODUCCION';
   const { id } = useParams();
   const navigate = useNavigate();
-  useDocumentTitle(`Pedido #${id?.replace('#', '')}`);
+  useDocumentTitle(isProduccion ? `Orden #${id?.replace('#', '')}` : `Pedido #${id?.replace('#', '')}`);
 
   const [pedido, setPedido] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -117,11 +118,26 @@ const PedidoSeleccionado = () => {
       try {
         const resp = await getPedidoById(id);
         if (cancel) return;
+
+        // Validar que el pedido coincida con el origen esperado
+        const origenResp = resp?.tipo_origen || resp?.tipo_de_origen || resp?.origen || '';
+        if (origenResp && origenResp !== origen) {
+          console.warn(`[PedidoSeleccionado] Pedido #${id} no es de tipo ${origen} (${origenResp}), redirigiendo`);
+          navigate(isProduccion ? '/pedidos/ordenes-produccion' : '/pedidos/dash', { replace: true });
+          return;
+        }
+
         setPedido(resp);
       } catch {
         console.warn('[PedidoSeleccionado] API no disponible, cargando datos de ejemplo');
         if (!cancel) {
-          setPedido(PEDIDOS_DETALLE_EJEMPLO[id] || null);
+          const ejemplo = PEDIDOS_DETALLE_EJEMPLO[id];
+          if (ejemplo) {
+            // Los ejemplos no tienen tipo_origen, se muestran normalmente
+            setPedido(ejemplo);
+          } else {
+            setPedido(null);
+          }
         }
       } finally {
         if (!cancel) setLoading(false);
@@ -129,23 +145,35 @@ const PedidoSeleccionado = () => {
     };
     fetch();
     return () => { cancel = true; };
-  }, [id]);
+  }, [id, navigate]);
 
-  // ── Redirigir desde /pagos si precio_total es inválido ──
+  // ── Sub-páginas visibles según origen ──
+  const subPages = useMemo(() => {
+    if (isProduccion) {
+      return SUB_PAGES_BASE.filter((s) => s.to !== 'pagos');
+    }
+    return SUB_PAGES_BASE;
+  }, [isProduccion]);
+
+  // ── Redirigir desde /pagos si no aplica ──
   useEffect(() => {
     if (!pedido) return;
     const precioTotal = Number(pedido.precio_total ?? pedido.total_general ?? 0);
     if (precioTotal <= 0 && location.pathname.endsWith('/pagos')) {
       navigate(`/pedidos/${id}`, { replace: true });
     }
-  }, [pedido, location.pathname, navigate, id]);
+    // Órdenes de producción no deben acceder a pagos
+    if (isProduccion && location.pathname.includes('/pagos')) {
+      navigate(`/pedidos/orden-produccion/${id}`, { replace: true });
+    }
+  }, [pedido, location.pathname, navigate, id, isProduccion]);
 
   if (loading) {
-    return <div className={styles.placeholder}>Cargando pedido…</div>;
+    return <div className={styles.placeholder}>{isProduccion ? 'Cargando orden…' : 'Cargando pedido…'}</div>;
   }
 
   if (!pedido) {
-    return <div className={styles.placeholder}>Pedido no encontrado</div>;
+    return <div className={styles.placeholder}>{isProduccion ? 'Orden no encontrada' : 'Pedido no encontrado'}</div>;
   }
 
   const st = statusConfig[pedido.estado?.toUpperCase()] || {};
@@ -158,12 +186,12 @@ const PedidoSeleccionado = () => {
       {/* ── Encabezado ── */}
       <header className={styles.header}>
         <div className={styles.headerRow}>
-          <button className={styles.backBtn} onClick={() => navigate('/pedidos')}>
+          <button className={styles.backBtn} onClick={() => navigate(isProduccion ? '/pedidos/ordenes-produccion' : '/pedidos')}>
             <FiArrowLeft />
-            regresar a pedidos
+            {isProduccion ? 'regresar a órdenes de producción' : 'regresar a pedidos'}
           </button>
           <div className={styles.headerActions}>
-            <button className={styles.iconBtn} title="Editar pedido" disabled={['ENTREGADO', 'CANCELADO'].includes(pedido.estado?.toUpperCase())} onClick={() => setShowPedidoForm(true)}>
+            <button className={styles.iconBtn} title={isProduccion ? 'Editar orden' : 'Editar pedido'} disabled={['ENTREGADO', 'CANCELADO'].includes(pedido.estado?.toUpperCase())} onClick={() => setShowPedidoForm(true)}>
               <FiEdit2 />
             </button>
             {!['ENTREGADO', 'TERMINADO', 'CANCELADO'].includes(pedido.estado?.toUpperCase()) && (
@@ -198,10 +226,12 @@ const PedidoSeleccionado = () => {
             {pedido.cliente?.cliente_nombres || 'Cliente no especificado'}
           </span>
           <span className={styles.totalPrice}>
-            <strong>Total:</strong> ${precioTotal.toLocaleString()}
+            <strong>{isProduccion ? 'Valor Estimado Producción:' : 'Total Pedido:'}</strong> ${precioTotal.toLocaleString()}
           </span>
           <span className={styles.fecha}>
-            {pedido.fecha_entrega ? 'Fecha de entrega:' : 'Fecha estimada:'}{' '}
+            {isProduccion
+              ? 'Fecha de finalización:'
+              : pedido.fecha_entrega ? 'Fecha de entrega:' : 'Fecha estimada:'}{' '}
             {fecha || '—'}
           </span>
         </div>
@@ -237,7 +267,7 @@ const PedidoSeleccionado = () => {
 
       {/* ── Contenido con datos del pedido via React Context ── */}
       <main className={styles.content}>
-        <Outlet context={{ pedido, openDetallePanel: setDetallePanel, isCanceled: pedido.estado?.toUpperCase() === 'CANCELADO' }} />
+        <Outlet context={{ pedido, openDetallePanel: setDetallePanel, isCanceled: pedido.estado?.toUpperCase() === 'CANCELADO', origen }} />
       </main>
 
       {/* Drawer editar pedido */}
@@ -245,6 +275,7 @@ const PedidoSeleccionado = () => {
         isOpen={showPedidoForm}
         onClose={() => setShowPedidoForm(false)}
         pedido={pedido}
+        origen={origen}
       />
 
       {/* Drawer detalle (ver / crear / editar) */}
