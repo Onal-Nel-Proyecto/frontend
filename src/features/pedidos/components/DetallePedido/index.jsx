@@ -20,6 +20,7 @@ const DetallePedido = () => {
   const detalles = pedido.detalles_pedido || [];
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [resultAlert, setResultAlert] = useState(null);
   const [images, setImages] = useState([]);
   const [viewerImage, setViewerImage] = useState(null);
@@ -49,6 +50,8 @@ const DetallePedido = () => {
     const files = Array.from(e.target.files);
     let subidas = 0;
     let errores = [];
+
+    setUploading(true);
 
     for (const file of files) {
       // Validar tipo MIME
@@ -120,6 +123,7 @@ const DetallePedido = () => {
       });
     }
 
+    setUploading(false);
     e.target.value = '';
   }, [pedido.pedido_id, API_URL, setImages]);
 
@@ -491,6 +495,9 @@ const DetallePedido = () => {
           onConfirm={handleDelete}
         />
       )}
+
+      {/* Loading durante subida de foto */}
+      {uploading && <LoadingOverlay title="Subiendo foto…" message="Por favor espera mientras se sube la imagen" />}
 
       {/* Loading durante eliminación */}
       {deleting && <LoadingOverlay title="Eliminando detalle…" message="Procesando la solicitud" />}

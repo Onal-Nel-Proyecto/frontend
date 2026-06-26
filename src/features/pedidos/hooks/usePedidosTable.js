@@ -188,16 +188,16 @@ export const usePedidosTable = ({ origen = 'CLIENTE' } = {}) => {
   }, [pagAct, search, filtrosActivos, setSearchParams]);
 
   // ─── Filtro client-side complementario (id/descripción — el backend solo filtra por cliente) ───
+  // NOTA: usa searchServer (debounced), no search, para evitar recalcular en cada tecla
   const filtered = useMemo(() => {
-    // Si el backend ya filtró por cliente, solo queda filtrar por id/descripción
-    if (!search) return pedidos;
-    const q = search.toLowerCase();
+    if (!searchServer) return pedidos;
+    const q = searchServer.toLowerCase();
     return pedidos.filter(
       (p) =>
         p.id?.toLowerCase().includes(q) ||
         p.descripcion?.toLowerCase().includes(q)
     );
-  }, [pedidos, search]);
+  }, [pedidos, searchServer]);
 
   // ─── Números de página ───
   const pageNumbers = useMemo(() => getPageNumbers(pagAct, maxPag), [pagAct, maxPag]);
