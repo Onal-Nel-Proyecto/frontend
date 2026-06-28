@@ -7,10 +7,12 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate, useLocation, Outlet, NavLink } from 'react-router-dom';
 import { FiArrowLeft, FiEdit2, FiXCircle } from 'react-icons/fi';
+import { useAuthContext } from '../../../../context/AuthContext';
 import { useDocumentTitle } from '../../../../hooks/useDocumentTitle';
 import { getPedidoById } from '../../services/pedidosService';
 import PedidoForm from '../../components/PedidoForm';
 import DetallePanel from '../../components/DetallePanel';
+import HistorialPedido from '../../components/HistorialPedido';
 import Alert from '../../../../components/ui/feedback/Alert';
 import LoadingOverlay from '../../../../components/ui/feedback/LoadingOverlay';
 import { cancelPedido } from '../../services/pedidosService';
@@ -100,6 +102,7 @@ const PedidoSeleccionado = ({ origen = 'CLIENTE' }) => {
   const isProduccion = origen === 'PRODUCCION';
   const { id } = useParams();
   const navigate = useNavigate();
+  const { isAdmin } = useAuthContext();
   useDocumentTitle(isProduccion ? `Orden #${id?.replace('#', '')}` : `Pedido #${id?.replace('#', '')}`);
 
   const [pedido, setPedido] = useState(null);
@@ -146,16 +149,28 @@ const PedidoSeleccionado = ({ origen = 'CLIENTE' }) => {
     return () => { cancel = true; };
   }, [id, navigate]);
 
-  // ── Sub-páginas visibles según origen ──
+  // ── Sub-páginas visibles según origen y rol ──
   const subPages = useMemo(() => {
+    let pages = [...SUB_PAGES_BASE];
     if (isProduccion) {
-      return SUB_PAGES_BASE.filter((s) => s.to !== 'pagos');
+      pages = pages.filter((s) => s.to !== 'pagos');
     }
-    return SUB_PAGES_BASE;
-  }, [isProduccion]);
+    if (isAdmin) {
+      pages.push({ label: 'Historial', to: 'historial' });
+    }
+    return pages;
+  }, [isProduccion, isAdmin]);
 
   // ── Redirigir desde /pagos si precio_total es inválido ──
   const location = useLocation();
+
+  // ── Redirigir si no es admin e intenta acceder al historial ──
+  useEffect(() => {
+    if (!isAdmin && location.pathname.includes('/historial')) {
+      navigate(isProduccion ? `/pedidos/orden-produccion/${id}` : `/pedidos/${id}`, { replace: true });
+    }
+  }, [isAdmin, id, isProduccion, location.pathname, navigate]);
+
   useEffect(() => {
     if (!pedido) return;
     const precioTotal = Number(pedido.precio_total ?? pedido.total_general ?? 0);

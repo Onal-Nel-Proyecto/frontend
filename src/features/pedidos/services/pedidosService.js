@@ -136,6 +136,12 @@ export const uploadFotoPedido = async (pedidoId, formData) => {
   return res.data;
 };
 
+/** Obtener historial de cambios de un pedido */
+export const getHistorialPedido = async (id) => {
+  const res = await axiosInstance.get(`${BASE}/${id}/historial`);
+  return res.data;
+};
+
 /** Eliminar foto de un pedido */
 export const deleteFotoPedido = async (pedidoId, fotoId) => {
   const res = await axiosInstance.delete(`${BASE}/${pedidoId}/fotos/${fotoId}`);

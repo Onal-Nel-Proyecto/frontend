@@ -17,6 +17,7 @@ import PedidoSeleccionado from "../features/pedidos/pages/PedidoSeleccionado";
 import DetallePedido from "../features/pedidos/components/DetallePedido";
 import Produccion from "../features/pedidos/components/Produccion";
 import Pagos from "../features/pedidos/components/Pagos";
+import HistorialPedido from "../features/pedidos/components/HistorialPedido";
 import GestionUsuarios from "../page/GestionUsuarios";
 import GestionProveedores from "../page/GestionProveedores";
 import InConstruction from "../components/ui/feedback/InConstruction/InConstruction";
@@ -70,6 +71,7 @@ const AppRoutes = () => {
             <Route index element={<DetallePedido />} />
             <Route path="produccion" element={<Produccion />} />
             <Route path="pagos" element={<Pagos />} />
+            <Route path="historial" element={<HistorialPedido />} />
           </Route>
           {/* Órdenes de Producción */}
           <Route path="/pedidos/ordenes-produccion" element={<OrdenesProduccion />} />
@@ -77,6 +79,7 @@ const AppRoutes = () => {
             <Route index element={<DetallePedido />} />
             <Route path="produccion" element={<Produccion />} />
             <Route path="pagos" element={<Pagos />} />
+            <Route path="historial" element={<HistorialPedido />} />
           </Route>
 
           <Route path="/pedidos/entregas" element={<Entregas />} />
