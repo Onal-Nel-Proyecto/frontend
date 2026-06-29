@@ -16,6 +16,7 @@ import {
   FiX,
 } from 'react-icons/fi';
 import { formatCurrency } from '../../../../utils/format';
+import { getCategorias } from '../../../../services/categoriaService';
 import Alert from '../../../../components/ui/feedback/Alert';
 import LoadingOverlay from '../../../../components/ui/feedback/LoadingOverlay';
 import { usePedidosTable } from '../../hooks/usePedidosTable';
@@ -193,6 +194,31 @@ const TablaPedidos = ({ origen = 'CLIENTE' }) => {
     cancelarDialogo,
   } = usePedidosTable({ origen });
 
+  // ── Cargar tipos de prenda desde categorías ──
+  const [tiposPrenda, setTiposPrenda] = useState([]);
+
+  useEffect(() => {
+    let cancel = false;
+    const fetchTipos = async () => {
+      try {
+        const result = await getCategorias(1, {});
+        if (cancel) return;
+        const cats = result.data || [];
+        // Extraer todos los tipos de prenda y deduplicar
+        const tipos = cats.flatMap((cat) => {
+          const tips = cat.catTipsPrendas || cat.categoria_tipo_prenda || [];
+          return Array.isArray(tips) ? tips : [];
+        });
+        const unicos = [...new Set(tipos)].sort();
+        setTiposPrenda(unicos);
+      } catch {
+        if (!cancel) setTiposPrenda([]);
+      }
+    };
+    fetchTipos();
+    return () => { cancel = true; };
+  }, []);
+
   const columns = COLUMNS[origen] || COLUMNS.CLIENTE;
   const basePath = isProduccion ? '/pedidos/orden-produccion' : '/pedidos';
 
@@ -268,25 +294,11 @@ const TablaPedidos = ({ origen = 'CLIENTE' }) => {
                     onChange={(e) => setFiltros((prev) => ({ ...prev, tipo_prenda: e.target.value }))}
                   >
                     <option value="">Todos</option>
-                    <option value="CAMISA">Camisa</option>
-                    <option value="CAMISETA">Camiseta</option>
-                    <option value="POLO">Polo</option>
-                    <option value="PANTALON">Pantalón</option>
-                    <option value="JEAN">Jean</option>
-                    <option value="BERMUDA">Bermuda</option>
-                    <option value="SHORT">Short</option>
-                    <option value="FALDA">Falda</option>
-                    <option value="VESTIDO">Vestido</option>
-                    <option value="CHAQUETA">Chaquetá</option>
-                    <option value="BUSO">Buso</option>
-                    <option value="SUDADERA">Sudadera</option>
-                    <option value="HOODIE">Hoodie</option>
-                    <option value="OVEROL">Overol</option>
-                    <option value="DELANTAL">Delantal</option>
-                    <option value="UNIFORME">Uniforme</option>
-                    <option value="DOTACION">Dotación</option>
-                    <option value="GORRA">Gorra</option>
-                    <option value="OTRO">Otro</option>
+                    {tiposPrenda.map((tipo) => (
+                      <option key={tipo} value={tipo}>
+                        {tipo.charAt(0) + tipo.slice(1).toLowerCase()}
+                      </option>
+                    ))}
                   </select>
                 </>
               )}
