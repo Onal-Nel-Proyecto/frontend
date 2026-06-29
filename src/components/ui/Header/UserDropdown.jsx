@@ -113,8 +113,12 @@ const UserDropdown = () => {
         setAlert({
           type: 'success',
           title: 'Contraseña actualizada',
-          message: resp.msg || 'La contraseña se cambió correctamente.',
-          onClose: () => cerrarFormulario(),
+          message: (resp.msg || 'La contraseña se cambió correctamente.') + ' Se cerrará tu sesión por seguridad.',
+          onClose: async () => {
+            cerrarFormulario();
+            await logout();
+            navigate('/login');
+          },
         });
       } else {
         setAlert({
@@ -185,7 +189,7 @@ const UserDropdown = () => {
               </button>
 
               {/* Ayuda (solo móvil) */}
-              <button className={styles.helpBtn} title="Ayuda / Help">
+              <button className={styles.helpBtn} title="Ayuda / Help" onClick={() => window.open('https://manuales-tecnico-usuario-pyt-onal-n.vercel.app/usuario/primeros-pasos', '_blank')}>
                 <FiHelpCircle />
                 Ayuda / Help
               </button>

@@ -63,7 +63,8 @@ const VentaForm = ({ isOpen, onClose }) => {
   // ─── Cálculos ───
   const subtotal = items.reduce((s, it) => s + (Number(it.cantidad) || 0) * (Number(it.precio) || 0), 0);
   const descuentoNum = Math.min(100, Math.max(0, Number(descuento) || 0));
-  const total = Math.max(0, subtotal * (1 - descuentoNum / 100));
+  const total = Math.round(Math.max(0, subtotal * (1 - descuentoNum / 100)) * 100) / 100;
+  console.warn('🧮 VentaForm RENDER — total:', { subtotal, descuentoNum, total, pagoMonto });
 
   // ─── Handlers ───
 
@@ -82,7 +83,7 @@ const VentaForm = ({ isOpen, onClose }) => {
       const data = resp?.data || resp;
       if (resp?.status || data?.cliente_id) {
         const info = {
-          cliente_id: data.cliente_id,
+          cliente_id: data.cliente_id || data.id,
           cliente_nombre: data.cliente_nombre || clienteData.cliente_nombre,
           cliente_apellido: data.cliente_apellido || clienteData.cliente_apellido || '',
         };
@@ -106,7 +107,7 @@ const VentaForm = ({ isOpen, onClose }) => {
     }
     setProdLoading(true);
     try {
-      const data = await searchProductos(query);
+      const data = await searchProductos(query, { tipo_origen: 'PRODUCCION' });
       setProdResults(data);
       setProdOpen(true);
       setProdHighlight(-1);
@@ -145,7 +146,7 @@ const VentaForm = ({ isOpen, onClose }) => {
         nombre: producto.nombre,
         precio: Number(producto.precioUnitario) || 0,
         cantidad: 1,
-        stock: Number(producto.stock) || 0,
+        stock: Number(producto.cantidadDisponible || producto.stock || 0),
       },
     ]);
     setProdQuery('');
@@ -391,7 +392,7 @@ const VentaForm = ({ isOpen, onClose }) => {
                         <span className={styles.prodOptionMeta}>
                           {p.tipoPrenda || p.tipoProducto || ''}
                           {p.talla ? ` · Talla ${p.talla}` : ''}
-                          {p.stock > 0 ? ` · Stock: ${p.stock}` : ' · Sin stock'}
+                          {(() => { const s = Number(p.cantidadDisponible || p.stock || 0); return s > 0 ? ` · Stock: ${s}` : ' · Sin stock'; })()}
                         </span>
                       </div>
                       <span className={styles.prodOptionPrice}>{fmt(p.precioUnitario)}</span>
@@ -557,7 +558,7 @@ const VentaForm = ({ isOpen, onClose }) => {
                   inputMode="numeric"
                   maxLength={12}
                   placeholder="0"
-                  value={pagoMonto}
+                  value={pagoMonto === '' ? '' : Number(pagoMonto).toFixed(2).replace(/\.?0+$/, '')}
                   onChange={(e) => {
                     const raw = e.target.value.replace(/[^0-9]/g, '');
                     if (raw === '') {
@@ -566,7 +567,9 @@ const VentaForm = ({ isOpen, onClose }) => {
                     }
                     const num = Number(raw);
                     if (!isNaN(num) && num >= 0) {
-                      setPagoMonto(Math.min(num, total || 0));
+                      const clamped = Math.min(num, total || 0);
+                      console.warn('🧮 pagoMonto onChange:', { raw, num, clamped, total });
+                      setPagoMonto(clamped);
                     }
                   }}
                 />

@@ -60,6 +60,8 @@ const readFiltrosFromParams = (searchParams) => {
 export { getPageNumbers };
 
 /**
+ * @param {Object} options
+ * @param {'CLIENTE'|'PRODUCCION'} [options.origen='CLIENTE'] — Origen de los pedidos a listar
  * @returns {{
  *   pedidos: Array,
  *   loading: boolean,
@@ -76,12 +78,13 @@ export { getPageNumbers };
  *   setShowFiltros: Function,
  *   filtered: Array,
  *   pageNumbers: Array,
+ *   origen: string,
  *   // Cancelación
  *   cancelTarget, cancelMotivo, cancelLoading, cancelResult,
  *   iniciarCancelacion, setCancelMotivo, confirmarCancelacion, cancelarDialogo,
  * }}
  */
-export const usePedidosTable = () => {
+export const usePedidosTable = ({ origen = 'CLIENTE' } = {}) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const debounceRef = useRef(null);
 
@@ -97,13 +100,16 @@ export const usePedidosTable = () => {
   const [searchServer, setSearchServer] = useState(() => searchParams.get("busqueda") || "");
   const [loading, setLoading] = useState(true);
 
+  const estadoDefault = origen === 'PRODUCCION' ? '' : 'pendiente,en proceso';
+  const filtrosActivosDefault = origen === 'PRODUCCION' ? null : { estado: "pendiente,en proceso" };
+
   const [filtros, setFiltros] = useState(() => ({
     fecha_desde: searchParams.get("fecha_desde") || "",
     fecha_hasta: searchParams.get("fecha_hasta") || "",
     tipo_pedido: searchParams.get("tipo_pedido") || "",
     tipo_prenda: searchParams.get("tipo_prenda") || "",
     estado_pago: searchParams.get("estado_pago") || "",
-    estado: searchParams.get("estado") || "pendiente,en proceso",
+    estado: searchParams.get("estado") || estadoDefault,
     fecha_entrega_desde: searchParams.get("fecha_entrega_desde") || "",
     fecha_entrega_hasta: searchParams.get("fecha_entrega_hasta") || "",
   }));
@@ -111,8 +117,7 @@ export const usePedidosTable = () => {
   const [filtrosActivos, setFiltrosActivos] = useState(() => {
     const fromParams = readFiltrosFromParams(searchParams);
     if (fromParams) return fromParams;
-    // Por defecto: mostrar solo pendientes y en proceso
-    return { estado: "pendiente,en proceso" };
+    return filtrosActivosDefault;
   });
   const [showFiltros, setShowFiltros] = useState(false);
 
@@ -144,8 +149,11 @@ export const usePedidosTable = () => {
             filtrosLimpios[key] = val;
           }
         }
-        // Búsqueda server-side por nombre de cliente
-        if (searchServer) filtrosLimpios.cliente = searchServer;
+        // Búsqueda server-side por nombre de cliente (solo para pedidos de clientes)
+        if (origen !== 'PRODUCCION' && searchServer) filtrosLimpios.cliente = searchServer;
+
+        // Filtrar por el origen correspondiente
+        filtrosLimpios.tipo_origen = origen;
 
         const resp = await getPedidos(pagAct, filtrosLimpios);
         if (cancel) return;
@@ -180,16 +188,16 @@ export const usePedidosTable = () => {
   }, [pagAct, search, filtrosActivos, setSearchParams]);
 
   // ─── Filtro client-side complementario (id/descripción — el backend solo filtra por cliente) ───
+  // NOTA: usa searchServer (debounced), no search, para evitar recalcular en cada tecla
   const filtered = useMemo(() => {
-    // Si el backend ya filtró por cliente, solo queda filtrar por id/descripción
-    if (!search) return pedidos;
-    const q = search.toLowerCase();
+    if (!searchServer) return pedidos;
+    const q = searchServer.toLowerCase();
     return pedidos.filter(
       (p) =>
         p.id?.toLowerCase().includes(q) ||
         p.descripcion?.toLowerCase().includes(q)
     );
-  }, [pedidos, search]);
+  }, [pedidos, searchServer]);
 
   // ─── Números de página ───
   const pageNumbers = useMemo(() => getPageNumbers(pagAct, maxPag), [pagAct, maxPag]);
@@ -218,6 +226,7 @@ export const usePedidosTable = () => {
     setShowFiltros,
     filtered,
     pageNumbers,
+    origen,
     // Cancelación
     ...cancelProps,
   };

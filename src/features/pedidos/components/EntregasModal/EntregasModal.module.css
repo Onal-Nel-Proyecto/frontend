@@ -189,6 +189,209 @@
   margin: 0.5rem 0;
 }
 
+/* ─── Botón mantener en inventario ─── */
+
+.inventoryBtnWrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.5rem;
+}
+
+.btnInventory {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.6rem 1.25rem;
+  border: 1.5px dashed var(--accent-amber);
+  border-radius: var(--radius-sm);
+  background: var(--accent-amber-subtle);
+  color: var(--accent-amber);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.btnInventory:hover {
+  background: rgba(245, 158, 11, 0.15);
+  border-style: solid;
+  transform: translateY(-1px);
+}
+
+.btnInventory svg {
+  font-size: 1rem;
+}
+
+/* ─── Confirmación interna ─── */
+
+.confirmOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(2px);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  border-radius: var(--radius-lg, 24px);
+}
+
+.confirmBox {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  max-width: 420px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-shadow: var(--shadow-xl);
+  animation: confirmPop 0.2s ease both;
+}
+
+@keyframes confirmPop {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.confirmTitle {
+  font-size: var(--text-md);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.confirmTitle svg {
+  color: var(--accent-amber);
+}
+
+.confirmDesc {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.confirmLabel {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.confirmTextarea {
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-xs);
+  background: var(--bg-surface);
+  font-size: var(--text-sm);
+  font-family: inherit;
+  color: var(--text-primary);
+  resize: vertical;
+  min-height: 80px;
+  transition: border-color var(--transition-fast);
+}
+
+.confirmTextarea:focus {
+  outline: none;
+  border-color: var(--accent-amber);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.12);
+}
+
+.confirmTextareaError {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
+}
+
+.confirmError {
+  font-size: 0.68rem;
+  color: #dc2626;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.confirmError::before {
+  content: '!';
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  background: #dc2626;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 9px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.confirmCharCounter {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  text-align: right;
+  margin-top: 0.15rem;
+}
+
+.confirmActions {
+  display: flex;
+  gap: 0.65rem;
+  margin-top: 0.25rem;
+}
+
+.confirmBtnCancel {
+  flex: 1;
+  padding: 0.55rem 1rem;
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.confirmBtnCancel:hover {
+  background: var(--bg-glass-hover);
+  color: var(--text-primary);
+}
+
+.confirmBtnConfirm {
+  flex: 1;
+  padding: 0.55rem 1rem;
+  border: none;
+  border-radius: var(--radius-xs);
+  background: var(--accent-amber);
+  color: #1a1a1a;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.confirmBtnConfirm:hover {
+  background: var(--accent-amber-light, #fbbf24);
+  transform: translateY(-1px);
+}
+
+.confirmBtnConfirm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
 /* ─── Estados de pago ─── */
 
 .statusCompletado {

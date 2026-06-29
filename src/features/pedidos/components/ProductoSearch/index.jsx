@@ -34,7 +34,11 @@ const ProductoSearch = ({ onSelect, onClose }) => {
     try {
       const res = await getProductos({ nombre: searchTerm.trim() });
       const items = Array.isArray(res.data) ? res.data : [];
-      setResults(items);
+      // Filtrar solo productos que tengan categoría asignada
+      const conCategoria = items.filter(
+        (p) => p.categoria_id || p.categoria
+      );
+      setResults(conCategoria);
     } catch {
       setResults([]);
     } finally {

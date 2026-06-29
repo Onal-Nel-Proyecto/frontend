@@ -1,10 +1,16 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import Alert from '../../../components/ui/feedback/Alert'
+import { isAdmin } from '../../../utils/session'
 import './RegisterClient.css'
 
 const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
+  const admin = isAdmin()
+  const puedeEditarDoc = !clienteEdit || admin
+
   const [form, setForm] = useState({
+    documento:   clienteEdit?.documento ?? '',
+    tipoDocumento: clienteEdit?.tipoDocumento ?? 'DOCUMENTO',
     nombres:   clienteEdit?.name?.split(' ')[0] ?? '',
     apellidos: clienteEdit?.name?.split(' ').slice(1).join(' ') ?? '',
     correo:    clienteEdit?.email ?? '',
@@ -20,11 +26,16 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
 
   const SOLO_LETRAS = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  const TELEFONO_RE = /^[+\d\s-]{7,20}$/
+  const TELEFONO_RE = /^\+?\d{7,20}$/
 
   const validate = (form) => {
     const errs = {}
-    
+
+    // Documento
+    const doc = form.documento.trim()
+    if (!doc) errs.documento = 'El documento es obligatorio'
+    else if (!/^[0-9]{5,15}(-[0-9])?$/.test(doc)) errs.documento = 'Formato inválido: 5-15 dígitos, opcionalmente seguido de - dígito verificador (ej. 900123456-7)'
+
     const nom = form.nombres.trim()
     if (!nom) errs.nombres = 'El nombre es obligatorio'
     else if (nom.length < 2) errs.nombres = 'Mínimo 2 caracteres'
@@ -44,8 +55,19 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
 
     // Teléfono opcional
     const tel = form.telefono.trim()
-    if (tel && tel.length > 20) errs.telefono = 'Máximo 20 caracteres'
-    else if (tel && !TELEFONO_RE.test(tel)) errs.telefono = 'Solo números, +, - y espacios'
+    if (tel) {
+      if (tel.length > 20) errs.telefono = 'Máximo 20 caracteres'
+      else if ((tel.match(/\+/g) || []).length > 1) errs.telefono = 'Solo se permite un signo +'
+      else if (!TELEFONO_RE.test(tel)) errs.telefono = 'Solo números y un único + al inicio'
+    }
+
+    // Teléfono 2 opcional
+    const tel2 = form.telefono2.trim()
+    if (tel2) {
+      if (tel2.length > 20) errs.telefono2 = 'Máximo 20 caracteres'
+      else if ((tel2.match(/\+/g) || []).length > 1) errs.telefono2 = 'Solo se permite un signo +'
+      else if (!TELEFONO_RE.test(tel2)) errs.telefono2 = 'Solo números y un único + al inicio'
+    }
 
     // Dirección opcional
     const dir = form.direccion.trim()
@@ -73,7 +95,20 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    setForm((prev) => ({ ...prev, [name]: value }))
+    if (name === 'telefono' || name === 'telefono2') {
+      // Solo dígitos y un único +
+      const sanitized = value.replace(/[^\d+]/g, '')
+      const plusCount = (sanitized.match(/\+/g) || []).length
+      if (plusCount > 1) {
+        setErrors(prev => ({ ...prev, [name]: 'Solo se permite un signo +' }))
+        setTouched(prev => ({ ...prev, [name]: true }))
+      } else {
+        setErrors(prev => ({ ...prev, [name]: undefined }))
+      }
+      setForm((prev) => ({ ...prev, [name]: sanitized }))
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }))
+    }
   }
 
   const handleSubmit = async (e) => {
@@ -81,7 +116,7 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
     
     const newErrors = validate(form)
     setErrors(newErrors)
-    setTouched({ nombres: true, apellidos: true, correo: true, telefono: true, direccion: true })
+    setTouched({ documento: true, tipoDocumento: true, nombres: true, apellidos: true, correo: true, telefono: true, direccion: true })
     if (Object.keys(newErrors).length > 0) return
 
     if (!onGuardar) {
@@ -99,6 +134,8 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
     if (form.telefono2.trim()) telefonos.push({ numero_telefono: form.telefono2.trim() })
 
     const clienteData = {
+      cliente_documento: form.documento.trim(),
+      cliente_tipo_doc: form.tipoDocumento,
       cliente_nombre: form.nombres.trim(),
       cliente_apellido: form.apellidos.trim(),
       cliente_email: form.correo.trim(),
@@ -109,7 +146,7 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
     const result = await onGuardar(clienteData)
 
     if (result.ok) {
-      setForm({ nombres: '', apellidos: '', correo: '', telefono: '', direccion: '' })
+      setForm({ nombres: '', apellidos: '', correo: '', telefono: '', telefono2: '', direccion: '', documento: '', tipoDocumento: 'DOCUMENTO' })
       setAlert({ type: 'success', title: clienteEdit ? 'Cliente actualizado' : 'Cliente registrado', message: `Los datos de ${form.nombres.trim()} se guardaron correctamente.`, onClose: () => { setAlert(null); onClose() } })
     } else {
       setErrorForm(result.error || 'Error al guardar el cliente')
@@ -152,6 +189,61 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
 
         {/* ── Formulario ── */}
         <form className="ncp-form" onSubmit={handleSubmit}>
+
+          {/* Documento + Tipo Documento */}
+          <div className="ncp-row">
+            <div className="ncp-group">
+              <label className="ncp-label" htmlFor="documento">Documento</label>
+              <div className={`ncp-input-wrap ${errors.documento && touched.documento ? 'ncp-input-wrap--err' : ''}`}>
+                <i className="ti ti-id" aria-hidden="true" />
+                <input
+                  id="documento" name="documento" type="text" maxLength="17"
+                  className="ncp-input"
+                  placeholder="Número de documento (ej. 900123456-7)"
+                  value={form.documento}
+                  onChange={(e) => {
+                    let raw = e.target.value;
+                    // Solo dígitos y un único guion opcional
+                    raw = raw.replace(/[^0-9-]/g, '');
+                    // No más de un guion
+                    const idx = raw.indexOf('-');
+                    if (idx !== -1) {
+                      const after = raw.slice(idx + 1).replace(/-/g, '');
+                      raw = raw.slice(0, idx + 1) + after;
+                    }
+                    // El guion no puede ir al inicio
+                    if (raw.startsWith('-')) raw = raw.slice(1);
+                    setForm((prev) => ({ ...prev, documento: raw }));
+                  }}
+                  disabled={!puedeEditarDoc}
+                  required
+                />
+              <span style={{fontSize:'0.65rem', color:'var(--text-muted)', marginLeft:'auto'}}>Obligatorio</span>
+              </div>
+              {errors.documento && touched.documento && <p className="ncp-field-err">{errors.documento}</p>}
+              {clienteEdit && !admin && (
+                <p className="ncp-field-err" style={{ color: 'var(--text-muted)', fontSize: '0.65rem' }}>Solo administradores pueden editar este campo</p>
+              )}
+            </div>
+            <div className="ncp-group">
+              <label className="ncp-label" htmlFor="tipoDocumento">Tipo de documento</label>
+              <div className={`ncp-input-wrap ${errors.tipoDocumento && touched.tipoDocumento ? 'ncp-input-wrap--err' : ''}`}>
+                <i className="ti ti-file-text" aria-hidden="true" />
+                <select
+                  id="tipoDocumento" name="tipoDocumento"
+                  className="ncp-input"
+                  value={form.tipoDocumento}
+                  onChange={handleChange}
+                  disabled={!puedeEditarDoc}
+                  style={{ cursor: 'pointer', appearance: 'auto' }}
+                >
+                  <option value="DOCUMENTO">Documento</option>
+                  <option value="NIT">NIT</option>
+                </select>
+              </div>
+              {errors.tipoDocumento && touched.tipoDocumento && <p className="ncp-field-err">{errors.tipoDocumento}</p>}
+            </div>
+          </div>
 
           {/* Nombres + Apellidos */}
           <div className="ncp-row">
@@ -221,7 +313,7 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
             </div>
             <div className="ncp-group">
               <label className="ncp-label" htmlFor="telefono2">Teléfono 2</label>
-              <div className="ncp-input-wrap">
+              <div className={`ncp-input-wrap ${errors.telefono2 && touched.telefono2 ? 'ncp-input-wrap--err' : ''}`}>
                 <i className="ti ti-phone" aria-hidden="true" />
                 <input
                   id="telefono2" name="telefono2" type="tel" maxLength="20"
@@ -231,6 +323,7 @@ const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {
                 />
               <span style={{fontSize:'0.65rem', color:'var(--text-muted)', marginLeft:'auto'}}>Opcional</span>
               </div>
+              {errors.telefono2 && touched.telefono2 && <p className="ncp-field-err">{errors.telefono2}</p>}
             </div>
           </div>
           <div className="ncp-row">

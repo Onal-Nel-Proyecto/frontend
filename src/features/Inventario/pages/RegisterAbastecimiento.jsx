@@ -7,7 +7,7 @@ import './RegisterAbastecimiento.css'
 
 const TIPOS_ITEM = ['MATERIAL', 'PRODUCTO']
 
-const ITEM_VACIO = { tipo: 'MATERIAL', cantidad: '', costo: '', refId: '', busqueda: '', focus: false }
+const ITEM_VACIO = { tipo: 'MATERIAL', cantidad: '', costo: '', refId: '', refNombre: '', busqueda: '', focus: false }
 
 const validate = (form, proveedores) => {
   const errs = {}
@@ -97,7 +97,7 @@ const RegisterAbastecimiento = ({ isOpen, onClose, proveedores = [], onSave }) =
     setForm((prev) => {
       const nuevos = [...prev.detalles]
       if (field === 'tipo') {
-        nuevos[index] = { ...nuevos[index], tipo: value, refId: '', busqueda: '' }
+        nuevos[index] = { ...nuevos[index], tipo: value, refId: '', refNombre: '', busqueda: '' }
       } else {
         nuevos[index] = { ...nuevos[index], [field]: value }
       }
@@ -135,6 +135,7 @@ const RegisterAbastecimiento = ({ isOpen, onClose, proveedores = [], onSave }) =
       detalles: form.detalles.map((d) => ({
         detAbsTip: d.tipo,
         detAbsRefId: String(d.refId),
+        detAbsRefNombre: d.refNombre || '',
         detAbsCant: parseInt(d.cantidad, 10),
         detAbsCos: d.costo !== '' && d.costo !== null ? parseFloat(d.costo) : 0,
       })),
@@ -254,6 +255,7 @@ const RegisterAbastecimiento = ({ isOpen, onClose, proveedores = [], onSave }) =
                                 className={`ra-autocomplete-item ${ref.id === item.refId ? 'ra-autocomplete-item--active' : ''}`}
                                 onClick={() => {
                                   handleItemChange(index, 'refId', ref.id);
+                                  handleItemChange(index, 'refNombre', ref.nombre);
                                   handleItemChange(index, 'busqueda', ref.nombre);
                                 }}
                               >

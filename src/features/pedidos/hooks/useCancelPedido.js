@@ -33,10 +33,12 @@ export const useCancelPedido = () => {
   const confirmarCancelacion = useCallback(async () => {
     if (!cancelTarget || !cancelMotivo.trim()) return;
     const id = cancelTarget;
+    const motivo = cancelMotivo;
     setCancelTarget(null);
+    setCancelMotivo('');
     setCancelLoading(true);
     try {
-      const resp = await cancelPedido(id, { motivo: cancelMotivo });
+      const resp = await cancelPedido(id, { motivo });
       setCancelLoading(false);
       if (resp?.status) {
         setCancelResult({

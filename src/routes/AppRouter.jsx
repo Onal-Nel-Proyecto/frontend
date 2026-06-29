@@ -17,10 +17,13 @@ import PedidoSeleccionado from "../features/pedidos/pages/PedidoSeleccionado";
 import DetallePedido from "../features/pedidos/components/DetallePedido";
 import Produccion from "../features/pedidos/components/Produccion";
 import Pagos from "../features/pedidos/components/Pagos";
+import HistorialPedido from "../features/pedidos/components/HistorialPedido";
 import GestionUsuarios from "../page/GestionUsuarios";
 import GestionProveedores from "../page/GestionProveedores";
 import InConstruction from "../components/ui/feedback/InConstruction/InConstruction";
 import Entregas from "../features/pedidos/pages/Entregas";
+import OrdenesProduccion from "../features/pedidos/pages/OrdenesProduccion";
+import OrdenProduccionSeleccionado from "../features/pedidos/pages/OrdenProduccionSeleccionado";
 
 // ─── Rutas pesadas → lazy loading ───
 const DashboardPedidos = lazy(() => import("../features/pedidos/pages/Dashboard"));
@@ -68,7 +71,17 @@ const AppRoutes = () => {
             <Route index element={<DetallePedido />} />
             <Route path="produccion" element={<Produccion />} />
             <Route path="pagos" element={<Pagos />} />
+            <Route path="historial" element={<HistorialPedido />} />
           </Route>
+          {/* Órdenes de Producción */}
+          <Route path="/pedidos/ordenes-produccion" element={<OrdenesProduccion />} />
+          <Route path="/pedidos/orden-produccion/:id" element={<OrdenProduccionSeleccionado />}>
+            <Route index element={<DetallePedido />} />
+            <Route path="produccion" element={<Produccion />} />
+            <Route path="pagos" element={<Pagos />} />
+            <Route path="historial" element={<HistorialPedido />} />
+          </Route>
+
           <Route path="/pedidos/entregas" element={<Entregas />} />
 
           {/* Inventario */}

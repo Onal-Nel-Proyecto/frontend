@@ -6,15 +6,16 @@
 // Vista responsive: cards en móvil, tabla en desktop/tablet.
 // ================================================================
 
-import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback, memo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { FiPackage, FiCheckCircle, FiCheck, FiTrendingUp, FiSearch, FiFilter, FiEye, FiExternalLink, FiChevronLeft, FiChevronRight, FiX } from 'react-icons/fi';
+import { FiPackage, FiCheckCircle, FiCheck, FiTrendingUp, FiSearch, FiFilter, FiEye, FiExternalLink, FiChevronLeft, FiChevronRight, FiX, FiRotateCcw, FiBox, FiTool } from 'react-icons/fi';
 import { GiTakeMyMoney } from 'react-icons/gi';
 import { useDocumentTitle } from '../../../../hooks/useDocumentTitle';
+import { useMediaQuery } from '../../../../hooks/useMediaQuery';
 import Card from '../../../../components/common/Card';
 import Alert from '../../../../components/ui/feedback/Alert';
 import LoadingOverlay from '../../../../components/ui/feedback/LoadingOverlay';
-import { getEntregas, getEntregaById, getPagosByVenta, entregarPedido } from '../../services/pedidosService';
+import { getEntregas, getEntregaById, getPagosByVenta, entregarPedido, devolverPedido } from '../../services/pedidosService';
 import EntregasModal from '../../components/EntregasModal';
 import { formatCurrency } from '../../../../utils/format';
 import styles from './entregas.module.css';
@@ -65,6 +66,7 @@ const getPageNumbers = (current, total) => {
 
 const Entregas = () => {
   useDocumentTitle('Entregas');
+  const isMobile = useMediaQuery('(max-width: 1200px)');
   const navigate = useNavigate();
 
   // ─── Estados de datos ───
@@ -136,6 +138,14 @@ const Entregas = () => {
   const [deliverLoading, setDeliverLoading] = useState(false);
   const [deliverResult, setDeliverResult] = useState(null);
 
+  // ─── Devolución ───
+  const [devolucionTarget, setDevolucionTarget] = useState(null);
+  const [devolucionConfirm, setDevolucionConfirm] = useState(null); // { tipo, entrega }
+  const [devolucionMotivo, setDevolucionMotivo] = useState('');
+  const [devolucionMotivoError, setDevolucionMotivoError] = useState('');
+  const [devolucionLoading, setDevolucionLoading] = useState(false);
+  const [devolucionResult, setDevolucionResult] = useState(null);
+
   // ─── Carga de datos desde la API ───
   useEffect(() => {
     let cancel = false;
@@ -183,13 +193,201 @@ const Entregas = () => {
   // ─── Números de página para la paginación inteligente ───
   const pageNumbers = useMemo(() => getPageNumbers(pagina, maxPag), [pagina, maxPag]);
 
+  // ─── Secciones memorizadas para evitar re-render en cada tecleo ───
+  const headerSection = useMemo(() => (
+    <header className={styles.header}>
+      <div>
+        <h2 className={styles.title}>Entregas</h2>
+        <p className={styles.subtitle}>Historial de pedidos entregados y terminados</p>
+      </div>
+      <button className={styles.btnNew} onClick={() => navigate('/pedidos', { state: { openForm: true } })}>
+        <FiPackage className={styles.btnIcon} />
+        Nuevo Pedido
+      </button>
+    </header>
+  ), []);
+
+  const statsCards = useMemo(() => (
+    <section className={styles.cardsGrid}>
+      <Card className={styles.statCard}>
+        <div className={`${styles.statIcon} ${styles.statIconBlue}`}><FiCheckCircle /></div>
+        <div className={styles.statBody}>
+          <span className={styles.statValue}>{resumen.totalEntregados}</span>
+          <span className={styles.statLabel}>Entregados</span>
+        </div>
+      </Card>
+      <Card className={styles.statCard}>
+        <div className={`${styles.statIcon} ${styles.statIconGreen}`}><FiPackage /></div>
+        <div className={styles.statBody}>
+          <span className={styles.statValue}>{resumen.totalTerminados}</span>
+          <span className={styles.statLabel}>Terminados</span>
+        </div>
+      </Card>
+      <Card className={styles.statCard}>
+        <div className={`${styles.statIcon} ${styles.statIconOrange}`}><GiTakeMyMoney /></div>
+        <div className={styles.statBody}>
+          <span className={styles.statValue}>{formatCurrency(resumen.saldoPendiente)}</span>
+          <span className={styles.statLabel}>Saldo pendiente</span>
+        </div>
+      </Card>
+      <Card className={styles.statCard}>
+        <div className={`${styles.statIcon} ${styles.statIconTeal}`}><FiTrendingUp /></div>
+        <div className={styles.statBody}>
+          <span className={styles.statValue}>{formatCurrency(resumen.valorTotal)}</span>
+          <span className={styles.statLabel}>Valor total</span>
+        </div>
+      </Card>
+    </section>
+  ), [resumen]);
+
+  // ─── Memorizar filas de tabla y tarjetas móviles ───
+  const tableRows = useMemo(() =>
+    entregas.map((entrega) => {
+      const sp = statusPayment[entrega.estado_pago] || {};
+      const so = statusOrder[entrega.estado] || {};
+      const idDisplay = entrega.id || entrega.pedido_id;
+      const clienteDisplay = entrega.cliente_nombres || entrega.cliente || '—';
+      const fechaEstimada = entrega.fecha_entrega_estimada || '—';
+      const fechaReal = entrega.fecha_entrega_real || '—';
+      const total = entrega.precio_total ?? entrega.total ?? 0;
+      const saldo = entrega.saldo ?? entrega.saldo_pendiente ?? 0;
+      return (
+        <tr key={idDisplay} className={styles.tableRow}>
+          <td className={styles.cellId}>#{idDisplay}</td>
+          <td className={styles.cellClient} title={clienteDisplay !== '—' ? clienteDisplay : ''}>{clienteDisplay}</td>
+          <td>{fechaEstimada}</td>
+          <td>{fechaReal}</td>
+          <td className={styles.cellCurrency}>{formatCurrency(total)}</td>
+          <td className={`${styles.cellCurrency} ${saldo > 0 ? styles.cellDanger : ''}`}>
+            {formatCurrency(saldo)}
+          </td>
+          <td>
+            <span className={`${styles.badge} ${styles[sp.className] || ''}`}>
+              {sp.label || entrega.estado_pago}
+            </span>
+          </td>
+          <td>
+            <span className={`${styles.badge} ${styles[so.className] || ''}`}>
+              {so.label || entrega.estado}
+            </span>
+          </td>
+          <td>
+            <div className={styles.actionsCell}>
+              <button className={styles.actionBtn} title="Ver detalle" onClick={() => verDetalle(entrega)}>
+                <FiEye />
+              </button>
+              <button className={styles.actionBtn} title={entrega.venta_id ? "Ver venta asociada" : "Ver pedido"} onClick={() => navigate(entrega.venta_id ? `/ventas/${entrega.venta_id}` : `/pedidos/${idDisplay}`)}>
+                <FiExternalLink />
+              </button>
+              {entrega.estado === 'TERMINADO' && (
+                <button
+                  className={`${styles.actionBtn} ${styles.actionDeliver}`}
+                  title="Marcar como entregado"
+                  onClick={() => { setDeliverTarget(entrega); setDeliverObservacion(''); }}
+                >
+                  <FiCheck />
+                </button>
+              )}
+              {entrega.estado === 'ENTREGADO' && (
+                <button
+                  className={`${styles.actionBtn} ${styles.actionReturn}`}
+                  title="Devolución del pedido"
+                  onClick={() => setDevolucionTarget(entrega)}
+                >
+                  <FiRotateCcw />
+                </button>
+              )}
+            </div>
+          </td>
+        </tr>
+      );
+    }),
+    [entregas, navigate, setDeliverTarget, setDeliverObservacion, setDevolucionTarget]
+  );
+
+  const mobileCards = useMemo(() =>
+    entregas.map((entrega) => {
+      const sp = statusPayment[entrega.estado_pago] || {};
+      const so = statusOrder[entrega.estado] || {};
+      const idDisplay = entrega.id || entrega.pedido_id;
+      const clienteDisplay = entrega.cliente_nombres || entrega.cliente || '—';
+      const fechaEstimada = entrega.fecha_entrega_estimada || '—';
+      const fechaReal = entrega.fecha_entrega_real || '—';
+      const total = entrega.precio_total ?? entrega.total ?? 0;
+      const saldo = entrega.saldo ?? entrega.saldo_pendiente ?? 0;
+      return (
+        <Card key={idDisplay} className={styles.mobileCard}>
+          <div className={styles.mobileHeader}>
+            <span className={styles.cellId}>#{idDisplay}</span>
+            <span className={`${styles.badge} ${styles[so.className] || ''}`}>
+              {so.label || entrega.estado}
+            </span>
+          </div>
+          <p className={styles.mobileClient}>{clienteDisplay}</p>
+          <div className={styles.mobileInfoGrid}>
+            <div>
+              <span className={styles.mobileLabel}>Fecha estimada</span>
+              <span>{fechaEstimada}</span>
+            </div>
+            <div>
+              <span className={styles.mobileLabel}>Fecha de entrega</span>
+              <span>{fechaReal}</span>
+            </div>
+            <div>
+              <span className={styles.mobileLabel}>Total</span>
+              <span className={styles.cellCurrency}>{formatCurrency(total)}</span>
+            </div>
+            <div>
+              <span className={styles.mobileLabel}>Saldo</span>
+              <span className={`${styles.cellCurrency} ${saldo > 0 ? styles.cellDanger : ''}`}>
+                {formatCurrency(saldo)}
+              </span>
+            </div>
+          </div>
+          <div className={styles.mobileFooter}>
+            <span className={`${styles.badge} ${styles[sp.className] || ''}`}>
+              {sp.label || entrega.estado_pago}
+            </span>
+            <div className={styles.actionsCell}>
+              <button className={styles.actionBtn} title="Ver detalle" onClick={() => verDetalle(entrega)}>
+                <FiEye />
+              </button>
+              <button className={styles.actionBtn} title={entrega.venta_id ? "Ver venta asociada" : "Ver pedido"} onClick={() => navigate(entrega.venta_id ? `/ventas/${entrega.venta_id}` : `/pedidos/${idDisplay}`)}>
+                <FiExternalLink />
+              </button>
+              {entrega.estado === 'TERMINADO' && (
+                <button
+                  className={`${styles.actionBtn} ${styles.actionDeliver}`}
+                  title="Marcar como entregado"
+                  onClick={() => { setDeliverTarget(entrega); setDeliverObservacion(''); }}
+                >
+                  <FiCheck />
+                </button>
+              )}
+              {entrega.estado === 'ENTREGADO' && (
+                <button
+                  className={`${styles.actionBtn} ${styles.actionReturn}`}
+                  title="Devolución del pedido"
+                  onClick={() => setDevolucionTarget(entrega)}
+                >
+                  <FiRotateCcw />
+                </button>
+              )}
+            </div>
+          </div>
+        </Card>
+      );
+    }),
+    [entregas, navigate, setDeliverTarget, setDeliverObservacion, setDevolucionTarget]
+  );
+
   // ─── Contar filtros activos ───
   const totalFiltrosActivos = filtrosActivos
     ? Object.values(filtrosActivos).filter(Boolean).length
     : 0;
 
   // ─── Abrir modal de detalle: items desde detalle del pedido, pagos desde endpoint propio ───
-  const verDetalle = async (entrega) => {
+  async function verDetalle(entrega) {
     const id = entrega.id || entrega.pedido_id;
     const ventaId = entrega.venta_id;
     if (!id) return;
@@ -269,7 +467,7 @@ const Entregas = () => {
     } finally {
       setDetalleLoading(false);
     }
-  };
+  }
 
   // ─── Confirmar y marcar como entregado vía API ───
   const handleDeliverConfirm = async () => {
@@ -332,48 +530,10 @@ const Entregas = () => {
   return (
     <div className={styles.page}>
       {/* ─── Encabezado ─── */}
-      <header className={styles.header}>
-        <div>
-          <h2 className={styles.title}>Entregas</h2>
-          <p className={styles.subtitle}>Historial de pedidos entregados y terminados</p>
-        </div>
-        <button className={styles.btnNew} onClick={() => navigate('/pedidos', { state: { openForm: true } })}>
-          <FiPackage className={styles.btnIcon} />
-          Nuevo Pedido
-        </button>
-      </header>
+      {headerSection}
 
       {/* ─── Dashboard de indicadores ─── */}
-      <section className={styles.cardsGrid}>
-        <Card className={styles.statCard}>
-          <div className={`${styles.statIcon} ${styles.statIconBlue}`}><FiCheckCircle /></div>
-          <div className={styles.statBody}>
-            <span className={styles.statValue}>{resumen.totalEntregados}</span>
-            <span className={styles.statLabel}>Entregados</span>
-          </div>
-        </Card>
-        <Card className={styles.statCard}>
-          <div className={`${styles.statIcon} ${styles.statIconGreen}`}><FiPackage /></div>
-          <div className={styles.statBody}>
-            <span className={styles.statValue}>{resumen.totalTerminados}</span>
-            <span className={styles.statLabel}>Terminados</span>
-          </div>
-        </Card>
-        <Card className={styles.statCard}>
-          <div className={`${styles.statIcon} ${styles.statIconOrange}`}><GiTakeMyMoney /></div>
-          <div className={styles.statBody}>
-            <span className={styles.statValue}>{formatCurrency(resumen.saldoPendiente)}</span>
-            <span className={styles.statLabel}>Saldo pendiente</span>
-          </div>
-        </Card>
-        <Card className={styles.statCard}>
-          <div className={`${styles.statIcon} ${styles.statIconTeal}`}><FiTrendingUp /></div>
-          <div className={styles.statBody}>
-            <span className={styles.statValue}>{formatCurrency(resumen.valorTotal)}</span>
-            <span className={styles.statLabel}>Valor total</span>
-          </div>
-        </Card>
-      </section>
+      {statsCards}
 
       {/* ─── Barra de herramientas: búsqueda + botón filtrar ─── */}
       <Card className={styles.toolbarCard}>
@@ -476,7 +636,7 @@ const Entregas = () => {
       )}
 
       {/* ─── Tabla principal (escritorio/tablet) ─── */}
-      <Card className={styles.tableCard}>
+      {!isMobile && <Card className={styles.tableCard}>
         {loading ? (
           <LoadingOverlay title="Cargando entregas…" message="Obteniendo historial" />
         ) : error ? (
@@ -506,57 +666,7 @@ const Entregas = () => {
                       </td>
                     </tr>
                   ) : (
-                    entregas.map((entrega) => {
-                      const sp = statusPayment[entrega.estado_pago] || {};
-                      const so = statusOrder[entrega.estado] || {};
-                      const idDisplay = entrega.id || entrega.pedido_id;
-                      const clienteDisplay = entrega.cliente_nombres || entrega.cliente || '—';
-                      const fechaEstimada = entrega.fecha_entrega_estimada || '—';
-                      const fechaReal = entrega.fecha_entrega_real || '—';
-                      const total = entrega.precio_total ?? entrega.total ?? 0;
-                      const saldo = entrega.saldo ?? entrega.saldo_pendiente ?? 0;
-                      return (
-                        <tr key={idDisplay} className={styles.tableRow}>
-                          <td className={styles.cellId}>#{idDisplay}</td>
-                          <td className={styles.cellClient} title={clienteDisplay !== '—' ? clienteDisplay : ''}>{clienteDisplay}</td>
-                          <td>{fechaEstimada}</td>
-                          <td>{fechaReal}</td>
-                          <td className={styles.cellCurrency}>{formatCurrency(total)}</td>
-                          <td className={`${styles.cellCurrency} ${saldo > 0 ? styles.cellDanger : ''}`}>
-                            {formatCurrency(saldo)}
-                          </td>
-                          <td>
-                            <span className={`${styles.badge} ${styles[sp.className] || ''}`}>
-                              {sp.label || entrega.estado_pago}
-                            </span>
-                          </td>
-                          <td>
-                            <span className={`${styles.badge} ${styles[so.className] || ''}`}>
-                              {so.label || entrega.estado}
-                            </span>
-                          </td>
-                          <td>
-                            <div className={styles.actionsCell}>
-                              <button className={styles.actionBtn} title="Ver detalle" onClick={() => verDetalle(entrega)}>
-                                <FiEye />
-                              </button>
-                              <button className={styles.actionBtn} title={entrega.venta_id ? "Ver venta asociada" : "Ver pedido"} onClick={() => navigate(entrega.venta_id ? `/ventas/${entrega.venta_id}` : `/pedidos/${idDisplay}`)}>
-                                <FiExternalLink />
-                              </button>
-                              {entrega.estado === 'TERMINADO' && (
-                                <button
-                                  className={`${styles.actionBtn} ${styles.actionDeliver}`}
-                                  title="Marcar como entregado"
-                                  onClick={() => { setDeliverTarget(entrega); setDeliverObservacion(''); }}
-                                >
-                                  <FiCheck />
-                                </button>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })
+                    tableRows
                   )}
                 </tbody>
               </table>
@@ -590,82 +700,20 @@ const Entregas = () => {
             )}
           </>
         )}
-      </Card>
+      </Card>}
 
       {/* ─── Vista móvil: tarjetas ─── */}
-      <div className={styles.mobileList}>
+      {isMobile && <div className={styles.mobileList}>
         {loading ? (
           <p className={styles.loadingText}>Cargando entregas…</p>
         ) : error ? (
           <p className={styles.loadingText}>{error}</p>
         ) : entregas.length === 0 ? (
           <p className={styles.loadingText}>No se encontraron entregas con los filtros seleccionados</p>
-        ) : (
-          entregas.map((entrega) => {
-            const sp = statusPayment[entrega.estado_pago] || {};
-            const so = statusOrder[entrega.estado] || {};
-            const idDisplay = entrega.id || entrega.pedido_id;
-            const clienteDisplay = entrega.cliente_nombres || entrega.cliente || '—';
-            const fechaEstimada = entrega.fecha_entrega_estimada || '—';
-            const fechaReal = entrega.fecha_entrega_real || '—';
-            const total = entrega.precio_total ?? entrega.total ?? 0;
-            const saldo = entrega.saldo ?? entrega.saldo_pendiente ?? 0;
-            return (
-              <Card key={idDisplay} className={styles.mobileCard}>
-                <div className={styles.mobileHeader}>
-                  <span className={styles.cellId}>#{idDisplay}</span>
-                  <span className={`${styles.badge} ${styles[so.className] || ''}`}>
-                    {so.label || entrega.estado}
-                  </span>
-                </div>
-                <p className={styles.mobileClient}>{clienteDisplay}</p>
-                <div className={styles.mobileInfoGrid}>
-                  <div>
-                    <span className={styles.mobileLabel}>Fecha estimada</span>
-                    <span>{fechaEstimada}</span>
-                  </div>
-                  <div>
-                    <span className={styles.mobileLabel}>Fecha de entrega</span>
-                    <span>{fechaReal}</span>
-                  </div>
-                  <div>
-                    <span className={styles.mobileLabel}>Total</span>
-                    <span className={styles.cellCurrency}>{formatCurrency(total)}</span>
-                  </div>
-                  <div>
-                    <span className={styles.mobileLabel}>Saldo</span>
-                    <span className={`${styles.cellCurrency} ${saldo > 0 ? styles.cellDanger : ''}`}>
-                      {formatCurrency(saldo)}
-                    </span>
-                  </div>
-                </div>
-                <div className={styles.mobileFooter}>
-                  <span className={`${styles.badge} ${styles[sp.className] || ''}`}>
-                    {sp.label || entrega.estado_pago}
-                  </span>
-                  <div className={styles.actionsCell}>
-                    <button className={styles.actionBtn} title="Ver detalle" onClick={() => verDetalle(entrega)}>
-                      <FiEye />
-                    </button>
-                    <button className={styles.actionBtn} title={entrega.venta_id ? "Ver venta asociada" : "Ver pedido"} onClick={() => navigate(entrega.venta_id ? `/ventas/reportes` : `/pedidos/${idDisplay}`)}>
-                      <FiExternalLink />
-                    </button>
-                    {entrega.estado === 'TERMINADO' && (
-                      <button
-                        className={`${styles.actionBtn} ${styles.actionDeliver}`}
-                        title="Marcar como entregado"
-                        onClick={() => { setDeliverTarget(entrega); setDeliverObservacion(''); }}
-                      >
-                        <FiCheck />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </Card>
-            );
-          })
-        )}
-      </div>
+          ) : (
+            mobileCards
+          )}
+      </div>}
 
       {/* ─── Confirmación: marcar como entregado ─── */}
       {deliverTarget && (
@@ -692,6 +740,180 @@ const Entregas = () => {
       {/* ─── Resultado de la operación ─── */}
       {deliverResult && (
         <Alert type={deliverResult.type} title={deliverResult.title} message={deliverResult.message} onClose={deliverResult.onClose} />
+      )}
+
+      {/* ─── Modal de devolución ─── */}
+      {devolucionTarget && (
+        <div className={styles.returnOverlay} onClick={() => setDevolucionTarget(null)}>
+          <div className={styles.returnModal} onClick={(e) => e.stopPropagation()}>
+            <button className={styles.returnClose} onClick={() => setDevolucionTarget(null)} title="Cerrar">
+              <FiX />
+            </button>
+
+            <div className={styles.returnIconWrapper}>
+              <FiRotateCcw />
+            </div>
+
+            <h3 className={styles.returnTitle}>¿Quieres hacer la devolución del pedido?</h3>
+            <p className={styles.returnSubtitle}>
+              El pedido <strong>#{devolucionTarget.id || devolucionTarget.pedido_id}</strong> de{' '}
+              <strong>{devolucionTarget.cliente_nombres || devolucionTarget.cliente}</strong> será
+              marcado como devuelto. Selecciona el motivo de la devolución:
+            </p>
+
+            <div className={styles.returnOptions}>
+              <button
+                className={styles.returnOption}
+                onClick={() => {
+                  setDevolucionConfirm({ tipo: 'ANULACION', entrega: devolucionTarget });
+                  setDevolucionTarget(null);
+                }}
+              >
+                <FiBox className={styles.returnOptionIcon} />
+                <div className={styles.returnOptionContent}>
+                  <span className={styles.returnOptionTitle}>Devolver producto al inventario</span>
+                  <span className={styles.returnOptionDesc}>
+                    El producto devuelto estará disponible nuevamente para la venta o para otros pedidos
+                  </span>
+                </div>
+              </button>
+
+              <button
+                className={styles.returnOption}
+                onClick={() => {
+                  setDevolucionConfirm({ tipo: 'CORRECCION', entrega: devolucionTarget });
+                  setDevolucionTarget(null);
+                }}
+              >
+                <FiTool className={styles.returnOptionIcon} />
+                <div className={styles.returnOptionContent}>
+                  <span className={styles.returnOptionTitle}>Devolver para correcciones o modificaciones</span>
+                  <span className={styles.returnOptionDesc}>
+                    El pedido requiere ajustes, reparaciones o modificaciones antes de ser entregado nuevamente
+                  </span>
+                </div>
+              </button>
+            </div>
+
+            <button className={styles.returnCancel} onClick={() => setDevolucionTarget(null)}>
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Modal de confirmación de devolución (motivo) ─── */}
+      {devolucionConfirm && (
+        <div className={styles.returnOverlay} onClick={() => { setDevolucionConfirm(null); setDevolucionMotivo(''); setDevolucionMotivoError(''); }}>
+          <div className={styles.returnModalConfirm} onClick={(e) => e.stopPropagation()}>
+            <button className={styles.returnClose} onClick={() => { setDevolucionConfirm(null); setDevolucionMotivo(''); setDevolucionMotivoError(''); }} title="Cerrar">
+              <FiX />
+            </button>
+
+            <div className={styles.returnIconWrapper}>
+              <FiRotateCcw />
+            </div>
+
+            <h3 className={styles.returnTitle}>Confirmar devolución del pedido</h3>
+            <p className={styles.returnSubtitle}>
+              Pedido <strong>#{devolucionConfirm.entrega.id || devolucionConfirm.entrega.pedido_id}</strong> de{' '}
+              <strong>{devolucionConfirm.entrega.cliente_nombres || devolucionConfirm.entrega.cliente}</strong>
+              <br />
+              Tipo de devolución:{' '}
+              <strong>{devolucionConfirm.tipo === 'ANULACION' ? 'Devolver producto al inventario' : 'Devolver para correcciones o modificaciones'}</strong>
+            </p>
+
+            <div className={styles.returnConfirmField}>
+              <label className={styles.returnConfirmLabel}>
+                Motivo de la devolución <span className={styles.required}>*</span>
+              </label>
+              <textarea
+                className={`${styles.returnConfirmTextarea} ${devolucionMotivoError ? styles.returnConfirmTextareaError : ''}`}
+                placeholder="Describe el motivo de la devolución…"
+                value={devolucionMotivo}
+                onChange={(e) => {
+                  setDevolucionMotivo(e.target.value);
+                  if (devolucionMotivoError) setDevolucionMotivoError('');
+                }}
+                rows={4}
+                maxLength={300}
+              />
+              {devolucionMotivoError && (
+                <span className={styles.returnConfirmError}>{devolucionMotivoError}</span>
+              )}
+              <span className={styles.returnCharCounter}>
+                {devolucionMotivo.length}/300
+              </span>
+            </div>
+
+            <div className={styles.returnConfirmActions}>
+              <button
+                className={styles.returnConfirmCancel}
+                onClick={() => { setDevolucionConfirm(null); setDevolucionMotivo(''); setDevolucionMotivoError(''); }}
+              >
+                Cancelar
+              </button>
+              <button
+                className={styles.returnConfirmBtn}
+                onClick={async () => {
+                  const motivo = devolucionMotivo.trim();
+                  if (!motivo) {
+                    setDevolucionMotivoError('El motivo de la devolución es obligatorio');
+                    return;
+                  }
+                  setDevolucionMotivoError('');
+                  const { tipo, entrega } = devolucionConfirm;
+                  const id = entrega.id || entrega.pedido_id;
+                  setDevolucionConfirm(null);
+                  setDevolucionMotivo('');
+                  setDevolucionLoading(true);
+
+                  try {
+                    const resp = await devolverPedido(id, {
+                      tipo_devolucion: tipo,
+                      motivo,
+                    });
+                    setDevolucionLoading(false);
+
+                    if (resp?.status) {
+                      setDevolucionResult({
+                        type: 'success',
+                        title: 'Devolución registrada',
+                        message: resp.msg || `El pedido #${id} ha sido devuelto correctamente.`,
+                        onClose: () => window.location.reload(),
+                      });
+                    } else {
+                      setDevolucionResult({
+                        type: 'error',
+                        title: 'Error',
+                        message: resp?.msg || 'Error al registrar la devolución',
+                        onClose: () => setDevolucionResult(null),
+                      });
+                    }
+                  } catch (err) {
+                    setDevolucionLoading(false);
+                    setDevolucionResult({
+                      type: 'error',
+                      title: 'Error',
+                      message: err?.response?.data?.error || 'No se pudo procesar la devolución',
+                      onClose: () => setDevolucionResult(null),
+                    });
+                  }
+                }}
+              >
+                Confirmar devolución
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Loading durante la devolución ─── */}
+      {devolucionLoading && <LoadingOverlay title="Procesando devolución…" message="Registrando la devolución del pedido" />}
+
+      {/* ─── Resultado de la devolución ─── */}
+      {devolucionResult && (
+        <Alert type={devolucionResult.type} title={devolucionResult.title} message={devolucionResult.message} onClose={devolucionResult.onClose} />
       )}
 
       {/* ─── Loading mientras se obtiene el detalle ─── */}

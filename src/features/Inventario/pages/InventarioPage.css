@@ -129,6 +129,8 @@
   padding: 0.85rem 1rem; font-size: 0.68rem; font-weight: 600;
   text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted);
   text-align: left; white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .inv-table td {
   padding: 0.85rem 1rem; font-size: var(--text-xs); color: var(--text-secondary);
@@ -150,9 +152,39 @@
   min-width: 120px;
 }
 
-/* Texto largo se trunca con ellipsis en vez de empujar otras columnas */
-.inv-table td:nth-child(1),
+/* Productos: ancho suficiente para que GÉNERO·TALLA, PRECIO, TIPO PRENDA y CATEGORÍA no se solapen */
+.inv-table[data-tab="productos"] th:nth-child(3),
+.inv-table[data-tab="productos"] td:nth-child(3) {
+  width: 100px;
+  min-width: 100px;
+}
+.inv-table[data-tab="productos"] th:nth-child(4),
+.inv-table[data-tab="productos"] td:nth-child(4) {
+  width: 120px;
+  min-width: 120px;
+}
+.inv-table[data-tab="productos"] th:nth-child(5),
+.inv-table[data-tab="productos"] td:nth-child(5) {
+  width: 140px;
+  min-width: 140px;
+}
+.inv-table[data-tab="productos"] th:nth-child(6),
+.inv-table[data-tab="productos"] td:nth-child(6) {
+  width: 110px;
+  min-width: 110px;
+}
+
+/* Columnas 1 y 2 (PRODUCTO/MATERIAL, DESCRIPCIÓN): ancho mínimo para que no se colapsen */
+.inv-table th:nth-child(1),
+.inv-table td:nth-child(1) {
+  min-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.inv-table th:nth-child(2),
 .inv-table td:nth-child(2) {
+  min-width: 140px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -166,7 +198,7 @@
 .inv-material-name { font-weight: 600; color: var(--text-primary); margin: 0; font-size: var(--text-xs); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .inv-material-ref { font-size: 0.68rem; color: var(--text-muted); margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .inv-cat-tag { display: inline-block; padding: 3px 10px; background: var(--bg-glass); border-radius: 6px; font-size: 0.72rem; font-weight: 500; color: var(--text-muted); }
-.inv-cell-specs { font-size: 0.72rem; color: var(--text-muted); max-width: 200px; }
+.inv-cell-specs { font-size: 0.72rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .inv-cell-price { font-weight: 700; color: var(--text-primary); font-size: var(--text-sm); white-space: nowrap; }
 .inv-cell-unit { font-weight: 400; font-size: 0.68rem; color: var(--text-muted); margin-left: 2px; }
 
@@ -203,9 +235,8 @@
 /* Reservar espacio para la columna de acciones (2 botones de 2rem + gap) */
 /* 6.5rem = 2 botones (2rem c/u) + gap (4px) + padding horizontal (2rem) */
 .inv-table th:last-child,
-.inv-table td:last-child { width: 6.5rem; white-space: nowrap; text-align: right; }
-.inv-actions { display: flex; gap: 4px; justify-content: flex-end; opacity: 0; transition: opacity 0.2s ease; }
-.inv-actions--visible { opacity: 1; }
+.inv-table td:last-child { width: 8rem; min-width: 8rem; white-space: nowrap; text-align: right; }
+.inv-actions { display: flex; gap: 4px; justify-content: flex-end; }
 .inv-action-btn {
   width: 2rem; height: 2rem; border: none; border-radius: var(--radius-xs);
   background: transparent; cursor: pointer;
@@ -278,20 +309,45 @@
   .inv-table-wrap { overflow-x: auto; }
   .inv-stat-card { padding: 1rem 1.25rem; }
   .inv-stat-value { font-size: 1.25rem; }
+  /* Reducir min-width de columna ESTADO en móvil para evitar scroll de 3px en iPhone */
+  .inv-table th:nth-last-child(2),
+  .inv-table td:nth-last-child(2) { min-width: 110px; }
   /* Ocultar columna DESCRIPCIÓN (4ta) en móvil para evitar interpolación con STOCK — solo tabla de materiales (bug #7) */
   .inv-table[data-tab="materiales"] th:nth-child(4),
   .inv-table[data-tab="materiales"] td:nth-child(4) { display: none; }
-  /* Productos: ocultar CATEGORÍA (3ra), TIPO PRENDA (4ta), GÉNERO·TALLA (5ta), PRECIO (6ta) en móvil */
+  /* Abastecimientos: ocultar ÍTEMS (2da) y COSTO TOTAL (4ta) en móvil */
+  .inv-table[data-tab="abastecimientos"] th:nth-child(2),
+  .inv-table[data-tab="abastecimientos"] td:nth-child(2),
+  .inv-table[data-tab="abastecimientos"] th:nth-child(4),
+  .inv-table[data-tab="abastecimientos"] td:nth-child(4) { display: none; }
+  .inv-table[data-tab="abastecimientos"] { table-layout: auto !important; }
+  /* Productos: ocultar CATEGORÍA (3ra), TIPO PRENDA (4ta), GÉNERO·TALLA (5ta) en móvil */
+  /* PRECIO (6ta) se mantiene visible — es información crítica */
   .inv-table[data-tab="productos"] th:nth-child(3),
   .inv-table[data-tab="productos"] td:nth-child(3),
   .inv-table[data-tab="productos"] th:nth-child(4),
   .inv-table[data-tab="productos"] td:nth-child(4),
   .inv-table[data-tab="productos"] th:nth-child(5),
-  .inv-table[data-tab="productos"] td:nth-child(5),
-  .inv-table[data-tab="productos"] th:nth-child(6),
-  .inv-table[data-tab="productos"] td:nth-child(6) { display: none; }
+  .inv-table[data-tab="productos"] td:nth-child(5) { display: none; }
   /* Cambiar a table-layout:auto en móvil para que las columnas visibles usen bien el espacio */
   .inv-table[data-tab="productos"] { table-layout: auto !important; }
+  .inv-table[data-tab="materiales"] { table-layout: auto !important; }
+  /* En móvil: el nombre del producto NO se trunca, sino que envuelve el texto */
+  .inv-table th:nth-child(1),
+  .inv-table td:nth-child(1) {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    word-break: break-word;
+    min-width: 160px;
+  }
+  .inv-cell-name { overflow: visible; }
+  .inv-material-name {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    word-break: break-word;
+  }
 }
 
 @media (max-width: 480px) {
@@ -309,4 +365,147 @@
   /* Productos: ocultar DESCRIPCIÓN (2da) en pantallas muy pequeñas */
   .inv-table[data-tab="productos"] th:nth-child(2),
   .inv-table[data-tab="productos"] td:nth-child(2) { display: none; }
+  /* Abastecimientos: ocultar ESTADO (3ra) en pantallas muy pequeñas */
+  .inv-table[data-tab="abastecimientos"] th:nth-child(3),
+  .inv-table[data-tab="abastecimientos"] td:nth-child(3) { display: none; }
+}
+
+/* ── Modal detalle de abastecimiento ── */
+.inv-overlay {
+  position: fixed; inset: 0; z-index: 2000;
+  background: rgba(0,0,0,0.65); backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 1.5rem; animation: invFadeIn 0.2s ease both;
+}
+.inv-modal {
+  background: var(--bg-surface); border: 1px solid var(--border-glass);
+  border-radius: 16px; max-width: 720px; width: 100%;
+  max-height: 88vh; display: flex; flex-direction: column;
+  overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+  animation: invStatIn 0.25s ease both;
+}
+.abs-overlay {
+  position: fixed; inset: 0; z-index: 2000;
+  background: rgba(0,0,0,0.65); backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 1.5rem; animation: invFadeIn 0.2s ease both;
+}
+.abs-detail-modal {
+  background: var(--bg-surface); border: 1px solid var(--border-glass);
+  border-radius: 16px; max-width: 720px; width: 100%;
+  max-height: 88vh; display: flex; flex-direction: column;
+  overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+  animation: invStatIn 0.25s ease both;
+}
+
+/* ── Topbar con color de estado ── */
+.abs-detail-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.25rem 1.5rem; color: #fff; flex-shrink: 0;
+}
+.abs-detail-topbar-left { display: flex; align-items: center; gap: 0.85rem; }
+.abs-detail-topbar-left i { font-size: 1.75rem; }
+.abs-detail-id { margin: 0; font-size: 1rem; font-weight: 700; line-height: 1.3; }
+.abs-detail-status { margin: 0; font-size: 0.78rem; font-weight: 500; opacity: 0.9; }
+.abs-detail-close {
+  width: 2.25rem; height: 2.25rem; border: none; border-radius: 50%;
+  background: rgba(255,255,255,0.2); color: #fff; cursor: pointer;
+  font-size: 1.2rem; display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s; flex-shrink: 0;
+}
+.abs-detail-close:hover { background: rgba(255,255,255,0.35); transform: rotate(90deg); }
+
+/* ── Body ── */
+.abs-detail-body { padding: 1.5rem; overflow-y: auto; flex: 1; }
+
+/* ── Info grid ── */
+.abs-info-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+.abs-info-card {
+  background: var(--bg-glass); border: 1px solid var(--border-glass);
+  border-radius: 12px; padding: 1rem; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 0.35rem;
+  transition: all var(--transition-fast);
+}
+.abs-info-card:hover { border-color: var(--border-glass-hover); }
+.abs-info-card i { font-size: 1.35rem; color: var(--accent-gold); }
+.abs-info-label { font-size: 0.65rem; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+.abs-info-value { font-size: var(--text-xs); color: var(--text-primary); font-weight: 700; }
+.abs-total-highlight { color: var(--accent-gold); font-size: var(--text-sm); }
+
+/* ── Observación ── */
+.abs-obs-section {
+  display: flex; align-items: flex-start; gap: 0.65rem;
+  background: rgba(255,255,255,0.03); border: 1px solid var(--border-glass);
+  border-radius: 10px; padding: 0.85rem 1rem; margin-bottom: 1.25rem;
+}
+.abs-obs-section i { font-size: 1.1rem; color: var(--text-muted); margin-top: 1px; flex-shrink: 0; }
+.abs-obs-section p { margin: 0; font-size: var(--text-xs); color: var(--text-secondary); line-height: 1.5; }
+
+/* ── Tabla de ítems ── */
+.abs-items-section { margin-bottom: 0; }
+.abs-items-title {
+  font-size: var(--text-sm); font-weight: 700; color: var(--text-primary);
+  margin: 0 0 0.85rem; display: flex; align-items: center; gap: 0.5rem;
+}
+.abs-items-title i { font-size: 1rem; color: var(--accent-gold); }
+
+.abs-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--border-glass); border-radius: 10px; }
+.abs-detail-table { width: 100%; border-collapse: collapse; min-width: 450px; }
+.abs-detail-table thead { background: var(--bg-glass); }
+.abs-detail-table th {
+  padding: 0.7rem 1rem; font-size: 0.65rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted);
+  text-align: left; white-space: nowrap;
+}
+.abs-th-num { text-align: right !important; }
+.abs-detail-table td {
+  padding: 0.7rem 1rem; font-size: var(--text-xs); color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-glass); vertical-align: middle;
+}
+.abs-td-num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.abs-td-total { font-weight: 600; color: var(--text-primary); }
+.abs-item-name { font-weight: 500; color: var(--text-primary); }
+
+.abs-detail-table tbody tr:last-child td { border-bottom: none; }
+.abs-detail-table tbody tr:hover td { background: var(--bg-glass-hover); }
+
+.abs-detail-table tfoot td {
+  padding: 0.85rem 1rem; border-top: 2px solid var(--border-glass);
+  font-size: var(--text-xs);
+}
+.abs-foot-label { text-align: right; font-weight: 600; color: var(--text-muted); }
+.abs-foot-value { text-align: right; font-weight: 800; color: var(--accent-gold); font-size: var(--text-sm); }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .abs-overlay { padding: 0.75rem; }
+  .abs-detail-modal { max-width: 95%; width: 95%; }
+  .abs-detail-topbar { padding: 1rem 1.25rem; }
+  .abs-detail-body { padding: 1rem 1.25rem; }
+  .abs-detail-topbar-left i { font-size: 1.4rem; }
+  .abs-detail-id { font-size: 0.9rem; }
+  .abs-detail-body { padding: 1rem 1.25rem; }
+  .abs-info-grid { grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
+  .abs-info-card { padding: 0.8rem; }
+  .abs-info-card i { font-size: 1.15rem; }
+}
+
+@media (max-width: 480px) {
+  .abs-overlay { padding: 0; align-items: flex-end; }
+  .abs-detail-modal {
+    max-width: 100%; width: 100%; max-height: 92vh;
+    border-radius: 16px 16px 0 0;
+  }
+  .abs-detail-topbar { padding: 0.85rem 1rem; }
+  .abs-detail-body { padding: 0.85rem 1rem; }
+  .abs-detail-topbar { padding: 0.85rem 1rem; }
+  .abs-detail-body { padding: 0.85rem 1rem; }
+  .abs-info-grid { grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+  .abs-info-card { padding: 0.65rem; }
+  .abs-info-card i { font-size: 1rem; }
+  .abs-info-value { font-size: 0.7rem; }
+  .obs-section { padding: 0.7rem 0.85rem; }
 }

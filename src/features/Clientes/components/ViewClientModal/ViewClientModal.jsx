@@ -63,8 +63,8 @@ const ViewClientModal = ({ cliente, onClose }) => {
 
     const fetchOrders = async () => {
       try {
-        const clientName = cliente.name || ''
-        const resp = await getPedidos(1, { cliente: clientName })
+        const documento = cliente.documento || ''
+        const resp = await getPedidos(1, { cliente: documento })
         const data = Array.isArray(resp)
           ? resp
           : resp?.data && Array.isArray(resp.data)
@@ -166,7 +166,27 @@ const ViewClientModal = ({ cliente, onClose }) => {
                   <i className="ti ti-id" />
                 </span>
                 <div>
-                  <p className="vcm-field__label">ID Cliente</p>
+                  <p className="vcm-field__label">Documento de identificación</p>
+                  <p className="vcm-field__value">{cliente.documento || fullCliente?.cliente_documento || '—'}</p>
+                </div>
+              </div>
+
+              <div className="vcm-field">
+                <span className="vcm-field__icon">
+                  <i className="ti ti-file-text" />
+                </span>
+                <div>
+                  <p className="vcm-field__label">Tipo de documento</p>
+                  <p className="vcm-field__value">{cliente.tipoDocumento || fullCliente?.cliente_tipo_doc || '—'}</p>
+                </div>
+              </div>
+
+              <div className="vcm-field">
+                <span className="vcm-field__icon">
+                  <i className="ti ti-hash" />
+                </span>
+                <div>
+                  <p className="vcm-field__label">ID del sistema</p>
                   <p className="vcm-field__value">{cliente.id || '—'}</p>
                 </div>
               </div>
@@ -252,7 +272,7 @@ const ViewClientModal = ({ cliente, onClose }) => {
                   const fecha = order.fecha_entrega || order.fecha_entrega_estimada || order.fecha_creacion || ''
 
                   return (
-                    <div key={order.id} className="vcm-order-item" onClick={() => navigate(`/pedidos/${order.id}`)}>
+                    <div key={order.id} className="vcm-order-item" onClick={() => navigate((order.tipo_origen == 'PRODUCCION'? `/pedidos/orden-produccion/${order.id}` :`/pedidos/${order.id}`))}>
                       <div className="vcm-order-item__head">
                         <span className="vcm-order-item__id">#{order.id}</span>
                         <span className={`vcm-status-badge ${st.className || ''}`}>

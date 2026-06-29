@@ -19,6 +19,7 @@ export const getPedidos = async (pag = 1, filtros = {}) => {
   if (filtros.estado_pago) params.append("estado_pago", filtros.estado_pago);
   if (filtros.fecha_entrega_desde) params.append("fecha_entrega_desde", filtros.fecha_entrega_desde);
   if (filtros.fecha_entrega_hasta) params.append("fecha_entrega_hasta", filtros.fecha_entrega_hasta);
+  if (filtros.tipo_origen) params.append("tipo_origen", filtros.tipo_origen);
   console.log(`${BASE}?${params}`)
   const res = await axiosInstance.get(`${BASE}?${params}`);
   return res.data;
@@ -63,7 +64,6 @@ export const createProduccion = async (pedidoId, detalleId, data) => {
 /** Actualizar producción */
 export const updateProduccion = async (pedidoId, detalleId, produccionId, data) => {
   const res = await axiosInstance.patch(`${BASE}/${pedidoId}/detalles/${detalleId}/produccion/${produccionId}`, data);
-  console.log(data)
   return res.data;
 };
 
@@ -116,6 +116,12 @@ export const cancelPedido = async (pedidoId, data) => {
   return res.data;
 };
 
+/** Devolver un pedido (ANULACION o CORRECCION) */
+export const devolverPedido = async (pedidoId, data) => {
+  const res = await axiosInstance.patch(`${BASE}/${pedidoId}/devolver`, data);
+  return res.data;
+};
+
 /** Eliminar un detalle de pedido */
 export const deleteDetalle = async (pedidoId, detalleId) => {
   const res = await axiosInstance.delete(`${BASE}/${pedidoId}/detalles/${detalleId}`);
@@ -127,6 +133,12 @@ export const uploadFotoPedido = async (pedidoId, formData) => {
   const res = await axiosInstance.post(`${BASE}/${pedidoId}/fotos`, formData, {
     headers: { 'Content-Type': undefined },
   });
+  return res.data;
+};
+
+/** Obtener historial de cambios de un pedido */
+export const getHistorialPedido = async (id) => {
+  const res = await axiosInstance.get(`${BASE}/${id}/historial`);
   return res.data;
 };
 

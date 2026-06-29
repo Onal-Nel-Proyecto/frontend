@@ -94,14 +94,14 @@ const ProduccionForm = ({ isOpen, onClose, detalles, onSuccess }) => {
           onClose: () => { setAlert(null); window.location.reload(); },
         });
       } else {
-        setAlert({ type: 'error', title: 'Error', message: resp?.msg || 'Error al iniciar producción', onClose: () => setAlert(null) });
+        setAlert({ type: 'error', title: 'Error', message: resp?.error || resp?.msg || 'Error al iniciar producción', onClose: () => setAlert(null) });
       }
     } catch (err) {
       setLoading(false);
       setAlert({
         type: 'error',
         title: 'Error',
-        message: err?.response?.data?.error || 'No se pudo iniciar la producción',
+        message: err?.response?.data?.error || err?.response?.data?.msg || 'No se pudo iniciar la producción',
         onClose: () => setAlert(null),
       });
     } finally {

@@ -29,18 +29,13 @@
   border-left: 1px solid var(--border-glass);
   box-shadow: var(--shadow-xl);
   animation: ncpSlideIn 0.35s var(--ease-out) both;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 @keyframes ncpSlideIn {
   from { transform: translateX(100%); }
   to   { transform: translateX(0); }
 }
-
-.ncp-drawer::-webkit-scrollbar { width: 4px; }
-.ncp-drawer::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 999px; }
-.ncp-drawer::-webkit-scrollbar-track { background: transparent; }
 
 /* ── Header ── */
 .ncp-header {
@@ -117,8 +112,14 @@
   flex-direction: column;
   gap: 0.75rem;
   width: 100%;
+  min-height: 0;
   box-sizing: border-box;
+  overflow-y: auto;
 }
+
+.ncp-form::-webkit-scrollbar { width: 4px; }
+.ncp-form::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 999px; }
+.ncp-form::-webkit-scrollbar-track { background: transparent; }
 
 .ncp-row {
   display: grid;
@@ -211,6 +212,16 @@
 .ncp-input::placeholder {
   color: var(--text-muted);
   font-size: var(--text-xs);
+}
+select.ncp-input {
+  appearance: none;
+  cursor: pointer;
+  padding-right: 1.5rem;
+}
+
+.ncp-input option {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
 }
 
 .ncp-field-err {
