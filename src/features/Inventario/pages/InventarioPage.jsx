@@ -100,6 +100,26 @@ const useDebounce = (value, delay = 400) => {
 }
 
 /**
+ * Genera array de páginas para paginación inteligente.
+ * Ej: (1, 10) → [1, 2, '...', 10]; (6, 10) → [1, '...', 5, 6, 7, '...', 10]
+ */
+const getSmartPages = (current, total) => {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+  const pages = [1]
+  // Rango alrededor de la página actual (hasta 3 a cada lado)
+  let start = Math.max(2, current - 2)
+  let end = Math.min(total - 1, current + 2)
+  // Ajustar si está cerca de los bordes
+  if (current <= 3) { start = 2; end = Math.min(5, total - 1) }
+  if (current >= total - 2) { start = Math.max(total - 4, 2); end = total - 1 }
+  if (start > 2) pages.push('...')
+  for (let i = start; i <= end; i++) pages.push(i)
+  if (end < total - 1) pages.push('...')
+  if (total > 1) pages.push(total)
+  return pages
+}
+
+/**
  * TablaSection — Componente reutilizable de tabla + filtros + estadísticas
  * 
  * Props:
@@ -219,12 +239,19 @@ const TablaSection = ({ items, loading, tipo, columns, renderRow, statConfig, fi
             onClick={() => pagination.onPageChange(pagination.page - 1)} title="Anterior">
             <i className="ti ti-chevron-left" />
           </button>
-          {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((p) => (
-            <button key={p} className={`inv-pagination-btn ${p === pagination.page ? 'inv-pagination-btn--active' : ''}`}
-              onClick={() => pagination.onPageChange(p)}>
-              {p}
-            </button>
-          ))}
+
+          {/* Paginación inteligente */}
+          {getSmartPages(pagination.page, pagination.totalPages).map((p, i) =>
+            p === '...' ? (
+              <span key={`dots-${i}`} className="inv-pagination-dots">…</span>
+            ) : (
+              <button key={p} className={`inv-pagination-btn ${p === pagination.page ? 'inv-pagination-btn--active' : ''}`}
+                onClick={() => pagination.onPageChange(p)}>
+                {p}
+              </button>
+            )
+          )}
+
           <button className="inv-pagination-btn" disabled={pagination.page >= pagination.totalPages}
             onClick={() => pagination.onPageChange(pagination.page + 1)} title="Siguiente">
             <i className="ti ti-chevron-right" />
@@ -275,6 +302,8 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
     abastecimientos,
     proveedores,
     loading: absLoading,
+    meta: absMeta,
+    loadAbastecimientos,
     addAbastecimiento,
     completar: completarAbs,
     cancelar: cancelarAbs,
@@ -321,9 +350,14 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
       setMaterials(items)
       setMatPage(pagina)
       if (res?.resumen) setMatResumen(res.resumen)
+      // Intentar leer paginación desde varios formatos del backend
       if (res?.paginacion) {
         setMatTotalPages(res.paginacion.totalPaginas || 1)
         setMatTotal(res.paginacion.total || items.length)
+      } else if (res?.resumen?.total_stock?.materiales_registrados) {
+        const total = res.resumen.total_stock.materiales_registrados
+        setMatTotalPages(Math.ceil(total / 15) || 1)
+        setMatTotal(total)
       } else {
         setMatTotalPages(1)
         setMatTotal(items.length)
@@ -346,9 +380,14 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
       setProducts(items)
       setProdPage(pagina)
       if (res?.resumen) setProdResumen(res.resumen)
+      // Intentar leer paginación desde varios formatos del backend
       if (res?.paginacion) {
         setProdTotalPages(res.paginacion.totalPaginas || 1)
         setProdTotal(res.paginacion.total || items.length)
+      } else if (res?.resumen?.total_productos) {
+        const total = res.resumen.total_productos
+        setProdTotalPages(Math.ceil(total / 15) || 1)
+        setProdTotal(total)
       } else {
         setProdTotalPages(1)
         setProdTotal(items.length)
@@ -417,6 +456,15 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
     if (estado != null) params.estado = estado
     if (prodFilters.category) params.categoria = prodFilters.category
     loadProductos(params, page)
+  }
+
+  // ── Paginación de Abastecimiento ──
+  const absPage = absMeta?.pagina_actual || 1
+  const absTotalPages = absMeta?.paginas_totales || 1
+  const absTotal = absMeta?.total ?? filteredAbastecimientos.length
+
+  const handleAbsPageChange = (page) => {
+    loadAbastecimientos(page)
   }
 
   // Abrir formulario de abastecimiento si se navegó con openForm:true (ej: desde acceso rápido del dashboard)
@@ -853,6 +901,8 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
             { value: 'COMPLETADO', label: 'Completado' },
             { value: 'CANCELADO', label: 'Cancelado' },
           ]}
+          pagination={{ page: absPage, totalPages: absTotalPages, onPageChange: handleAbsPageChange }}
+          totalItems={absTotal}
         />
       )}
       {activeTab === 'movimientos' && <MovimientosPage />}
