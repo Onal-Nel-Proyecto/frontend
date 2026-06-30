@@ -119,17 +119,19 @@
 
 .actionsMenu {
   position: absolute;
-  right: 110%;
   top: 0;
-   z-index: 9999;
-  background: #ffffff;
+  right: 0;
+
+  min-width: 170px;
+
+  background: #fff;
   border: 1px solid #e5e7eb;
-  backdrop-filter: var(--blur-glass);
   border-radius: 12px;
   box-shadow: 0 10px 25px rgba(0,0,0,.15);
-  padding: 0.5rem;
-  min-width: 160px;
-  z-index: 20;
+
+  padding: .5rem;
+
+  z-index: 9999;
 }
 
 .actionItem {
@@ -215,11 +217,7 @@
   color: var(--text-primary);
 }
 
-.mobileFooter {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+
 .filterButton {
   display: inline-flex;
   align-items: center;
@@ -329,6 +327,21 @@
   .mobileEmail {
     word-break: break-word;
   }
+    .actionsWrapper{
+      width:100%;
+      display:flex;
+      justify-content:flex-end;
+      position:relative;
+  }
+
+  .actionsMenu{
+      right:0;
+      left:auto;
+      top:42px;
+      min-width:180px;
+  }
+
+
 }
 
 @media (max-width: 480px) {

@@ -53,7 +53,20 @@ const AccionesMenu = ({ proveedor, onEdit, onDelete,   menuAbierto,
   );
 };
 
-const TablaProveedores = ({ proveedores = [], search = '', onSearchChange, filters = { estado: '', suministro: '', tipoDocumento: '', }, setFilters, openEdit, handleDelete, loading }) => {
+const TablaProveedores = ({
+  proveedores = [],
+  search = '',
+  onSearchChange,
+  filters = {
+    estado: '',
+    suministro: '',
+    tipoDocumento: '',
+  },
+  setFilters,
+  openEdit,
+  handleDelete,
+  loading,
+}) => {
   console.log('PROVEEDORES TABLA:', proveedores);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [menuAbierto, setMenuAbierto] = useState(null);
@@ -225,7 +238,7 @@ if (proveedores.length > 0) {
           ))}
         </div>
       </div>
-
+          
       <ProveedorFiltroDrawer isOpen={isFilterOpen} onClose={() => setIsFilterOpen(false)} filters={filters} setFilters={setFilters} />
     </div>
   );

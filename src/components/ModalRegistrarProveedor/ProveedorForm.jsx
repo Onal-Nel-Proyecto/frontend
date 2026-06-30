@@ -35,6 +35,7 @@ const ProveedorForm = ({ isOpen, onClose, proveedor, onSuccess }) => {
   const [alert, setAlert] = useState(null);
 
   useEffect(() => {
+    setErrors({});
     if (proveedor) {
       const currentSuministros = proveedor.prov_suministro || [];
       setForm({
@@ -61,7 +62,7 @@ const ProveedorForm = ({ isOpen, onClose, proveedor, onSuccess }) => {
         suministro_tipo: '',
       });
     }
-  }, [proveedor]);
+  }, [proveedor, isOpen]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -86,7 +87,28 @@ const ProveedorForm = ({ isOpen, onClose, proveedor, onSuccess }) => {
 
     // Teléfono
     if (name === "prov_telefono") {
-      newValue = value.replace(/\D/g, "");
+
+      // Solo números y +
+      newValue = value.replace(/[^\d+]/g, "");
+
+      // Solo un +
+      if ((newValue.match(/\+/g) || []).length > 1) {
+        newValue = "+" + newValue.replace(/\+/g, "");
+      }
+
+      // El + únicamente puede ir al inicio
+      if (newValue.includes("+") && !newValue.startsWith("+")) {
+        newValue = newValue.replace(/\+/g, "");
+      }
+
+      // Limitar cantidad de números
+      if (newValue.startsWith("+")) {
+        newValue =
+          "+" +
+          newValue.substring(1).replace(/\D/g, "").slice(0, 12);
+      } else {
+        newValue = newValue.replace(/\D/g, "").slice(0, 10);
+      }
     }
 
     // Documento / NIT
@@ -235,11 +257,55 @@ const ProveedorForm = ({ isOpen, onClose, proveedor, onSuccess }) => {
 
     // Teléfono (opcional)
     if (form.prov_telefono.trim()) {
-      if (!/^\d+$/.test(form.prov_telefono)) {
-        newErrors.prov_telefono = 'El teléfono solo puede contener números';
-      } else if (form.prov_telefono.length !== 10) {
-        newErrors.prov_telefono = 'Debe contener exactamente 10 dígitos';
+
+      // Solo números o + al inicio
+      if (!/^\+?\d+$/.test(form.prov_telefono)) {
+
+        newErrors.prov_telefono =
+          "Solo se permiten números o un '+' al inicio.";
+
       }
+
+      // Si tiene +
+      else if (form.prov_telefono.startsWith("+")) {
+
+        const digits = form.prov_telefono.substring(1);
+
+        if (digits.length !== 12) {
+
+          newErrors.prov_telefono =
+            "Los teléfonos internacionales deben tener exactamente 12 dígitos después del '+'.";
+
+        }
+
+        else if (digits.startsWith("0")) {
+
+          newErrors.prov_telefono =
+            "El código internacional no puede iniciar en 0.";
+
+        }
+
+      }
+
+      // Nacional
+      else {
+
+        if (form.prov_telefono.length !== 10) {
+
+          newErrors.prov_telefono =
+            "El teléfono nacional debe tener exactamente 10 dígitos.";
+
+        }
+
+        else if (!/^3\d{9}$/.test(form.prov_telefono)) {
+
+          newErrors.prov_telefono =
+            "Debe ser un celular colombiano válido (empieza por 3).";
+
+        }
+
+      }
+
     }
 
     // Dirección (opcional)
@@ -326,6 +392,28 @@ const ProveedorForm = ({ isOpen, onClose, proveedor, onSuccess }) => {
       setLoading(false);
       setSubmitting(false);
     }
+      // Documento o NIT duplicado
+  if (
+    message.includes("ya existe") &&
+    (
+      message.includes("id") ||
+      message.includes("documento") ||
+      message.includes("nit")
+    )
+  ){
+    setErrors((prev) => ({
+      ...prev,
+      prov_num_ident: "El número de documento ya se encuentra registrado.",
+    }));
+    return;
+  }
+
+  setAlert({
+    type: "error",
+    title: "Error",
+    message: message || "No se pudo guardar el proveedor",
+    onClose: () => setAlert(null),
+  });
   };
   const documentoMuyLargo =
   form.prov_tip_ident === "DOCUMENTO"
@@ -447,7 +535,7 @@ const ProveedorForm = ({ isOpen, onClose, proveedor, onSuccess }) => {
             <label className={styles.label}>Teléfono </label>
             <div className={styles.inputWrap}>
               <FiPhone className={styles.inputIcon} />
-              <input type="text" name="prov_telefono" maxLength={10} className={`${styles.input} ${errors.prov_telefono ? styles.inputError : ''}`} placeholder="3001234567" value={form.prov_telefono} onChange={handleChange} />
+              <input type="text" name="prov_telefono" maxLength={13} className={`${styles.input} ${errors.prov_telefono ? styles.inputError : ''}`} placeholder="3001234567" value={form.prov_telefono} onChange={handleChange} />
             </div>
             {errors.prov_telefono && <span className={styles.fieldError}>{errors.prov_telefono}</span>}
           </div>

@@ -34,13 +34,23 @@ const GestionProveedores = () => {
 		tipoDocumento: searchParams.get('tipoDocumento') || '',
 	}));
 	const [loading, setLoading] = useState(false);
-	
 
-	const loadProveedores = useCallback(async ({ nombre, suministro, estado, tipoDocumento } = {}) => {
+	const [pagina, setPagina] = useState(1);
+	const [totalPaginas, setTotalPaginas] = useState(1);
+
+	const loadProveedores = useCallback(async ({
+		nombre,
+		suministro,
+		estado,
+		tipoDocumento,
+		pagina = 1,
+	} = {}) => {
 	setLoading(true);
 
 	try {
 		const params = {};
+		params.pagina = pagina;
+		params.limite = 15;
 
 		const filtroNombre =
 			nombre !== undefined ? nombre : search;
@@ -69,15 +79,12 @@ const GestionProveedores = () => {
 		if (filtroEstado)
 			params.estado = filtroEstado;
 
-		const data = await getProveedores(params);
+		const respuesta = await getProveedores(params);
 
-		console.log('DATA API:', data);
+			console.log("DATA API:", respuesta);
 
-		const resultado = Array.isArray(data) ? data : data?.data ?? data;
-
-		console.log('SET PROVEEDORES:', resultado);
-
-		setProveedores(resultado);
+			setProveedores(respuesta.data || []);
+			setTotalPaginas(respuesta.meta?.paginas_totales || 1);
 
 	} catch (error) {
 		console.error(error);
@@ -105,8 +112,16 @@ useEffect(() => {
 		suministro: filters.suministro,
 		estado: filters.estado,
 		tipoDocumento: filters.tipoDocumento,
+		pagina: pagina,
 	});
-}, [search, filters.suministro, filters.estado, filters.tipoDocumento, loadProveedores]);
+}, [
+	search,
+	filters.suministro,
+	filters.estado,
+	filters.tipoDocumento,
+	pagina,
+	loadProveedores,
+]);
 
 	const openCreate = () => {
 		setProveedorSeleccionado(null);
@@ -157,11 +172,19 @@ useEffect(() => {
 					>
 						<FiArrowLeft />
 					</button>
+					  <div className={styles.titleIcon}>
+						<FaHandshakeAngle />
+					</div>
 
-					<h2 className={styles.title}>
-						<FaHandshakeAngle className={styles.titleIcon} />
+					<div className={styles.titleContainer}>
+						<h2 className={styles.title}>
 						Gestión de Proveedores
-					</h2>
+						</h2>
+
+						<p className={styles.subtitle}>
+						Administra los proveedores registrados en el sistema.
+						</p>
+					</div>
 					</div>
 				<button className={styles.createButton} onClick={openCreate}>
 					<FiPlus />
@@ -172,14 +195,44 @@ useEffect(() => {
 			<TablaProveedores
 				proveedores={proveedores}
 				search={search}
-				onSearchChange={setSearch}
+				onSearchChange={(valor) => {
+					setSearch(valor);
+					setPagina(1);
+				}}
 				filters={filters}
-				setFilters={setFilters}
+								setFilters={(nuevoFiltro) => {
+					setFilters(nuevoFiltro);
+					setPagina(1);
+				}}
 				isAdmin={isAdmin}
 				openEdit={openEdit}
 				handleDelete={handleDelete}
 				loading={loading}
 			/>
+			{totalPaginas > 1 && (
+			<div className={styles.pagination}>
+				<button
+				className={styles.pageButton}
+				onClick={() => setPagina((p) => Math.max(1, p - 1))}
+				disabled={pagina === 1}
+				>
+				← Anterior
+				</button>
+
+				<span className={styles.pageInfo}>
+				Página {pagina} de {totalPaginas}
+				</span>
+
+				<button
+				className={styles.pageButton}
+				onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))}
+				disabled={pagina === totalPaginas}
+				>
+				Siguiente →
+				</button>
+			</div>
+			)}
+			
 
 			<div className={styles.note}>Conectado al backend correctamente.</div>
 
@@ -187,7 +240,15 @@ useEffect(() => {
 				isOpen={showForm}
 				onClose={closeForm}
 				proveedor={proveedorSeleccionado}
-				onSuccess={() => loadProveedores({ nombre: search, suministro: filters.suministro, estado: filters.estado, tipoDocumento: filters.tipoDocumento,  })}
+				onSuccess={() =>
+    loadProveedores({
+						nombre: search,
+						suministro: filters.suministro,
+						estado: filters.estado,
+						tipoDocumento: filters.tipoDocumento,
+						pagina,
+					})
+				}
 			/>
 		</div>
 	);
