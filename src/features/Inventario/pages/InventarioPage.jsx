@@ -10,10 +10,11 @@ import { useLocation } from 'react-router-dom'
 import RegisterMaterial from './RegisterMaterial'
 import RegisterProducto from './RegisterProducto'
 import RegisterAbastecimiento from './RegisterAbastecimiento'
+import MovimientosPage from './MovimientosPage'
 import { useAbastecimiento } from '../../../hooks/useAbastecimiento'
 import { useDocumentTitle } from '../../../hooks/useDocumentTitle'
 import { getMateriales, createMaterial, updateMaterial, changeMaterialEstado } from '../../../api/materialesService'
-import { getProductos, createProducto, updateProducto, changeProductoEstado } from '../../../api/productosApiService'
+import { getProductos, getProductoById, createProducto, updateProducto, changeProductoEstado } from '../../../api/productosApiService'
 import Alert from '../../../components/ui/feedback/Alert'
 import './InventarioPage.css'
 
@@ -38,7 +39,7 @@ const mapperMaterial = (m) => ({
   tipo_material: m.tipoMaterial || '—',
   unidad_medida: m.unidadMedida || '—',
   desc: m.descripcion || '—',
-  stock: Number(m.cantidadDisponible || 0),
+  stock: Number(m.cantidadDisponible ?? m.stock ?? 0),
   minStock: Number(m.umbralMinimo || 0),
   status: (m.estado || '').toLowerCase(),
 })
@@ -53,7 +54,7 @@ const mapperProducto = (p) => ({
   genero: p.genero || '—',
   talla: p.talla || '—',
   price: Number(p.precioUnitario || 0),
-  stock: Number(p.cantidadDisponible || 0),
+  stock: Number(p.cantidadDisponible ?? p.stock ?? 0),
   minStock: Number(p.umbralMinimo || 0),
   tipoProducto: p.tipoProducto || 'INVENTARIO',
   status: typeof p.estado === 'string' ? p.estado.toLowerCase() : p.estado === 1 ? 'disponible' : p.estado === 2 ? 'agotado' : 'eliminado',
@@ -251,7 +252,12 @@ const TablaSection = ({ items, loading, tipo, columns, renderRow, statConfig, fi
  * 3. CRUD (crear/editar/eliminar) → handlers llaman a la API → recargan lista
  */
 const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
-  const titulo = activeTab === 'materiales' ? 'Inventario | Materiales' : activeTab === 'productos' ? 'Inventario | Productos' : 'Inventario | Abastecimiento'
+  const titulo =
+    activeTab === 'materiales' ? 'Inventario | Materiales' :
+    activeTab === 'productos' ? 'Inventario | Productos' :
+    activeTab === 'abastecimiento' ? 'Inventario | Abastecimiento' :
+    activeTab === 'movimientos' ? 'Inventario | Movimientos' :
+    'Inventario'
   useDocumentTitle(titulo)
 
   const [materials, setMaterials] = useState([])
@@ -517,6 +523,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
           categoriaId: data.categoriaId,
           talla: data.talla,
           umbralMinimo: data.umbralMinimo ?? 0,
+          tipoProducto: 'INVENTARIO',
         })
       } else {
         await createProducto({
@@ -528,6 +535,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
           talla: data.talla,
           cantidadDisponible: data.cantidadDisponible ?? 0,
           umbralMinimo: data.umbralMinimo ?? 0,
+          tipoProducto: 'INVENTARIO',
         })
       }
       setShowDrawerProd(false)
@@ -570,6 +578,37 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
         setAlertState(null)
         try {
           await completarAbs(item.id)
+
+          // Actualizar stock de productos manualmente (el backend solo actualiza materiales)
+          const detallesProducto = (item.detalles || []).filter(
+            (d) => d.tipo === 'PRODUCTO' && d.refId
+          )
+          if (detallesProducto.length > 0) {
+            await Promise.all(
+              detallesProducto.map(async (d) => {
+                try {
+                  const apiRes = await getProductoById(d.refId)
+                  const prod = apiRes?.data || apiRes
+                  if (!prod || !prod.id) return
+                  const stockActual = Number(prod.cantidadDisponible || 0)
+                  await updateProducto(prod.id, {
+                    nombre: prod.nombre,
+                    precioUnitario: prod.precioUnitario || 0,
+                    genero: prod.genero || null,
+                    tipoPrenda: prod.tipoPrenda || null,
+                    categoriaId: prod.categoriaId || null,
+                    talla: prod.talla || null,
+                    cantidadDisponible: stockActual + d.cantidad,
+                    umbralMinimo: prod.umbralMinimo ?? 0,
+                    tipoProducto: prod.tipoProducto || 'INVENTARIO',
+                  })
+                } catch (err) {
+                  console.warn(`Error al actualizar stock del producto #${d.refId}:`, err)
+                }
+              })
+            )
+          }
+
           await loadMateriales()
           await loadProductos()
         } catch (err) {
@@ -773,7 +812,8 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
   const handleAddBtn = () => {
     if (activeTab === 'materiales') handleAddMaterial()
     else if (activeTab === 'productos') handleAddProduct()
-    else handleAddAbastecimiento()
+    else if (activeTab === 'abastecimiento') handleAddAbastecimiento()
+    // Movimientos no tiene acción de crear
   }
 
   return (
@@ -786,10 +826,12 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
             <p className="inv-subtitle">Controla tus materiales textiles y productos confeccionados en un solo lugar.</p>
           </div>
         </div>
-        <button className="inv-btn-primary" onClick={handleAddBtn}>
-          <i className="ti ti-plus" />
-          {activeTab === 'materiales' ? 'Añadir Material' : activeTab === 'productos' ? 'Nuevo Producto' : 'Nuevo Abastecimiento'}
-        </button>
+        {activeTab !== 'movimientos' && (
+          <button className="inv-btn-primary" onClick={handleAddBtn}>
+            <i className="ti ti-plus" />
+            {activeTab === 'materiales' ? 'Añadir Material' : activeTab === 'productos' ? 'Nuevo Producto' : 'Nuevo Abastecimiento'}
+          </button>
+        )}
       </div>
 
       {activeTab === 'materiales' && (
@@ -813,6 +855,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
           ]}
         />
       )}
+      {activeTab === 'movimientos' && <MovimientosPage />}
 
       {showDrawerMat && (
         <RegisterMaterial

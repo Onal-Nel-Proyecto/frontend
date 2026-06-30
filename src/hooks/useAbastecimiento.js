@@ -19,9 +19,11 @@ const mapearAbastecimiento = (item) => ({
   totalItems: Number(item.total_items) || 0,
   costoTotal: Number(item.costo_total) || 0,
   detalles: Array.isArray(item.detalles) ? item.detalles.map((d) => ({
-    nombre: d.nombre_suministro || d.detAbsRefNombre || d.referenciaNombre || d.nombre || `Ref #${d.detAbsRefId || d.refId || '—'}`,
-    cantidad: Number(d.detAbsCant || d.cantidad || 0),
-    costo: Number(d.detAbsCos || d.costo || 0),
+    tipo: d.detAbsTip || d.tipo || d.det_abs_tipo || '',
+    refId: String(d.detAbsRefId || d.det_abs_ref_id || d.refId || ''),
+    nombre: d.nombre_suministro || d.detAbsRefNombre || d.det_abs_ref_nombre || d.referenciaNombre || d.nombre_suministro_ref || d.nombre || `Ref #${d.detAbsRefId || d.det_abs_ref_id || d.refId || '—'}`,
+    cantidad: Number(d.detAbsCant || d.det_abs_cant || d.det_abs_cantidad || d.cantidad || 0),
+    costo: Number(d.detAbsCos || d.det_abs_costo || d.det_abs_cos || d.costo || d.costo_unitario || d.precio || d.precio_unitario || 0),
   })) : [],
 });
 

@@ -17,6 +17,7 @@ import {
   FiDollarSign,
   FiBarChart2,
   FiTool,
+  FiRefreshCw,
 } from 'react-icons/fi';
 import { TfiRulerPencil } from "react-icons/tfi";
 import { isAdmin } from '../../../utils/session.js';
@@ -38,6 +39,7 @@ const modules = [
       { label: 'Materiales',     to: '/inventario/materiales',     icon: <FiPackage /> },
       { label: 'Productos',      to: '/inventario/productos',      icon: <FiShoppingBag /> },
       { label: 'Abastecimiento', to: '/inventario/abastecimiento', icon: <FiTruck /> },
+      { label: 'Movimientos',    to: '/inventario/movimientos',    icon: <FiRefreshCw /> },
     ],
   },
   {

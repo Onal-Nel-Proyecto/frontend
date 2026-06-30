@@ -133,6 +133,9 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
 
     // Si es edición y no hay cambios, bloquear el guardado
     if (isEditing && Object.keys(newErrors).length === 0) {
+      // La categoría en el form se convierte de nombre a ID vía useEffect,
+      // así que comparamos el nombre original contra el nombre resuelto
+      const catNameActual = categoriaSel?.['cat_nom'] || categoriaSel?.nombre || ''
       const orig = {
         nombre: initialData?.name?.trim() || '',
         tipoPrenda: clean(initialData?.tipo_prenda),
@@ -145,7 +148,7 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
       const sinCambios =
         orig.nombre === form.nombre.trim() &&
         orig.tipoPrenda === form.tipoPrenda &&
-        orig.categoria === form.categoria &&
+        orig.categoria === catNameActual &&
         orig.genero === form.genero &&
         orig.talla === form.talla.trim() &&
         orig.precio === form.precio?.toString().trim() &&
