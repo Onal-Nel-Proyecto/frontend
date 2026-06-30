@@ -96,13 +96,15 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, existingMaterials = []
         unidadMedida: initialData?.unidad_medida || '',
         descripcion: initialData?.desc?.trim() || '',
         umbralMinimo: initialData?.minStock?.toString() || '',
+        stock: initialData?.stock?.toString() || '',
       }
       const sinCambios =
         orig.nombre === form.nombre.trim() &&
         orig.tipoMaterial === form.tipoMaterial &&
         orig.unidadMedida === form.unidadMedida &&
         orig.descripcion === form.descripcion?.trim() &&
-        orig.umbralMinimo === form.umbralMinimo
+        orig.umbralMinimo === form.umbralMinimo &&
+        orig.stock === form.stock?.toString()
       if (sinCambios) {
         newErrors._general = 'No se detectaron cambios para guardar'
       }
@@ -115,7 +117,6 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, existingMaterials = []
     // Validar stock solo en edición
     if (isEditing) {
       const stockNum = Number(form.stock);
-      const maxStock = initialData?.stock ?? 0;
       if (isNaN(stockNum) || form.stock === '' || form.stock === null || form.stock === undefined) {
         setErrors((prev) => ({ ...prev, stock: 'El stock es obligatorio' }));
         setTouched((prev) => ({ ...prev, stock: true }));
@@ -123,11 +124,6 @@ const RegisterMaterial = ({ isOpen, onClose, initialData, existingMaterials = []
       }
       if (stockNum < 0) {
         setErrors((prev) => ({ ...prev, stock: 'El stock no puede ser negativo' }));
-        setTouched((prev) => ({ ...prev, stock: true }));
-        return;
-      }
-      if (stockNum > maxStock) {
-        setErrors((prev) => ({ ...prev, stock: `No puedes aumentar el stock. Máximo permitido: ${maxStock}` }));
         setTouched((prev) => ({ ...prev, stock: true }));
         return;
       }
