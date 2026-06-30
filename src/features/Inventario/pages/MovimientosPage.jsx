@@ -172,15 +172,40 @@ const MovimientosPage = () => {
     try {
       const params = { pag: pagina, ...filtrosAplicados }
       const qs = buildQueryString(params)
+      console.log('[Movimientos] URL:', `/movimientos${qs}`, '| params:', JSON.stringify(params))
       const response = await axiosInstance.get(`/movimientos${qs}`)
       const body = response.data
+      console.log('[Movimientos] Respuesta cruda:', body)
 
-      setData(Array.isArray(body?.data) ? body.data : [])
-      setMaxPag(body?.maxPag ?? 1)
-      setPagAct(body?.pagAct ?? pagina)
+      // Intentar extraer data desde distintos formatos de respuesta
+      let lista = []
+      let totalPag = 1
+      let pagActual = pagina
+
+      if (Array.isArray(body)) {
+        // Respuesta es directamente un array
+        lista = body
+      } else if (Array.isArray(body?.data)) {
+        // { data: [...], maxPag: N, pagAct: N }
+        lista = body.data
+        totalPag = body.maxPag ?? 1
+        pagActual = body.pagAct ?? pagina
+      } else if (body?.data && Array.isArray(body.data.data)) {
+        // { status: true, data: { data: [...], maxPag, pagAct } }
+        lista = body.data.data
+        totalPag = body.data.maxPag ?? 1
+        pagActual = body.data.pagAct ?? pagina
+      } else {
+        console.warn('[Movimientos] Formato de respuesta no reconocido:', body)
+      }
+
+      setData(lista)
+      setMaxPag(totalPag)
+      setPagAct(pagActual)
     } catch (err) {
-      console.error('Error al cargar movimientos:', err)
-      setError(err?.response?.data?.message || err?.message || 'Error al cargar los movimientos')
+      console.error('[Movimientos] Error:', err)
+      const msg = err?.response?.data?.message || err?.response?.data?.msg || err?.message || 'Error al cargar los movimientos'
+      setError(msg)
       setData([])
     } finally {
       setLoading(false)

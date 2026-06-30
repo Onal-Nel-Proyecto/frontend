@@ -6,7 +6,7 @@
 // Maneja su propio estado interno; avisa al padre vía onBuscar().
 // ================================================================
 
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import './MovimientosPage.css'
 
 // ════════════════════════════════════════════
@@ -29,6 +29,7 @@ const TIPO_SUMINISTRO_OPTS = [
 
 /** Labels amigables para los filtros (usados en chips) */
 const FILTRO_LABELS = {
+  usuario: (v) => `usuario: ${v}`,
   tipo_mov: (v) => TIPO_MOV_OPTS.find((o) => o.value === v)?.label || v,
   tipo_suministro: (v) => TIPO_SUMINISTRO_OPTS.find((o) => o.value === v)?.label || v,
   fecha_desde: (v) => `desde: ${v?.split('-').reverse().join('/') || v}`,
@@ -37,6 +38,7 @@ const FILTRO_LABELS = {
 
 /** Nombres display por campo */
 const CAMPO_NOMBRE = {
+  usuario: 'Usuario',
   tipo_mov: 'Movimiento',
   tipo_suministro: 'Suministro',
   fecha_desde: 'Fecha desde',
@@ -65,6 +67,10 @@ const MovimientosFilters = ({ onBuscar, cargando }) => {
   })
   const [expandido, setExpandido] = useState(false)
 
+  // Ref para evitar stale closures en handleBuscar
+  const filtrosRef = useRef(filtros)
+  useEffect(() => { filtrosRef.current = filtros }, [filtros])
+
   // ── Conteo de filtros activos (excluyendo usuario) ──
   const filtrosActivos = useMemo(() => {
     let count = 0
@@ -75,9 +81,10 @@ const MovimientosFilters = ({ onBuscar, cargando }) => {
     return count
   }, [filtros])
 
-  // ── Lista de chips a mostrar ──
+  // ── Lista de chips a mostrar (incluye usuario) ──
   const chips = useMemo(() => {
     const result = []
+    if (filtros.usuario?.trim()) result.push({ campo: 'usuario', valor: filtros.usuario.trim() })
     if (filtros.tipo_mov) result.push({ campo: 'tipo_mov', valor: filtros.tipo_mov })
     if (filtros.tipo_suministro) result.push({ campo: 'tipo_suministro', valor: filtros.tipo_suministro })
     if (filtros.fecha_desde) result.push({ campo: 'fecha_desde', valor: filtros.fecha_desde })
@@ -90,10 +97,15 @@ const MovimientosFilters = ({ onBuscar, cargando }) => {
     setFiltros((prev) => ({ ...prev, [campo]: valor }))
   }, [])
 
-  // ── Buscar: notifica al padre ──
+  // ── Buscar: notifica al padre (usa ref para evitar closures stale) ──
   const handleBuscar = useCallback(() => {
-    onBuscar({ ...filtros })
-  }, [filtros, onBuscar])
+    const actual = filtrosRef.current
+    const limpios = {
+      ...actual,
+      usuario: actual.usuario.trim(),
+    }
+    onBuscar(limpios)
+  }, [onBuscar])
 
   // ── Limpiar todo: resetea, colapsa y busca sin filtros ──
   const handleLimpiarTodo = useCallback(() => {
@@ -112,7 +124,6 @@ const MovimientosFilters = ({ onBuscar, cargando }) => {
   const handleQuitarChip = useCallback((campo) => {
     setFiltros((prev) => {
       const next = { ...prev, [campo]: '' }
-      // Al limpiar un chip que no es usuario, disparar búsqueda automática
       onBuscar(next)
       return next
     })
