@@ -29,6 +29,7 @@ const TIPO_SUMINISTRO_OPTS = [
 
 /** Labels amigables para los filtros (usados en chips) */
 const FILTRO_LABELS = {
+  nombre: (v) => `nombre: ${v}`,
   usuario: (v) => `usuario: ${v}`,
   tipo_mov: (v) => TIPO_MOV_OPTS.find((o) => o.value === v)?.label || v,
   tipo_suministro: (v) => TIPO_SUMINISTRO_OPTS.find((o) => o.value === v)?.label || v,
@@ -38,6 +39,7 @@ const FILTRO_LABELS = {
 
 /** Nombres display por campo */
 const CAMPO_NOMBRE = {
+  nombre: 'Nombre del suministro',
   usuario: 'Usuario',
   tipo_mov: 'Movimiento',
   tipo_suministro: 'Suministro',
@@ -59,6 +61,7 @@ const CAMPO_NOMBRE = {
 const MovimientosFilters = ({ onBuscar, cargando }) => {
   // ── Estado interno ──
   const [filtros, setFiltros] = useState({
+    nombre: '',
     usuario: '',
     fecha_desde: '',
     fecha_hasta: '',
@@ -71,7 +74,7 @@ const MovimientosFilters = ({ onBuscar, cargando }) => {
   const filtrosRef = useRef(filtros)
   useEffect(() => { filtrosRef.current = filtros }, [filtros])
 
-  // ── Conteo de filtros activos (excluyendo usuario) ──
+  // ── Conteo de filtros activos (excluyendo búsqueda por texto) ──
   const filtrosActivos = useMemo(() => {
     let count = 0
     if (filtros.fecha_desde) count++
@@ -81,9 +84,10 @@ const MovimientosFilters = ({ onBuscar, cargando }) => {
     return count
   }, [filtros])
 
-  // ── Lista de chips a mostrar (incluye usuario) ──
+  // ── Lista de chips a mostrar ──
   const chips = useMemo(() => {
     const result = []
+    if (filtros.nombre?.trim()) result.push({ campo: 'nombre', valor: filtros.nombre.trim() })
     if (filtros.usuario?.trim()) result.push({ campo: 'usuario', valor: filtros.usuario.trim() })
     if (filtros.tipo_mov) result.push({ campo: 'tipo_mov', valor: filtros.tipo_mov })
     if (filtros.tipo_suministro) result.push({ campo: 'tipo_suministro', valor: filtros.tipo_suministro })
@@ -102,6 +106,7 @@ const MovimientosFilters = ({ onBuscar, cargando }) => {
     const actual = filtrosRef.current
     const limpios = {
       ...actual,
+      nombre: actual.nombre.trim(),
       usuario: actual.usuario.trim(),
     }
     onBuscar(limpios)
@@ -110,6 +115,7 @@ const MovimientosFilters = ({ onBuscar, cargando }) => {
   // ── Limpiar todo: resetea, colapsa y busca sin filtros ──
   const handleLimpiarTodo = useCallback(() => {
     setFiltros({
+      nombre: '',
       usuario: '',
       fecha_desde: '',
       fecha_hasta: '',
@@ -129,8 +135,15 @@ const MovimientosFilters = ({ onBuscar, cargando }) => {
     })
   }, [onBuscar])
 
-  // ── Enter en input de usuario ──
+  // ── Enter en inputs de texto ──
   const handleKeyDown = useCallback((e) => {
+    if (e.key === 'Enter') {
+      handleBuscar()
+    }
+  }, [handleBuscar])
+
+  // ── Enter en input de nombre ──
+  const handleKeyDownNombre = useCallback((e) => {
     if (e.key === 'Enter') {
       handleBuscar()
     }
@@ -149,22 +162,22 @@ const MovimientosFilters = ({ onBuscar, cargando }) => {
       <div className="mf-card">
         {/* ── Barra superior siempre visible ── */}
         <div className="mf-bar">
-          {/* Input de búsqueda */}
+          {/* Input de búsqueda por nombre del suministro */}
           <div className="mf-search-wrap">
             <i className="ti ti-search mf-search-icon" />
             <input
               type="text"
               className="mf-search-input"
-              placeholder="Buscar por usuario..."
-              value={filtros.usuario}
-              onChange={(e) => actualizarCampo('usuario', e.target.value)}
-              onKeyDown={handleKeyDown}
-              maxLength={60}
+              placeholder="Buscar por nombre..."
+              value={filtros.nombre}
+              onChange={(e) => actualizarCampo('nombre', e.target.value)}
+              onKeyDown={handleKeyDownNombre}
+              maxLength={100}
             />
-            {filtros.usuario && (
+            {filtros.nombre && (
               <button
                 className="mf-search-clear"
-                onClick={() => actualizarCampo('usuario', '')}
+                onClick={() => actualizarCampo('nombre', '')}
                 tabIndex={-1}
                 type="button"
               >
@@ -206,6 +219,22 @@ const MovimientosFilters = ({ onBuscar, cargando }) => {
         <div className={`mf-panel ${expandido ? 'mf-panel--open' : ''}`}>
           <div className="mf-panel-inner">
             <div className="mf-panel-grid">
+              {/* Usuario */}
+              <div className="mf-field">
+                <label className="mf-label">
+                  <i className="ti ti-user" /> Usuario
+                </label>
+                <input
+                  type="text"
+                  className="mf-input"
+                  placeholder="Buscar por usuario..."
+                  value={filtros.usuario}
+                  onChange={(e) => actualizarCampo('usuario', e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  maxLength={60}
+                />
+              </div>
+
               {/* Fecha desde */}
               <div className="mf-field">
                 <label className="mf-label">
@@ -238,7 +267,7 @@ const MovimientosFilters = ({ onBuscar, cargando }) => {
                   <i className="ti ti-box" /> Tipo suministro
                 </label>
                 <select
-                  className="mf-input mf-select"
+                  className="mf-input"
                   value={filtros.tipo_suministro}
                   onChange={(e) => actualizarCampo('tipo_suministro', e.target.value)}
                 >
@@ -254,7 +283,7 @@ const MovimientosFilters = ({ onBuscar, cargando }) => {
                   <i className="ti ti-arrows-shuffle" /> Tipo movimiento
                 </label>
                 <select
-                  className="mf-input mf-select"
+                  className="mf-input"
                   value={filtros.tipo_mov}
                   onChange={(e) => actualizarCampo('tipo_mov', e.target.value)}
                 >
