@@ -35,10 +35,29 @@ const AccionesMenu = ({
   const buttonRef = useRef(null);
   const menuRef = useRef(null);
 
+  const getMenuPosition = (buttonRect) => {
+    const menuWidth = 180;
+    const menuHeight = 120;
+    const padding = 12;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    let left = buttonRect.right - menuWidth;
+    if (left < padding) left = padding;
+    if (left + menuWidth > viewportWidth - padding) {
+      left = viewportWidth - menuWidth - padding;
+    }
+
+    let top = buttonRect.bottom + 8;
+    if (top + menuHeight > viewportHeight - padding) {
+      top = Math.max(padding, buttonRect.top - menuHeight - 8);
+    }
+
+    return { top, left };
+  };
+
   useEffect(() => {
-
     const handleClick = (e) => {
-
       if (
         ref.current &&
         !ref.current.contains(e.target) &&
@@ -49,34 +68,44 @@ const AccionesMenu = ({
       }
     };
 
-    document.addEventListener(
-      'mousedown',
-      handleClick
-    );
+    document.addEventListener('mousedown', handleClick);
 
     return () => {
-      document.removeEventListener(
-        'mousedown',
-        handleClick
-      );
+      document.removeEventListener('mousedown', handleClick);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!open || !buttonRef.current) return;
+
+    const handleReposition = () => {
+      const rect = buttonRef.current?.getBoundingClientRect();
+      if (rect) {
+        setMenuPos(getMenuPosition(rect));
+      }
     };
 
-  }, []);
+    handleReposition();
+    window.addEventListener('resize', handleReposition);
+    window.addEventListener('scroll', handleReposition, true);
+
+    return () => {
+      window.removeEventListener('resize', handleReposition);
+      window.removeEventListener('scroll', handleReposition, true);
+    };
+  }, [open]);
+
   useEffect(() => {
-  const handleScroll = () => {
-    setOpen(false);
-  };
+    const handleScroll = () => {
+      setOpen(false);
+    };
 
-  window.addEventListener('scroll', handleScroll, true);
+    window.addEventListener('scroll', handleScroll, true);
 
-  return () => {
-    window.removeEventListener(
-      'scroll',
-      handleScroll,
-      true
-    );
-  };
-}, []);
+    return () => {
+      window.removeEventListener('scroll', handleScroll, true);
+    };
+  }, []);
 
   return (
     <div
@@ -88,14 +117,10 @@ const AccionesMenu = ({
         ref={buttonRef}
         className={styles.actionBtn}
         onClick={() => {
-          const rect =
-            buttonRef.current.getBoundingClientRect();
-
-          setMenuPos({
-            top: rect.top,
-            left: rect.left - 180,
-          });
-
+          const rect = buttonRef.current?.getBoundingClientRect();
+          if (rect) {
+            setMenuPos(getMenuPosition(rect));
+          }
           setOpen((o) => !o);
         }}
       >

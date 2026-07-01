@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FiUser, FiPhone, FiMail, FiMap, FiPlus, FiTrash2 } from 'react-icons/fi';
+import { FiUser, FiPhone, FiMail, FiMap, FiPlus, FiTrash2, FiFileText, FiPackage, FiLayers, FiBriefcase } from 'react-icons/fi';
 
 import Drawer from '../common/Drawer';
 import Alert from '../ui/feedback/Alert';
@@ -442,18 +442,22 @@ const ProveedorForm = ({ isOpen, onClose, proveedor, onSuccess }) => {
         <div className={styles.field}>
           <label className={styles.label}>Tipo de documento *</label>
 
-          <select
-            name="prov_tip_ident"
-            className={`${styles.select} ${
-              errors.prov_tip_ident ? styles.inputError : ''
-            }`}
-            value={form.prov_tip_ident}
-            onChange={handleChange}
-          >
-            <option value="">Seleccione un tipo</option>
-            <option value="DOCUMENTO">DOCUMENTO</option>
-            <option value="NIT">NIT</option>
-          </select>
+          <div className={styles.inputWrap}>
+            <FiFileText className={styles.inputIcon} />
+
+            <select
+              name="prov_tip_ident"
+              className={`${styles.select} ${
+                errors.prov_tip_ident ? styles.inputError : ''
+              }`}
+              value={form.prov_tip_ident}
+              onChange={handleChange}
+            >
+              <option value="">Seleccione un tipo</option>
+              <option value="DOCUMENTO">DOCUMENTO</option>
+              <option value="NIT">NIT</option>
+            </select>
+          </div>
 
           {errors.prov_tip_ident && (
             <span className={styles.fieldError}>
@@ -467,7 +471,7 @@ const ProveedorForm = ({ isOpen, onClose, proveedor, onSuccess }) => {
           <label className={styles.label}>Número de documento *</label>
 
           <div className={styles.inputWrap}>
-            <FiUser className={styles.inputIcon} />
+            <FiFileText className={styles.inputIcon} />
 
             <input
               type="text"
@@ -510,7 +514,7 @@ const ProveedorForm = ({ isOpen, onClose, proveedor, onSuccess }) => {
           </label>
 
           <div className={styles.inputWrap}>
-            <FiUser className={styles.inputIcon} />
+            <FiBriefcase className={styles.inputIcon} />
 
             <input
               name="prov_nombre"
@@ -560,38 +564,44 @@ const ProveedorForm = ({ isOpen, onClose, proveedor, onSuccess }) => {
 
           <div className={styles.field}>
             <label className={styles.label}>Categoría de suministro</label>
-            <select
-              name="suministro_categoria"
-              className={`${styles.select} ${errors.suministro_categoria ? styles.inputError : ''}`}
-              value={form.suministro_categoria}
-              onChange={(e) => handleChange(e)}
-            >
-              <option value="">Selecciona una categoría</option>
-              {Object.keys(SUPPLY_CATEGORIES).map((categoria) => (
-                <option key={categoria} value={categoria}>
-                  {categoria}
-                </option>
-              ))}
-            </select>
+            <div className={styles.inputWrap}>
+              <FiPackage className={styles.inputIcon} />
+              <select
+                name="suministro_categoria"
+                className={`${styles.select} ${errors.suministro_categoria ? styles.inputError : ''}`}
+                value={form.suministro_categoria}
+                onChange={(e) => handleChange(e)}
+              >
+                <option value="">Selecciona una categoría</option>
+                {Object.keys(SUPPLY_CATEGORIES).map((categoria) => (
+                  <option key={categoria} value={categoria}>
+                    {categoria}
+                  </option>
+                ))}
+              </select>
+            </div>
             {errors.suministro_categoria && <span className={styles.fieldError}>{errors.suministro_categoria}</span>}
           </div>
 
           <div className={styles.field}>
             <label className={styles.label}>Tipo de suministro</label>
-            <select
-              name="suministro_tipo"
-              className={`${styles.select} ${errors.suministro_tipo ? styles.inputError : ''}`}
-              value={form.suministro_tipo}
-              onChange={(e) => handleChange(e)}
-              disabled={!form.suministro_categoria}
-            >
-              <option value="">Selecciona un tipo</option>
-              {(SUPPLY_CATEGORIES[form.suministro_categoria] || []).map((tipo) => (
-                <option key={tipo} value={tipo}>
-                  {tipo}
-                </option>
-              ))}
-            </select>
+            <div className={styles.inputWrap}>
+              <FiLayers className={styles.inputIcon} />
+              <select
+                name="suministro_tipo"
+                className={`${styles.select} ${errors.suministro_tipo ? styles.inputError : ''}`}
+                value={form.suministro_tipo}
+                onChange={(e) => handleChange(e)}
+                disabled={!form.suministro_categoria}
+              >
+                <option value="">Selecciona un tipo</option>
+                {(SUPPLY_CATEGORIES[form.suministro_categoria] || []).map((tipo) => (
+                  <option key={tipo} value={tipo}>
+                    {tipo}
+                  </option>
+                ))}
+              </select>
+            </div>
             {errors.suministro_tipo && <span className={styles.fieldError}>{errors.suministro_tipo}</span>}
           </div>
 

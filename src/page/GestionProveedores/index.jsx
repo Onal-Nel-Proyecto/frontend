@@ -35,7 +35,9 @@ const GestionProveedores = () => {
 	}));
 	const [loading, setLoading] = useState(false);
 
-	const [pagina, setPagina] = useState(1);
+	const [pagina, setPagina] = useState(
+			() => Number(searchParams.get('pagina')) || 1
+			);
 	const [totalPaginas, setTotalPaginas] = useState(1);
 
 	const loadProveedores = useCallback(async ({
@@ -74,7 +76,7 @@ const GestionProveedores = () => {
 			params.prov_nombre = filtroNombre;
 
 		if (filtroSuministro)
-			params.prov_tipo_suministro = filtroSuministro;
+			params.prov_tipo_suministro = filtroSuministro.trim();
 
 		if (filtroEstado)
 			params.estado = filtroEstado;
@@ -100,11 +102,12 @@ useEffect(() => {
 	if (filters.estado) params.estado = filters.estado;
 	if (filters.suministro) params.suministro = filters.suministro;
 	if (filters.tipoDocumento) params.tipoDocumento = filters.tipoDocumento;
+	if (pagina > 1) params.pagina = pagina;
 
 	setSearchParams(params, {
 		replace: true,
 	});
-}, [search, filters, setSearchParams]);
+}, [search, filters, pagina, setSearchParams]);
 
 useEffect(() => {
 	loadProveedores({
