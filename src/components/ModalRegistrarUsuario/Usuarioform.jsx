@@ -222,7 +222,15 @@ const esMismaSesion = isEdit && usuario?.id && usuarioSesion?.user_id && String(
       newErrors.usuPassHash =
         'Mínimo 6 caracteres';
 
-    }
+    } else if (
+          !isEdit &&
+          form.usuPassHash.length > 15
+        ) {
+
+          newErrors.usuPassHash =
+            'Máximo 15 caracteres';
+
+        }
 
     // Confirmación de contraseña
     if (!isEdit && form.usuPassHash && !form.usuPassHashConfirm.trim()) {
@@ -709,6 +717,7 @@ const esMismaSesion = isEdit && usuario?.id && usuarioSesion?.user_id && String(
                   <input
                     type="password"
                     name="usuPassHash"
+                    maxLength={15}
                     className={`${styles.input} ${errors.usuPassHash ? styles.inputError : ''}`}
                     placeholder="Mínimo 6 caracteres"
                     value={form.usuPassHash}
@@ -730,6 +739,7 @@ const esMismaSesion = isEdit && usuario?.id && usuarioSesion?.user_id && String(
                     <input
                       type="password"
                       name="usuPassHashConfirm"
+                      maxLength={19}
                       className={`${styles.input} ${errors.usuPassHashConfirm ? styles.inputError : ''}`}
                       placeholder="Repetir contraseña"
                       value={form.usuPassHashConfirm}
@@ -815,7 +825,10 @@ const esMismaSesion = isEdit && usuario?.id && usuarioSesion?.user_id && String(
 
                 {usuarios
                   ?.filter(
-                    (u) => u.rol === "ADMINISTRADOR"
+                    (u) =>
+                      (u.rol === "ADMINISTRADOR" ||
+                      u.rol === "USUARIO") &&
+                      u.estado === 1
                   )
                   .map((supervisor) => (
                     <option

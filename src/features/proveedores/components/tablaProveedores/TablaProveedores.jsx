@@ -4,20 +4,30 @@ import { FiSearch, FiMoreVertical, FiEdit3, FiFilter, FiTrash2 } from 'react-ico
 import styles from './TablaProveedores.module.css';
 import ProveedorFiltroDrawer from '../filtrodrawer/ProveedorFiltroDrawer';
 
-const AccionesMenu = ({ proveedor, onEdit, onDelete }) => {
+const AccionesMenu = ({ proveedor, onEdit, onDelete,   menuAbierto,
+  setMenuAbierto}) => {
   const [open, setOpen] = useState(false);
 
   return (
     <div className={styles.actionsWrapper}>
-      <button className={styles.actionBtn} onClick={() => setOpen((o) => !o)}>
+     <button
+        className={styles.actionBtn}
+        onClick={() =>
+          setMenuAbierto(
+            menuAbierto === proveedor.prov_id
+              ? null
+              : proveedor.prov_id
+          )
+        }
+      >
         <FiMoreVertical />
       </button>
-      {open && (
+      {menuAbierto === proveedor.prov_id && (
         <div className={styles.actionsMenu}>
           <button
             className={styles.actionItem}
             onClick={() => {
-              setOpen(false);
+              setMenuAbierto(null);
               onEdit(proveedor);
             }}
           >
@@ -29,7 +39,7 @@ const AccionesMenu = ({ proveedor, onEdit, onDelete }) => {
             <button
               className={styles.actionItem}
               onClick={() => {
-                setOpen(false);
+                setOpen(null);
                 onDelete(proveedor);
               }}
             >
@@ -43,26 +53,72 @@ const AccionesMenu = ({ proveedor, onEdit, onDelete }) => {
   );
 };
 
-const TablaProveedores = ({ proveedores = [], search = '', onSearchChange, filters = { estado: '', suministro: '', nombre: '' }, setFilters, openEdit, handleDelete, loading }) => {
+const TablaProveedores = ({
+  proveedores = [],
+  search = '',
+  onSearchChange,
+  filters = {
+    estado: '',
+    suministro: '',
+    tipoDocumento: '',
+  },
+  setFilters,
+  openEdit,
+  handleDelete,
+  loading,
+}) => {
   console.log('PROVEEDORES TABLA:', proveedores);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-
+  const [menuAbierto, setMenuAbierto] = useState(null);
   const activeFilters = Object.values(filters).filter(Boolean).length;
 
   const filtered = (proveedores || []).filter((p) => {
+
+  // ===== FILTROS =====
+
   const matchEstado =
-    !filters.estado || p.pro_estado === filters.estado;
+    !filters.estado ||
+    p.pro_estado === filters.estado;
+
+  const matchTipoDocumento =
+    !filters.tipoDocumento ||
+    p.prov_tip_ident === filters.tipoDocumento;
 
   const matchSuministro =
     !filters.suministro ||
     (p.prov_suministro || []).includes(filters.suministro);
 
-  const matchSearch =
-    !search ||
-    p.prov_nombre?.toLowerCase().includes(search.toLowerCase()) ||
-    p.prov_id?.toString().includes(search);
+  // ===== BÚSQUEDA =====
 
-  return matchEstado && matchSuministro && matchSearch;
+  const textoBusqueda = (search || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[.\-\s]/g, "");
+
+  const nombre = (p.prov_nombre || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[.\-\s]/g, "");
+
+  const documento = (p.prov_num_ident || "")
+    .toString()
+    .toLowerCase()
+    .replace(/[.\-\s]/g, "");
+
+  const matchSearch =
+    textoBusqueda === "" ||
+    nombre.includes(textoBusqueda) ||
+    documento.includes(textoBusqueda);
+
+  // ===== RESULTADO FINAL =====
+
+  return (
+    matchEstado &&
+    matchTipoDocumento &&
+    matchSuministro &&
+    matchSearch
+  );
+
 });
 
   console.log('TOTAL PROVEEDORES:', proveedores.length);
@@ -82,9 +138,10 @@ if (proveedores.length > 0) {
           <FiSearch className={styles.searchIcon} />
           <input
             type="text"
-            placeholder="Buscar proveedor..."
+            placeholder="Buscar por nombre o documento..."
             className={styles.searchInput}
             value={search}
+            maxLength={300}
             onChange={(e) => onSearchChange?.(e.target.value)}
           />
         </div>
@@ -103,7 +160,7 @@ if (proveedores.length > 0) {
         <table className={styles.table}>
           <thead>
             <tr>
-              <th>ID</th>
+              <th>DOCUMENTO</th>
               <th>NOMBRE</th>
               <th>SUMINISTROS</th>
               <th>CORREO</th>
@@ -129,7 +186,12 @@ if (proveedores.length > 0) {
             ) : (
               filtered.map((p) => (
                 <tr key={p.prov_id}>
-                  <td className={styles.cellId}>{p.prov_id}</td>
+                  <td className={styles.cellDocumento}>
+                    <div className={styles.tipoDocumento}>
+                      {p.prov_tip_ident}
+                    </div>
+                    <div>{p.prov_num_ident}</div>
+                  </td>
                   <td className={styles.cellName}>{p.prov_nombre}</td>
                   <td>{(p.prov_suministro || []).join(', ')}</td>
                   <td>{p.prov_correo}</td>
@@ -138,7 +200,7 @@ if (proveedores.length > 0) {
                     <span className={p.pro_estado === 'ACTIVO' ? styles.active : styles.blocked}>{p.pro_estado}</span>
                   </td>
                   <td>
-                    <AccionesMenu proveedor={p} onEdit={openEdit} onDelete={handleDelete} />
+                    <AccionesMenu proveedor={p}  onEdit={openEdit}  onDelete={handleDelete}    menuAbierto={menuAbierto} setMenuAbierto={setMenuAbierto}/>
                   </td>
                 </tr>
               ))
@@ -150,7 +212,13 @@ if (proveedores.length > 0) {
           {filtered.map((p) => (
             <div key={p.prov_id} className={styles.mobileCard}>
               <div className={styles.mobileHeader}>
-                <span className={styles.cellId}>{p.prov_id}</span>
+                <div className={styles.cellDocumento}>
+                  <div className={styles.tipoDocumento}>
+                    {p.prov_tip_ident}
+                  </div>
+
+                  <div>{p.prov_num_ident}</div>
+                </div>
                 <span className={styles.badge}>{p.pro_estado}</span>
               </div>
 
@@ -158,13 +226,19 @@ if (proveedores.length > 0) {
               <p className={styles.mobileEmail}>{p.prov_correo}</p>
 
               <div className={styles.mobileFooter}>
-                <AccionesMenu proveedor={p} onEdit={openEdit} onDelete={handleDelete} />
+                <AccionesMenu
+                  proveedor={p}
+                  onEdit={openEdit}
+                  onDelete={handleDelete}
+                  menuAbierto={menuAbierto}
+                  setMenuAbierto={setMenuAbierto}
+                />
               </div>
             </div>
           ))}
         </div>
       </div>
-
+          
       <ProveedorFiltroDrawer isOpen={isFilterOpen} onClose={() => setIsFilterOpen(false)} filters={filters} setFilters={setFilters} />
     </div>
   );

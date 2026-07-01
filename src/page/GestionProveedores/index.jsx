@@ -1,13 +1,14 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { FiPlus, FiArrowLeft } from 'react-icons/fi';
+import { FaHandshakeAngle } from "react-icons/fa6";
 import { useAuth } from '../../features/auth/hooks/usuAuth.js';
 import { useDocumentTitle } from '../../hooks/useDocumentTitle';
 import ProveedorForm from '../../components/ModalRegistrarProveedor/ProveedorForm.jsx';
 import TablaProveedores from '../../features/proveedores/components/tablaProveedores/TablaProveedores.jsx';
 import { getProveedores, deleteProveedor } from '../../features/proveedores/services/proveedor.services.js';
 
-import styles from '../GestionUsuarios/gestion-usuarios.module.css';
+import styles from '../GestionProveedores/gestion-proveedores.module.css';
 
 
 
@@ -30,15 +31,26 @@ const GestionProveedores = () => {
 	const [filters, setFilters] = useState(() => ({
 		estado: searchParams.get('estado') || '',
 		suministro: searchParams.get('suministro') || '',
+		tipoDocumento: searchParams.get('tipoDocumento') || '',
 	}));
 	const [loading, setLoading] = useState(false);
-	
 
-	const loadProveedores = useCallback(async ({ nombre, suministro, estado } = {}) => {
+	const [pagina, setPagina] = useState(1);
+	const [totalPaginas, setTotalPaginas] = useState(1);
+
+	const loadProveedores = useCallback(async ({
+		nombre,
+		suministro,
+		estado,
+		tipoDocumento,
+		pagina = 1,
+	} = {}) => {
 	setLoading(true);
 
 	try {
 		const params = {};
+		params.pagina = pagina;
+		params.limite = 15;
 
 		const filtroNombre =
 			nombre !== undefined ? nombre : search;
@@ -53,6 +65,11 @@ const GestionProveedores = () => {
 				? estado
 				: filters.estado;
 
+		const filtroTipoDocumento =
+			tipoDocumento !== undefined
+				? tipoDocumento
+				: filters.tipoDocumento;		
+
 		if (filtroNombre)
 			params.prov_nombre = filtroNombre;
 
@@ -62,15 +79,12 @@ const GestionProveedores = () => {
 		if (filtroEstado)
 			params.estado = filtroEstado;
 
-		const data = await getProveedores(params);
+		const respuesta = await getProveedores(params);
 
-		console.log('DATA API:', data);
+			console.log("DATA API:", respuesta);
 
-		const resultado = Array.isArray(data) ? data : data?.data ?? data;
-
-		console.log('SET PROVEEDORES:', resultado);
-
-		setProveedores(resultado);
+			setProveedores(respuesta.data || []);
+			setTotalPaginas(respuesta.meta?.paginas_totales || 1);
 
 	} catch (error) {
 		console.error(error);
@@ -85,6 +99,7 @@ useEffect(() => {
 	if (search) params.search = search;
 	if (filters.estado) params.estado = filters.estado;
 	if (filters.suministro) params.suministro = filters.suministro;
+	if (filters.tipoDocumento) params.tipoDocumento = filters.tipoDocumento;
 
 	setSearchParams(params, {
 		replace: true,
@@ -96,8 +111,17 @@ useEffect(() => {
 		nombre: search,
 		suministro: filters.suministro,
 		estado: filters.estado,
+		tipoDocumento: filters.tipoDocumento,
+		pagina: pagina,
 	});
-}, [search, filters.suministro, filters.estado, loadProveedores]);
+}, [
+	search,
+	filters.suministro,
+	filters.estado,
+	filters.tipoDocumento,
+	pagina,
+	loadProveedores,
+]);
 
 	const openCreate = () => {
 		setProveedorSeleccionado(null);
@@ -148,10 +172,19 @@ useEffect(() => {
 					>
 						<FiArrowLeft />
 					</button>
+					  <div className={styles.titleIcon}>
+						<FaHandshakeAngle />
+					</div>
 
-					<h2 className={styles.title}>
+					<div className={styles.titleContainer}>
+						<h2 className={styles.title}>
 						Gestión de Proveedores
-					</h2>
+						</h2>
+
+						<p className={styles.subtitle}>
+						Administra los proveedores registrados en el sistema.
+						</p>
+					</div>
 					</div>
 				<button className={styles.createButton} onClick={openCreate}>
 					<FiPlus />
@@ -162,14 +195,44 @@ useEffect(() => {
 			<TablaProveedores
 				proveedores={proveedores}
 				search={search}
-				onSearchChange={setSearch}
+				onSearchChange={(valor) => {
+					setSearch(valor);
+					setPagina(1);
+				}}
 				filters={filters}
-				setFilters={setFilters}
+								setFilters={(nuevoFiltro) => {
+					setFilters(nuevoFiltro);
+					setPagina(1);
+				}}
 				isAdmin={isAdmin}
 				openEdit={openEdit}
 				handleDelete={handleDelete}
 				loading={loading}
 			/>
+			{totalPaginas > 1 && (
+			<div className={styles.pagination}>
+				<button
+				className={styles.pageButton}
+				onClick={() => setPagina((p) => Math.max(1, p - 1))}
+				disabled={pagina === 1}
+				>
+				← Anterior
+				</button>
+
+				<span className={styles.pageInfo}>
+				Página {pagina} de {totalPaginas}
+				</span>
+
+				<button
+				className={styles.pageButton}
+				onClick={() => setPagina((p) => Math.min(totalPaginas, p + 1))}
+				disabled={pagina === totalPaginas}
+				>
+				Siguiente →
+				</button>
+			</div>
+			)}
+			
 
 			<div className={styles.note}>Conectado al backend correctamente.</div>
 
@@ -177,7 +240,15 @@ useEffect(() => {
 				isOpen={showForm}
 				onClose={closeForm}
 				proveedor={proveedorSeleccionado}
-				onSuccess={() => loadProveedores({ nombre: search, suministro: filters.suministro, estado: filters.estado })}
+				onSuccess={() =>
+    loadProveedores({
+						nombre: search,
+						suministro: filters.suministro,
+						estado: filters.estado,
+						tipoDocumento: filters.tipoDocumento,
+						pagina,
+					})
+				}
 			/>
 		</div>
 	);
