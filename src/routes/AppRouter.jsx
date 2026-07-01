@@ -99,7 +99,7 @@ const AppRoutes = () => {
           <Route path="/gestion-personal" element={<GestionPersonal />} />
 
           {/* Proveedores */}
-          <Route path="/gestion-proveedores" element={<GestionProveedores />} />
+          <Route path="/gestion-personal/proveedores" element={<GestionProveedores />} />
         </Route>
 
         {/* RUTAS SOLO ADMIN */}

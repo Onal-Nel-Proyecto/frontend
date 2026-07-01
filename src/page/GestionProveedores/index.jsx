@@ -237,8 +237,6 @@ useEffect(() => {
 			)}
 			
 
-			<div className={styles.note}>Conectado al backend correctamente.</div>
-
 			<ProveedorForm
 				isOpen={showForm}
 				onClose={closeForm}

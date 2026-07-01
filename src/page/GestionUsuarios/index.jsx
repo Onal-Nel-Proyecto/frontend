@@ -247,12 +247,6 @@ const GestionUsuarios = () => {
         setFilters={setFilters}
       />
 
-      {/* ══ NOTA ══ */}
-      <div className={styles.note}>
-        <FiUserCheck className={styles.noteIcon} />
-        Conectado al backend correctamente.
-      </div>
-
       {/* ══ MODAL ══ */}
       <UsuarioForm
         isOpen={showForm}

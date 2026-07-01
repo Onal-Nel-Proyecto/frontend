@@ -41,7 +41,7 @@ const GestionPersonal = () => {
     {
       title: 'Gestionar Proveedores',
       icon: <FaHandshakeAngle />,
-      path: '/gestion-proveedores',
+      path: '/gestion-personal/proveedores',
       iconClass: styles.orangeIcon
     },
   ];

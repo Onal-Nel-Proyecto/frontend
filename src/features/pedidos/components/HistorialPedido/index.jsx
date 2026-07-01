@@ -150,7 +150,7 @@ const HistorialPedido = () => {
             </div>
             <p className={styles.historyEmptyText}>No hay eventos registrados</p>
             <p className={styles.historyEmptySub}>
-              Aún no se han realizado cambios sobre este pedido.
+              Aún no se han realizado cambios de estado sobre este pedido.
             </p>
           </div>
         )}

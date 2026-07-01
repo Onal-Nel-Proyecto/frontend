@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import NewClientPanel   from './RegisterClient'
 import ContactTable     from '../components/ContactTable/ContactTable'
 import { useClientes }  from '../hooks/useClientes'
 import ViewClientModal   from '../components/ViewClientModal/ViewClientModal'
 import Alert from '../../../components/ui/feedback/Alert'
 import { changeStatus } from '../services/clientesService'
-import { FiChevronLeft, FiChevronRight } from 'react-icons/fi'
+import { FiChevronLeft, FiChevronRight, FiArrowLeft } from 'react-icons/fi'
 import './ClientDirectory.css'
 import { useDocumentTitle } from '../../../hooks/useDocumentTitle'
 
@@ -29,6 +29,7 @@ const LIMITE = 15
 
 const ClientDirectory = () => {
   const location = useLocation()
+  const navigate = useNavigate()
   useDocumentTitle('Gestión de Clientes');
   const [showRegister, setShowRegister] = useState(false)
   const [clienteEditando, setClienteEditando] = useState(null)
@@ -193,12 +194,37 @@ const ClientDirectory = () => {
 
       {/* Encabezado de página */}
       <div className="cd-header">
-        <div>
-          <h1 className="cd-title">Directorio de Clientes</h1>
-          <p className="cd-subtitle">
-            Gestiona tu base de datos de clientes para agilizar
-            el proceso de pedidos personalizados y seguimiento de confección.
-          </p>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+          <button
+            onClick={() => navigate('/gestion-personal')}
+            title="Volver a Gestión Personal"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '2.25rem',
+              height: '2.25rem',
+              border: '1px solid var(--border-glass)',
+              borderRadius: 'var(--radius-full)',
+              background: 'var(--bg-glass)',
+              color: 'var(--text-muted)',
+              fontSize: '1rem',
+              cursor: 'pointer',
+              flexShrink: 0,
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--bg-glass-hover)'; e.currentTarget.style.color = 'var(--text-primary)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--bg-glass)'; e.currentTarget.style.color = 'var(--text-muted)'; }}
+          >
+            <FiArrowLeft />
+          </button>
+          <div>
+            <h1 className="cd-title">Directorio de Clientes</h1>
+            <p className="cd-subtitle">
+              Gestiona tu base de datos de clientes para agilizar
+              el proceso de pedidos personalizados y seguimiento de confección.
+            </p>
+          </div>
         </div>
         <button
           className="cd-btn-primary"
