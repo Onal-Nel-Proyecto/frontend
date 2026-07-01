@@ -120,8 +120,21 @@ const esMismaSesion = isEdit && usuario?.id && usuarioSesion?.user_id && String(
     if (name === 'usuId')  newValue = value.replace(/\D/g, '').slice(0, 12);
     if (name === 'usuTel')   newValue = value.replace(/\D/g, '');
     if (name === 'usuSupFk') newValue = value.replace(/\D/g, '');
-    if (name === 'usuNom')   newValue = value.replace(/[0-9]/g, '');
-    if (name === 'usuApe')   newValue = value.replace(/[0-9]/g, '');
+    if (name === 'usuNom' || name === 'usuApe') {
+      newValue = value
+        // Solo letras (con tildes/ñ) y espacios; bloquea números, símbolos, llaves, guiones, puntos, etc.
+        .replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]/g, '')
+        // Colapsa espacios múltiples en uno solo
+        .replace(/\s{2,}/g, ' ')
+        // Evita que empiece con espacio
+        .replace(/^\s+/, '');
+
+      // Limita a máximo 2 espacios (máximo 3 palabras, ej. "María José Fernanda")
+      const partes = newValue.split(' ');
+      if (partes.length > 3) {
+        newValue = partes.slice(0, 3).join(' ');
+      }
+    }
     setForm((prev) => ({ ...prev, [name]: newValue }));
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
   };
@@ -153,38 +166,62 @@ const esMismaSesion = isEdit && usuario?.id && usuarioSesion?.user_id && String(
 }
 
     // Nombre
-    if (!form.usuNom.trim()) {
+    const nombreLimpio = form.usuNom.trim();
+
+    if (!nombreLimpio) {
 
   newErrors.usuNom =
     'El nombre es requerido';
 
-} else if (/\d/.test(form.usuNom)) {
+} else if (!/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+(\s[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+){0,2}$/.test(nombreLimpio)) {
 
   newErrors.usuNom =
-    'El nombre no puede contener números';
+    'El nombre solo puede contener letras, máximo 3 palabras separadas por un espacio';
 
-} else if (form.usuNom.length > 200) {
+} else if (nombreLimpio.length < 2) {
+
+  newErrors.usuNom =
+    'El nombre es muy corto';
+
+} else if (nombreLimpio.length > 200) {
 
   newErrors.usuNom =
     'El nombre es muy largo';
 
+} else if (/(.)\1{3,}/.test(nombreLimpio)) {
+
+  newErrors.usuNom =
+    'El nombre contiene un patrón inválido';
+
 }
 
     // Apellido
-    if (!form.usuApe.trim()) {
+    const apellidoLimpio = form.usuApe.trim();
+
+    if (!apellidoLimpio) {
 
   newErrors.usuApe =
     'El apellido es requerido';
 
-} else if (/\d/.test(form.usuApe)) {
+} else if (!/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+(\s[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+){0,2}$/.test(apellidoLimpio)) {
 
   newErrors.usuApe =
-    'El apellido no puede contener números';
+    'El apellido solo puede contener letras, máximo 3 palabras separadas por un espacio';
 
-} else if (form.usuApe.length > 200) {
+} else if (apellidoLimpio.length < 2) {
+
+  newErrors.usuApe =
+    'El apellido es muy corto';
+
+} else if (apellidoLimpio.length > 200) {
 
   newErrors.usuApe =
     'El apellido es muy largo';
+
+} else if (/(.)\1{3,}/.test(apellidoLimpio)) {
+
+  newErrors.usuApe =
+    'El apellido contiene un patrón inválido';
 
 }
 

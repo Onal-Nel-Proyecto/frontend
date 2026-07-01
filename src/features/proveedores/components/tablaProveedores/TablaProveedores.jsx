@@ -1,15 +1,36 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { FiSearch, FiMoreVertical, FiEdit3, FiFilter, FiTrash2 } from 'react-icons/fi';
 
 import styles from './TablaProveedores.module.css';
 import ProveedorFiltroDrawer from '../filtrodrawer/ProveedorFiltroDrawer';
 
-const AccionesMenu = ({ proveedor, onEdit, onDelete,   menuAbierto,
-  setMenuAbierto}) => {
-  const [open, setOpen] = useState(false);
+const AccionesMenu = ({ proveedor, onEdit, onDelete, menuAbierto, setMenuAbierto }) => {
+  const wrapperRef = useRef(null);
+  const isOpen = menuAbierto === proveedor.prov_id;
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleClickOutside = (event) => {
+
+      const clickedInsideAnyWrapper = event.target.closest(
+        `.${styles.actionsWrapper}`
+      );
+
+      if (!clickedInsideAnyWrapper) {
+        setMenuAbierto(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen, setMenuAbierto]);
 
   return (
-    <div className={styles.actionsWrapper}>
+    <div className={styles.actionsWrapper} ref={wrapperRef}>
      <button
         className={styles.actionBtn}
         onClick={() =>
@@ -22,7 +43,7 @@ const AccionesMenu = ({ proveedor, onEdit, onDelete,   menuAbierto,
       >
         <FiMoreVertical />
       </button>
-      {menuAbierto === proveedor.prov_id && (
+      {isOpen && (
         <div className={styles.actionsMenu}>
           <button
             className={styles.actionItem}
@@ -39,7 +60,7 @@ const AccionesMenu = ({ proveedor, onEdit, onDelete,   menuAbierto,
             <button
               className={styles.actionItem}
               onClick={() => {
-                setOpen(null);
+                setMenuAbierto(null);
                 onDelete(proveedor);
               }}
             >
@@ -84,9 +105,13 @@ const TablaProveedores = ({
     !filters.tipoDocumento ||
     p.prov_tip_ident === filters.tipoDocumento;
 
+  const filtroSuministro = (filters.suministro || '').toLowerCase().trim();
+
   const matchSuministro =
-    !filters.suministro ||
-    (p.prov_suministro || []).includes(filters.suministro);
+    !filtroSuministro ||
+    (p.prov_suministro || []).some((item) =>
+      String(item).toLowerCase().includes(filtroSuministro)
+    );
 
   // ===== BÚSQUEDA =====
 
