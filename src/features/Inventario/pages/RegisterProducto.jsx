@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from 'react'
-import { FiTag } from 'react-icons/fi'
+import { FiTag, FiLock } from 'react-icons/fi'
 import Drawer from '../../../components/common/Drawer'
 import { getCategorias } from '../../../services/categoriaService'
+import { isAdmin } from '../../../utils/session'
 import './RegisterProducto.css'
 
 const SOLO_LETRAS = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/
@@ -342,8 +343,8 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
           )}
           <div className="rp-group">
             <label className="rp-label" htmlFor="rp-umbralMinimo">Umbral mínimo</label>
-            <div className={`rp-input-wrap ${hasError('umbralMinimo') ? 'rp-input-wrap--err' : ''}`}>
-              <i className="ti ti-alert-triangle" />
+            <div className={`rp-input-wrap ${hasError('umbralMinimo') ? 'rp-input-wrap--err' : ''} ${!isAdmin() ? 'rp-input-wrap--disabled' : ''}`}>
+              {!isAdmin() ? <FiLock style={{ fontSize: '0.85rem', color: 'var(--text-muted)', opacity: 0.5 }} /> : <i className="ti ti-alert-triangle" />}
               <input id="rp-umbralMinimo" name="umbralMinimo" type="text" inputMode="numeric" className="rp-input"
                 placeholder="0" value={form.umbralMinimo}
                 onChange={(e) => {
@@ -352,12 +353,20 @@ const RegisterProducto = ({ isOpen, onClose, initialData, onSave }) => {
                     setForm((prev) => ({ ...prev, umbralMinimo: raw }));
                   }
                 }}
-                onBlur={handleBlur} />
+                onBlur={handleBlur}
+                disabled={!isAdmin()} />
             </div>
             {hasError('umbralMinimo') && <p className="rp-err">{errors.umbralMinimo}</p>}
-            <p className="rp-hint" style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-              0 = sin alerta. Máximo 100.
-            </p>
+            {!isAdmin() ? (
+              <p className="rp-hint" style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+                <FiLock size={11} style={{ marginRight: '0.25rem', verticalAlign: 'middle' }} />
+                Solo administradores pueden modificar este valor.
+              </p>
+            ) : (
+              <p className="rp-hint" style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+                0 = sin alerta. Máximo 100.
+              </p>
+            )}
           </div>
         </div>
 

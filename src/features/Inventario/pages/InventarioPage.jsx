@@ -16,6 +16,7 @@ import { useDocumentTitle } from '../../../hooks/useDocumentTitle'
 import { getMateriales, createMaterial, updateMaterial, changeMaterialEstado } from '../../../api/materialesService'
 import { getProductos, getProductoById, createProducto, updateProducto, changeProductoEstado } from '../../../api/productosApiService'
 import Alert from '../../../components/ui/feedback/Alert'
+import { isAdmin } from '../../../utils/session'
 import './InventarioPage.css'
 
 // ════════════════════════════════════════════
@@ -726,9 +727,13 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
       </td>
       <td>
         <div className={`inv-actions ${hovered ? 'inv-actions--visible' : ''}`}>
-          <button className="inv-action-btn" title="Editar" onClick={() => handleEditMaterial(m)}><i className="ti ti-edit" /></button>
-          {m.status !== 'eliminado' && (
-            <button className="inv-action-btn inv-action-btn--danger" title="Desactivar" onClick={() => handleDeleteMaterial(m)}><i className="ti ti-trash" /></button>
+          {isAdmin() && (
+            <>
+              <button className="inv-action-btn" title="Editar" onClick={() => handleEditMaterial(m)}><i className="ti ti-edit" /></button>
+              {m.status !== 'eliminado' && (
+                <button className="inv-action-btn inv-action-btn--danger" title="Desactivar" onClick={() => handleDeleteMaterial(m)}><i className="ti ti-trash" /></button>
+              )}
+            </>
           )}
         </div>
       </td>
@@ -779,7 +784,7 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
       <td>
         <div className={`inv-actions ${hovered ? 'inv-actions--visible' : ''}`}>
           <button className="inv-action-btn" title="Editar" onClick={() => handleEditProduct(p)}><i className="ti ti-edit" /></button>
-          {p.status !== 'eliminado' && (
+          {p.status !== 'eliminado' && isAdmin() && (
             <button className="inv-action-btn inv-action-btn--danger" title="Desactivar" onClick={() => handleDeleteProduct(p)}><i className="ti ti-trash" /></button>
           )}
         </div>

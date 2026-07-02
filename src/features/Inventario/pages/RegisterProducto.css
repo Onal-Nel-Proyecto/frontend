@@ -23,6 +23,9 @@
 
 .rp-input-wrap--err { border-color: #e74c3c !important; box-shadow: 0 0 0 4px rgba(231,76,60,0.1) !important; }
 .rp-input-wrap--err i { color: #e74c3c !important; }
+
+.rp-input-wrap--disabled { opacity: 0.55; pointer-events: none; }
+.rp-input-wrap--disabled i { opacity: 0.5; }
 .rp-err {
   font-size: 0.72rem; color: #f87171; margin: 0.2rem 0 0; line-height: 1.4;
   display: flex; align-items: center; gap: 4px;
