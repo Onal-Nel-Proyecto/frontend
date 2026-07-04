@@ -5,7 +5,7 @@ import { useState } from 'react'
 // ================================================================
 
 import { FiPackage } from 'react-icons/fi'
-import Drawer from '../../../components/common/Drawer'
+import Drawer from '../../../../components/common/Drawer'
 import './RegisterMaterial.css'
 
 const TIPOS_MATERIAL = [

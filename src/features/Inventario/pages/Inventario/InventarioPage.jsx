@@ -7,16 +7,16 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useLocation } from 'react-router-dom'
-import RegisterMaterial from './RegisterMaterial'
-import RegisterProducto from './RegisterProducto'
-import RegisterAbastecimiento from './RegisterAbastecimiento'
-import MovimientosPage from './MovimientosPage'
-import { useAbastecimiento } from '../../../hooks/useAbastecimiento'
-import { useDocumentTitle } from '../../../hooks/useDocumentTitle'
-import { getMateriales, createMaterial, updateMaterial, changeMaterialEstado } from '../../../api/materialesService'
-import { getProductos, getProductoById, createProducto, updateProducto, changeProductoEstado } from '../../../api/productosApiService'
-import Alert from '../../../components/ui/feedback/Alert'
-import { isAdmin } from '../../../utils/session'
+import RegisterMaterial from '../../components/RegisterMaterial/RegisterMaterial'
+import RegisterProducto from '../../components/RegisterProducto/RegisterProducto'
+import RegisterAbastecimiento from '../../components/RegisterAbastecimiento/RegisterAbastecimiento'
+import MovimientosPage from '../Movimientos/MovimientosPage'
+import { useAbastecimiento } from '../../hooks/useAbastecimiento.js'
+import { useDocumentTitle } from '../../../../hooks/useDocumentTitle'
+import { getMateriales, createMaterial, updateMaterial, changeMaterialEstado } from '../../services/materialesService.js'
+import { getProductos, getProductoById, createProducto, updateProducto, changeProductoEstado } from '../../services/productosApiService.js'
+import Alert from '../../../../components/ui/feedback/Alert'
+import { isAdmin } from '../../../../utils/session.js'
 import './InventarioPage.css'
 
 // ════════════════════════════════════════════
@@ -282,10 +282,10 @@ const TablaSection = ({ items, loading, tipo, columns, renderRow, statConfig, fi
 const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
   const titulo =
     activeTab === 'materiales' ? 'Inventario | Materiales' :
-    activeTab === 'productos' ? 'Inventario | Productos' :
-    activeTab === 'abastecimiento' ? 'Inventario | Abastecimiento' :
-    activeTab === 'movimientos' ? 'Inventario | Movimientos' :
-    'Inventario'
+      activeTab === 'productos' ? 'Inventario | Productos' :
+        activeTab === 'abastecimiento' ? 'Inventario | Abastecimiento' :
+          activeTab === 'movimientos' ? 'Inventario | Movimientos' :
+            'Inventario'
   useDocumentTitle(titulo)
 
   const [materials, setMaterials] = useState([])
@@ -781,14 +781,14 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
           {p.status === 'disponible' ? 'Disponible' : p.status === 'agotado' ? 'Agotado' : 'Eliminado'}
         </span>
       </td>
-      <td>
-        <div className={`inv-actions ${hovered ? 'inv-actions--visible' : ''}`}>
-          <button className="inv-action-btn" title="Editar" onClick={() => handleEditProduct(p)}><i className="ti ti-edit" /></button>
-          {p.status !== 'eliminado' && isAdmin() && (
+        <td>
+      {p.status !== 'eliminado' && isAdmin() && (
+          <div className={`inv-actions ${hovered ? 'inv-actions--visible' : ''}`}>
+            <button className="inv-action-btn" title="Editar" onClick={() => handleEditProduct(p)}><i className="ti ti-edit" /></button>
             <button className="inv-action-btn inv-action-btn--danger" title="Desactivar" onClick={() => handleDeleteProduct(p)}><i className="ti ti-trash" /></button>
-          )}
-        </div>
-      </td>
+          </div>
+      )}
+        </td>
     </>
   )
 
@@ -879,10 +879,16 @@ const InventarioPage = ({ tipo: activeTab = 'materiales' }) => {
             <p className="inv-subtitle">Controla tus materiales textiles y productos confeccionados en un solo lugar.</p>
           </div>
         </div>
-        {activeTab !== 'movimientos' && (
+        {activeTab !== 'movimientos' && activeTab !== 'abastecimiento' && isAdmin() && (
           <button className="inv-btn-primary" onClick={handleAddBtn}>
             <i className="ti ti-plus" />
-            {activeTab === 'materiales' ? 'Añadir Material' : activeTab === 'productos' ? 'Nuevo Producto' : 'Nuevo Abastecimiento'}
+            {activeTab === 'materiales' ? 'Añadir Material' : 'Nuevo Producto'}
+          </button>
+        )}
+        {activeTab == 'abastecimiento' && (
+          <button className="inv-btn-primary" onClick={handleAddBtn}>
+            <i className="ti ti-plus" />
+            {activeTab === 'abastecimiento' ? 'Nuevo Abastecimiento' : ''}
           </button>
         )}
       </div>

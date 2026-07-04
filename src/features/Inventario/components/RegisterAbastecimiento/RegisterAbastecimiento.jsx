@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { FiTruck } from 'react-icons/fi'
-import Drawer from '../../../components/common/Drawer'
-import { getMateriales } from '../../../api/materialesService'
-import { getProductos as getProductosApi } from '../../../api/productosApiService'
+import Drawer from '../../../../components/common/Drawer'
+import { getMateriales } from '../../services/materialesService'
+import { getProductos as getProductosApi } from '../../services/productosApiService'
 import './RegisterAbastecimiento.css'
 
 const TIPOS_ITEM = ['MATERIAL', 'PRODUCTO']

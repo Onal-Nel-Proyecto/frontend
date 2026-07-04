@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
-import Alert from '../../../components/ui/feedback/Alert'
-import { isAdmin } from '../../../utils/session'
+import Alert from '../../../../components/ui/feedback/Alert'
+import { isAdmin } from '../../../../utils/session'
 import './RegisterClient.css'
 
 const NewClientPanel = ({ isOpen, onClose, onGuardar, clienteEdit }) => {

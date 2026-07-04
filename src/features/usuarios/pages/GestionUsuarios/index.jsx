@@ -6,11 +6,11 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { FiArrowLeft, FiPlus, FiUserCheck, FiUsers, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
-import { useAuth } from '../../features/auth/hooks/usuAuth.js';
-import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import UsuarioForm from '../../components/ModalRegistrarUsuario/Usuarioform.jsx';
-import TablaUsuarios from '../../features/usuarios/components/tablaUsuarios/TablaUsuarios.jsx';
-import { getUsuarios, changeEstadoUsuario } from '../../features/usuarios/services/user.services.js';
+import { useAuth } from '../../../auth/hooks/usuAuth.js';
+import { useDocumentTitle } from '../../../../hooks/useDocumentTitle.js';
+import UsuarioForm from '../../../proveedores/components/ModalRegistrarUsuario/Usuarioform.jsx';
+import TablaUsuarios from '../../components/tablaUsuarios/TablaUsuarios.jsx';
+import { getUsuarios, changeEstadoUsuario } from '../../services/user.services.js';
 
 import styles from './gestion-usuarios.module.css';
 

@@ -5,7 +5,7 @@ import {
   completarAbastecimiento as apiCompletar,
   cancelarAbastecimiento as apiCancelar,
   getProveedores as apiGetProveedores,
-} from "../api/abastecimientoService";
+} from "../services/abastecimientoService";
 
 // ── Mapear ítem de API a formato tabla ──
 const mapearAbastecimiento = (item) => ({

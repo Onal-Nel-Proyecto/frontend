@@ -11,7 +11,7 @@ import Drawer from '../../../../components/common/Drawer';
 import Alert from '../../../../components/ui/feedback/Alert';
 import LoadingOverlay from '../../../../components/ui/feedback/LoadingOverlay';
 import ClienteSearch from '../ClienteSearch';
-import NewClientPanel from '../../../../features/Clientes/pages/RegisterClient';
+import NewClientPanel from '../../../../features/Clientes/components/RegisterClient/RegisterClient';
 import { createPedido, updatePedido } from '../../services/pedidosService';
 import { createCliente } from '../../../../features/Clientes/services/clientesService';
 import { getServerDate } from '../../../../utils/serverDate';

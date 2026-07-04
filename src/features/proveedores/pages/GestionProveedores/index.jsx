@@ -2,13 +2,13 @@ import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { FiPlus, FiArrowLeft } from 'react-icons/fi';
 import { FaHandshakeAngle } from "react-icons/fa6";
-import { useAuth } from '../../features/auth/hooks/usuAuth.js';
-import { useDocumentTitle } from '../../hooks/useDocumentTitle';
-import ProveedorForm from '../../components/ModalRegistrarProveedor/ProveedorForm.jsx';
-import TablaProveedores from '../../features/proveedores/components/tablaProveedores/TablaProveedores.jsx';
-import { getProveedores, deleteProveedor } from '../../features/proveedores/services/proveedor.services.js';
+import { useAuth } from '../../../auth/hooks/usuAuth.js';
+import { useDocumentTitle } from '../../../../hooks/useDocumentTitle.js';
+import ProveedorForm from '../../../usuarios/components/ModalRegistrarProveedor/ProveedorForm.jsx';
+import TablaProveedores from '../../components/tablaProveedores/TablaProveedores.jsx';
+import { getProveedores, deleteProveedor } from '../../services/proveedor.services.js';
 
-import styles from '../GestionProveedores/gestion-proveedores.module.css';
+import styles from './gestion-proveedores.module.css';
 
 
 

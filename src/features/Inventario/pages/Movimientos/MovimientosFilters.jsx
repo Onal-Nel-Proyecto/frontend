@@ -19,6 +19,7 @@ const TIPO_MOV_OPTS = [
   { value: 'VENTA', label: 'Venta' },
   { value: 'PRODUCCION', label: 'Producción' },
   { value: 'AJUSTE', label: 'Ajuste' },
+  { value: 'ANULACION_VENTA', label: 'Venta anulada' },
 ]
 
 const TIPO_SUMINISTRO_OPTS = [

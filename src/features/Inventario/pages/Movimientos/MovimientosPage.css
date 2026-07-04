@@ -563,6 +563,12 @@ select.mf-input {
   border: 1px solid rgba(251, 191, 36, 0.25);
 }
 
+.mov-badge--anulacion {
+  background: var(--accent-rose-subtl);
+  color: var(--accent-rose);
+  border: 1px solid rgba(251, 36, 36, 0.25);
+}
+
 /* ── Celda de suministro ── */
 .mov-suministro-cell {
   display: flex;

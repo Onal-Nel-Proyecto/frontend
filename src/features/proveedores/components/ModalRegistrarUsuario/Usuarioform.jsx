@@ -16,16 +16,16 @@ import {
   FiKey
 } from 'react-icons/fi';
 
-import Drawer from '../common/Drawer';
-import Alert from '../../components/ui/feedback/Alert';
-import LoadingOverlay from '../../components/ui/feedback/LoadingOverlay';
+import Drawer from '../../../../components/common/Drawer/index.jsx';
+import Alert from '../../../../components/ui/feedback/Alert/index.jsx';
+import LoadingOverlay from '../../../../components/ui/feedback/LoadingOverlay/index.jsx';
 
 import {
   createUsuario,
   updateUsuario,
   updatePassword,
-} from '../../features/usuarios/services/user.services.js';
-import { logoutUser } from '../../features/auth/services/authService';
+} from '../../../usuarios/services/user.services.js';
+import { logoutUser } from '../../../auth/services/authService.js';
 
 import styles from './UsuarioForm.module.css';
 

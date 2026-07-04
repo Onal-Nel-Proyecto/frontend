@@ -1,4 +1,4 @@
-import axiosInstance from "./axiosInstance";
+import axiosInstance from "../../../api/axiosInstance.js";
 
 // GET /productos — lista paginada con filtros
 export const getProductos = async ({ pagina = 1, limite = 15, nombre = "", estado = "", categoria = "", tipoProducto = "" } = {}) => {

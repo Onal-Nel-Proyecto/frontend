@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from 'react'
 import { FiTag, FiLock } from 'react-icons/fi'
-import Drawer from '../../../components/common/Drawer'
-import { getCategorias } from '../../../services/categoriaService'
-import { isAdmin } from '../../../utils/session'
+import Drawer from '../../../../components/common/Drawer'
+import { getCategorias } from '../../../../services/categoriaService'
+import { isAdmin } from '../../../../utils/session'
 import './RegisterProducto.css'
 
 const SOLO_LETRAS = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/

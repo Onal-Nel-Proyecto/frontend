@@ -4,8 +4,8 @@
 // ================================================================
 
 import { useState, useEffect, useCallback } from 'react'
-import axiosInstance from '../../../api/axiosInstance'
-import { useDocumentTitle } from '../../../hooks/useDocumentTitle'
+import axiosInstance from '../../../../api/axiosInstance.js'
+import { useDocumentTitle } from '../../../../hooks/useDocumentTitle'
 import MovimientosFilters from './MovimientosFilters'
 import './MovimientosPage.css'
 
@@ -18,6 +18,7 @@ const BADGE_COLORS = {
   COMPRA: 'mov-badge--compra',
   PRODUCCION: 'mov-badge--produccion',
   AJUSTE: 'mov-badge--ajuste',
+  ANULACION_VENTA: 'mov-badge--anulacion'
 }
 
 const TIPO_MOV_LABELS = {
@@ -25,6 +26,7 @@ const TIPO_MOV_LABELS = {
   COMPRA: 'Compra',
   PRODUCCION: 'Producción',
   AJUSTE: 'Ajuste',
+  ANULACION_VENTA: "Venta Anulada"
 }
 
 // ════════════════════════════════════════════
@@ -175,7 +177,7 @@ const MovimientosPage = () => {
       console.log('[Movimientos] URL:', `/movimientos${qs}`, '| params:', JSON.stringify(params))
       const response = await axiosInstance.get(`/movimientos${qs}`)
       const body = response.data
-      console.log('[Movimientos] Respuesta cruda:', body)
+      // console.log('[Movimientos] Respuesta cruda:', body)
 
       // Intentar extraer data desde distintos formatos de respuesta
       let lista = []

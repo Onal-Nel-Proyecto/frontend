@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { FiUser, FiPhone, FiMail, FiMap, FiPlus, FiTrash2, FiFileText, FiPackage, FiLayers, FiBriefcase } from 'react-icons/fi';
 
-import Drawer from '../common/Drawer';
-import Alert from '../ui/feedback/Alert';
-import LoadingOverlay from '../ui/feedback/LoadingOverlay';
+import Drawer from '../../../../components/common/Drawer/index.jsx';
+import Alert from '../../../../components/ui/feedback/Alert/index.jsx';
+import LoadingOverlay from '../../../../components/ui/feedback/LoadingOverlay/index.jsx';
 
-import { createProveedor, updateProveedor } from '../../features/proveedores/services/proveedor.services.js';
+import { createProveedor, updateProveedor } from '../../../proveedores/services/proveedor.services.js';
 
 import styles from './ProveedorForm.module.css';
 

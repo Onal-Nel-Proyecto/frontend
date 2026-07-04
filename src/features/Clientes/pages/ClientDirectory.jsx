@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import NewClientPanel   from './RegisterClient'
+import NewClientPanel   from './../components/RegisterClient/RegisterClient'
 import ContactTable     from '../components/ContactTable/ContactTable'
 import { useClientes }  from '../hooks/useClientes'
 import ViewClientModal   from '../components/ViewClientModal/ViewClientModal'

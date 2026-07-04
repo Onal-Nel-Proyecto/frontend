@@ -18,8 +18,8 @@ import DetallePedido from "../features/pedidos/components/DetallePedido";
 import Produccion from "../features/pedidos/components/Produccion";
 import Pagos from "../features/pedidos/components/Pagos";
 import HistorialPedido from "../features/pedidos/components/HistorialPedido";
-import GestionUsuarios from "../page/GestionUsuarios";
-import GestionProveedores from "../page/GestionProveedores";
+import GestionUsuarios from "../features/usuarios/pages/GestionUsuarios";
+import GestionProveedores from "../features/proveedores/pages/GestionProveedores";
 import InConstruction from "../components/ui/feedback/InConstruction/InConstruction";
 import Entregas from "../features/pedidos/pages/Entregas";
 import OrdenesProduccion from "../features/pedidos/pages/OrdenesProduccion";
@@ -28,7 +28,7 @@ import OrdenProduccionSeleccionado from "../features/pedidos/pages/OrdenProducci
 // ─── Rutas pesadas → lazy loading ───
 const DashboardPedidos = lazy(() => import("../features/pedidos/pages/Dashboard"));
 const GestionPersonal = lazy(() => import("../page/GestionPersonal"));
-const InventarioPage = lazy(() => import("../features/Inventario/pages/InventarioPage"));
+const InventarioPage = lazy(() => import("../features/Inventario/pages/Inventario/InventarioPage"));
 const VentasPage = lazy(() => import("../features/Ventas/pages/VentasPage"));
 const Config = lazy(() => import("../page/Config"));
 const CategoriaPage = lazy(() => import("../page/categoria/CategoriaPage"));
