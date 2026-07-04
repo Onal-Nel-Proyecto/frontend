@@ -52,8 +52,8 @@ const Config = () => {
       <div className={styles.header}>
         <h2 className={styles.title}>Configuración</h2>
         <p className={styles.subtitle}>
-          Administra los parámetros generales del sistema, como categorías,
-          medidas y copias de seguridad.
+          Administra los parámetros generales del sistema, como categorías y
+          medidas.
         </p>
       </div>
 

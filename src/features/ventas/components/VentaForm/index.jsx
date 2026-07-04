@@ -9,7 +9,7 @@ import Drawer from '../../../../components/common/Drawer';
 import Alert from '../../../../components/ui/feedback/Alert';
 import LoadingOverlay from '../../../../components/ui/feedback/LoadingOverlay';
 import ClienteSearch from '../../../pedidos/components/ClienteSearch';
-import NewClientPanel from '../../../Clientes/pages/RegisterClient';
+import NewClientPanel from '../../../Clientes/components/RegisterClient/RegisterClient';
 import { useVentas } from '../../hooks/useVentas';
 import { searchProductos } from '../../../Inventario/services/productosService';
 import { createCliente } from '../../../Clientes/services/clientesService';
