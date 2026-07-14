@@ -13,6 +13,8 @@ const Header = () => {
           Atelier Management System
         </div>
 
+        <div className={styles.logoDivider} />
+
       </div>
 
       <div className={styles.welcomeHeader}>

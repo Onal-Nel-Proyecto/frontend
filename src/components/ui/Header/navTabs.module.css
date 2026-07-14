@@ -1,22 +1,28 @@
 /* ───────────────────────────────────────
-   NavTabs — versión escritorio (en header)
-   Se usa con className="navDesktop"
+   NavTabs — Dark theme
    ─────────────────────────────────────── */
+
+/* ── Base nav (el padre aplica .navDesktop o .navMobile) ── */
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 0.1rem;
+}
+
+/* ── Desktop (in header) ── */
 
 .navDesktop {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.15rem;
+  gap: 0.1rem;
   height: 100%;
   overflow: hidden;
 }
 
-/* ───────────────────────────────────────
-   NavTabs — versión móvil (barra inferior)
-   Se usa con className="navMobile"
-   ─────────────────────────────────────── */
+/* ── Mobile (bottom bar) ── */
 
 .navMobile {
   position: fixed;
@@ -30,12 +36,14 @@
   gap: 0;
   height: auto;
   padding: 0.35rem 0.5rem;
-  background: var(--color-primary);
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.06);
+  background: var(--header-bg);
+  border-top: 1px solid var(--border-glass);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+  backdrop-filter: var(--blur-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
 }
 
-/* ── Cada tab (compartido) ── */
+/* ── Tab shared ── */
 
 .navDesktop .tab,
 .navMobile .tab {
@@ -45,15 +53,16 @@
   gap: 0.4rem;
   height: 100%;
   padding: 0 0.85rem;
-  font-size: 0.82rem;
+  font-size: var(--text-sm);
   font-weight: 500;
-  color: var(--text-soft);
+  color: var(--text-muted);
   text-decoration: none;
   white-space: nowrap;
-  transition: color 0.2s ease;
+  transition: color var(--transition-fast);
 }
 
-/* Línea inferior solo en escritorio */
+/* ── Desktop tab underline ── */
+
 .navDesktop .tab::after {
   content: '';
   position: absolute;
@@ -63,32 +72,31 @@
   height: 2.5px;
   border-radius: 999px;
   background: transparent;
-  transition:
-    background 0.25s ease,
-    transform 0.25s ease;
+  transition: all 0.25s var(--ease-out);
   transform: scaleX(0);
 }
 
 .navDesktop .tab:hover {
-  color: var(--text-dark);
+  color: var(--text-secondary);
 }
 
 .navDesktop .tab:hover::after {
-  background: rgba(0, 0, 0, 0.18);
+  background: var(--border-glass-hover);
   transform: scaleX(1);
 }
 
 .navDesktop .tab.active {
-  color: var(--text-dark);
+  color: var(--accent-gold);
   font-weight: 600;
 }
 
 .navDesktop .tab.active::after {
-  background: rgba(0, 0, 0, 0.55);
+  background: var(--accent-gold);
   transform: scaleX(1);
+  box-shadow: 0 0 12px var(--accent-gold-glow);
 }
 
-/* ── Estilo móvil ── */
+/* ── Mobile tab ── */
 
 .navMobile .tab {
   flex: 1;
@@ -100,7 +108,7 @@
   padding: 0.3rem 0.25rem;
   border-radius: 0.65rem;
   font-size: 0.65rem;
-  transition: background 0.2s ease;
+  transition: background var(--transition-fast);
 }
 
 .navMobile .tab::after {
@@ -108,11 +116,12 @@
 }
 
 .navMobile .tab:hover {
-  background: rgba(0, 0, 0, 0.04);
+  background: var(--bg-glass-hover);
 }
 
 .navMobile .tab.active {
-  background: rgba(0, 0, 0, 0.06);
+  background: var(--accent-gold-subtle);
+  color: var(--accent-gold);
   font-weight: 600;
 }
 
@@ -121,11 +130,11 @@
 }
 
 .navMobile .tabLabel {
-  font-size: 0.62rem;
+  font-size: 0.6rem;
   white-space: nowrap;
 }
 
-/* ── Icono compartido ── */
+/* ── Icon ── */
 
 .tabIcon {
   display: flex;
@@ -137,17 +146,15 @@
   line-height: 1;
 }
 
-/* ───────────────────────────────────────
-   Visibilidad por pantalla
-   ─────────────────────────────────────── */
+/* ── Visibility ── */
 
-@media (max-width: 1024px) {
+@media (max-width: 1023px) {
   .navDesktop {
     display: none;
   }
 }
 
-@media (min-width: 1025px) {
+@media (min-width: 1024px) {
   .navMobile {
     display: none;
   }

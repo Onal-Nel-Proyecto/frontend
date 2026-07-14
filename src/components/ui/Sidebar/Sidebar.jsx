@@ -4,36 +4,31 @@
 // El footer con "Configuración" solo es visible para administradores.
 // ================================================================
 
-import { useState, useEffect } from 'react';
-import { NavLink } from 'react-router-dom';
+import { memo } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import {
   FiHome,
   FiShoppingBag,
   FiUsers,
   FiSettings,
-  FiX
+  FiX,
+  FiArchive
 } from 'react-icons/fi';
 
 import styles from './sidebar.module.css';
-import { isAdmin } from '../../../utils/session';
+import { useAuthContext } from '../../../context/AuthContext';
 
 const Sidebar = ({ isOpen, onClose }) => {
-
-  // Forzar re-render cuando cambie el usuario (login/logout)
-  const [, setTick] = useState(0);
-  useEffect(() => {
-    const refresh = () => setTick((t) => t + 1);
-    window.addEventListener("userUpdate", refresh);
-    return () => window.removeEventListener("userUpdate", refresh);
-  }, []);
-
-  const esAdmin = isAdmin();
+  const location = useLocation();
+  const { isAdmin } = useAuthContext();
 
   // Ítems del menú principal (visibles para todos los roles)
   const menuItems = [
-    { name: 'Dashboard', icon: <FiHome />, path: '/dashboard' },
-    { name: 'Pedidos', icon: <FiShoppingBag />, path: '/pedidos/dash' },
-    { name: 'Gestión Personal', icon: <FiUsers />, path: '/gestion-personal' },
+    { name: 'Dashboard', icon: <FiHome />, path: '/dashboard', activePath: "/dashboard" },
+    { name: 'Pedidos', icon: <FiShoppingBag />, path: '/pedidos/dash', activePath: "/pedidos" },
+    { name: 'Inventario', icon: <FiArchive />, path: '/inventario/materiales', activePath: "/inventario" },
+    { name: 'Ventas', icon: <FiShoppingBag />, path: '/ventas', activePath: "/ventas" },
+    { name: 'Gestión Personal', icon: <FiUsers />, path: '/gestion-personal', activePath: "/gestion-personal" },
   ];
 
   return (
@@ -46,7 +41,7 @@ const Sidebar = ({ isOpen, onClose }) => {
           {/* Header móvil */}
           <div className={styles.mobileHeader}>
             <span className={styles.title}>Menú</span>
-            <button onClick={onClose} className={styles.closeButton}>
+            <button onClick={onClose} className={styles.closeButton} aria-label="Cerrar menú">
               <FiX />
             </button>
           </div>
@@ -59,10 +54,10 @@ const Sidebar = ({ isOpen, onClose }) => {
           </nav>
 
           {/* Footer: Configuración — solo admin */}
-          {esAdmin && (
+          {isAdmin && (
             <div className={styles.footer}>
               <SidebarItem
-                item={{ name: 'Configuración', icon: <FiSettings />, path: '/config' }}
+                item={{ name: 'Configuración', icon: <FiSettings />, path: '/config', activePath: '/config' }}
                 onClose={onClose}
               />
             </div>
@@ -74,17 +69,21 @@ const Sidebar = ({ isOpen, onClose }) => {
 };
 
 // Componente interno para cada ítem del menú
-const SidebarItem = ({ item, onClose }) => (
-  <NavLink
-    to={item.path}
-    onClick={onClose}
-    className={({ isActive }) =>
-      `${styles.navItem} ${isActive ? styles.active : styles.inactive}`
-    }
-  >
-    <span className={styles.icon}>{item.icon}</span>
-    <span className={styles.label}>{item.name}</span>
-  </NavLink>
-);
+const SidebarItem = ({ item, onClose }) => {
+  const loc = useLocation();
+  const isActive = loc.pathname === item.activePath || loc.pathname.startsWith(item.activePath + '/');
+  return (
+    <NavLink
+      to={item.path}
+      onClick={onClose}
+      className={`${styles.navItem} ${isActive ? styles.active : styles.inactive
+        }`}
+      aria-current={isActive ? 'page' : undefined}
+    >
+      <span className={styles.icon}>{item.icon}</span>
+      <span className={styles.label}>{item.name}</span>
+    </NavLink>
+  );
+};
 
 export default Sidebar;

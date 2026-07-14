@@ -1,3 +1,7 @@
+/* ───────────────────────────────────────
+   Dashboard — Home page dark
+   ─────────────────────────────────────── */
+
 .page {
   display: flex;
   flex-direction: column;
@@ -12,19 +16,19 @@
 .header {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.25rem;
 }
 
 .title {
-  font-size: 1.85rem;
+  font-size: var(--text-2xl);
   font-weight: 800;
   letter-spacing: -0.03em;
-  color: var(--text-dark);
+  color: var(--text-primary);
 }
 
 .subtitle {
-  font-size: 0.9rem;
-  color: var(--text-soft);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
 }
 
 /* ── KPIs ── */
@@ -50,17 +54,19 @@
   position: absolute;
   top: 0;
   right: 0;
-  width: 6rem;
-  height: 6rem;
+  width: 7rem;
+  height: 7rem;
   border-radius: 50%;
-  opacity: 0.12;
-  transform: translate(30%, -30%);
-  transition: transform 0.3s ease;
+  opacity: 0.25;
+  transform: translate(25%, -25%);
+  transition: transform 0.4s var(--ease-out);
   pointer-events: none;
+  filter: blur(24px);
 }
 
 .kpiCard:hover .kpiGlow {
-  transform: translate(30%, -30%) scale(1.25);
+  transform: translate(25%, -25%) scale(1.5);
+  opacity: 0.4;
 }
 
 .kpiBody {
@@ -75,7 +81,7 @@
 .kpiIcon {
   width: 3rem;
   height: 3rem;
-  border-radius: 1rem;
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -90,17 +96,18 @@
 }
 
 .kpiTitle {
-  font-size: 0.72rem;
+  font-size: var(--text-xs);
   font-weight: 600;
-  color: var(--text-soft);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.06em;
+  white-space: nowrap;
 }
 
 .kpiValue {
   font-size: 1.65rem;
   font-weight: 800;
-  color: var(--text-dark);
+  color: var(--text-primary);
   line-height: 1.1;
 }
 
@@ -109,7 +116,7 @@
   width: 3rem;
   height: 1.65rem;
   border-radius: 0.4rem;
-  background: linear-gradient(90deg, rgba(0,0,0,0.04) 25%, rgba(0,0,0,0.08) 50%, rgba(0,0,0,0.04) 75%);
+  background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
@@ -119,7 +126,7 @@
   100% { background-position: -200% 0; }
 }
 
-/* ── Fila inferior ── */
+/* ── Bottom row ── */
 
 .bottomRow {
   display: grid;
@@ -143,43 +150,54 @@
   max-width: 100%;
 }
 
-/* ── Actividades ── */
+/* ── Section titles ── */
+
+.sectionTitle {
+  font-size: var(--text-md);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 1.25rem;
+}
+
+/* ── Activities ── */
 
 .activitiesCard {
   padding: 1.5rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
-.sectionTitle {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--text-dark);
-  margin-bottom: 1.25rem;
+.activitiesCard .activityList {
+  flex: 1;
 }
 
 .activityList {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  flex: 1;
 }
 
 .activityItem {
   display: flex;
   gap: 0.85rem;
   padding: 0.65rem 0.75rem;
-  border-radius: 1rem;
-  background: var(--main-bg);
+  border-radius: var(--radius-sm);
+  background: var(--bg-glass);
   border: 1px solid transparent;
-  transition: border-color 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .activityItem:hover {
-  border-color: rgba(0, 0, 0, 0.08);
+  border-color: var(--border-glass-hover);
+  background: var(--bg-glass-hover);
 }
 
 .activityIcon {
   width: 2.4rem;
   height: 2.4rem;
-  border-radius: 0.7rem;
+  border-radius: var(--radius-xs);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -194,21 +212,21 @@
 }
 
 .activityMsg {
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   font-weight: 600;
-  color: var(--text-dark);
+  color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .activityTime {
-  font-size: 0.75rem;
-  color: var(--text-soft);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
   margin-top: 0.15rem;
 }
 
-/* ── Gráfico minimalista ── */
+/* ── Chart ── */
 
 .chartCard {
   padding: 1.5rem;
@@ -224,8 +242,8 @@
 
 .chartEmpty {
   text-align: center;
-  color: var(--text-soft);
-  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
   padding: 1.5rem 0;
 }
 
@@ -244,6 +262,12 @@
   height: auto;
 }
 
+/* Donut center text */
+.svgWrapper text {
+  fill: var(--text-primary);
+  font-family: var(--font-primary);
+}
+
 .arc {
   cursor: pointer;
   transition: opacity 0.2s ease;
@@ -256,11 +280,12 @@
   align-items: center;
   gap: 0.35rem;
   padding: 0.3rem 0.6rem;
-  border-radius: 0.5rem;
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  font-size: 0.75rem;
-  color: var(--text-dark);
+  border-radius: var(--radius-xs);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-glass);
+  box-shadow: var(--shadow-md);
+  font-size: var(--text-xs);
+  color: var(--text-primary);
   white-space: nowrap;
   pointer-events: none;
 }
@@ -282,8 +307,8 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.8rem;
-  color: var(--text-soft);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
 }
 
 .legendDot {
@@ -299,7 +324,7 @@
 
 .legendValue {
   font-weight: 700;
-  color: var(--text-dark);
+  color: var(--text-primary);
 }
 
 /* ── Stock Crítico ── */
@@ -332,9 +357,9 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.82rem;
+  font-size: var(--text-sm);
   font-weight: 600;
-  color: var(--text-dark);
+  color: var(--text-primary);
 }
 
 .stockIcon {
@@ -343,9 +368,9 @@
 }
 
 .stockQty {
-  font-size: 0.78rem;
+  font-size: var(--text-xs);
   font-weight: 700;
-  color: var(--text-soft);
+  color: var(--text-muted);
   white-space: nowrap;
 }
 
@@ -353,14 +378,14 @@
   width: 100%;
   height: 0.38rem;
   border-radius: 999px;
-  background: var(--main-bg);
+  background: var(--bg-glass);
   overflow: hidden;
 }
 
 .progressFill {
   height: 100%;
   border-radius: 999px;
-  transition: width 0.4s ease;
+  transition: width 0.4s var(--ease-out);
 }
 
 .stockLink {
@@ -372,18 +397,19 @@
   padding: 0;
   border: none;
   background: none;
-  font-size: 0.82rem;
+  font-size: var(--text-sm);
   font-weight: 600;
-  color: #3b82f6;
+  color: var(--accent-violet);
   cursor: pointer;
-  transition: gap 0.2s ease;
+  transition: all var(--transition-fast);
 }
 
 .stockLink:hover {
   gap: 0.65rem;
+  color: var(--accent-violet-light);
 }
 
-/* ── Acciones rápidas ── */
+/* ── Quick Actions ── */
 
 .actionsCol {
   display: flex;
@@ -417,7 +443,7 @@
 .actionIconBox {
   width: 2.5rem;
   height: 2.5rem;
-  border-radius: 0.85rem;
+  border-radius: var(--radius-xs);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -430,9 +456,9 @@
 }
 
 .actionLabel {
-  font-size: 0.85rem;
+  font-size: var(--text-sm);
   font-weight: 600;
-  color: var(--text-dark);
+  color: var(--text-primary);
 }
 
 /* ── Responsive ── */
@@ -440,10 +466,6 @@
 @media (max-width: 1100px) {
   .bottomRow {
     grid-template-columns: 1fr 1fr;
-  }
-
-  .middleCol {
-    grid-row: auto;
   }
 }
 
@@ -481,7 +503,7 @@
     width: 2.25rem;
     height: 2.25rem;
     font-size: 1.1rem;
-    border-radius: 0.75rem;
+    border-radius: var(--radius-xs);
   }
 
   .kpiValue {
@@ -497,7 +519,7 @@
   }
 
   .subtitle {
-    font-size: 0.82rem;
+    font-size: var(--text-xs);
   }
 
   .activitiesCard,
@@ -507,7 +529,7 @@
   }
 
   .sectionTitle {
-    font-size: 0.9rem;
+    font-size: var(--text-sm);
     margin-bottom: 0.85rem;
   }
 
@@ -529,7 +551,7 @@
   }
 
   .activityMsg {
-    font-size: 0.75rem;
+    font-size: var(--text-xs);
   }
 
   .activityTime {
@@ -541,7 +563,7 @@
   }
 
   .stockName {
-    font-size: 0.75rem;
+    font-size: var(--text-xs);
   }
 
   .stockQty {
@@ -549,7 +571,7 @@
   }
 
   .stockLink {
-    font-size: 0.75rem;
+    font-size: var(--text-xs);
   }
 }
 

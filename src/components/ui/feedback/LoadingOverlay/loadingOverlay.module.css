@@ -1,12 +1,21 @@
+/* ───────────────────────────────────────
+   LoadingOverlay — Dark glass spinner
+   ─────────────────────────────────────── */
+
 .overlay {
   position: fixed;
   inset: 0;
-  z-index: 2000;
+  z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(6px);
+  background: rgba(9, 9, 13, 0.85);
+  animation: loFadeIn 0.25s var(--ease-out);
+}
+
+@keyframes loFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .card {
@@ -15,28 +24,34 @@
   align-items: center;
   gap: 0.75rem;
   padding: 2rem 2.5rem;
-  background: #fff;
-  border-radius: 1.25rem;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
 }
 
 .spinner {
   width: 2.2rem;
   height: 2.2rem;
-  border: 2.5px solid #e8e5e0;
-  border-top-color: #695B58;
+  border: 2.5px solid rgba(255, 255, 255, 0.08);
+  border-top-color: var(--accent-gold);
   border-radius: 50%;
+  animation: loSpin 0.8s linear infinite;
+}
+
+@keyframes loSpin {
+  to { transform: rotate(360deg); }
 }
 
 .title {
-  font-size: 0.95rem;
+  font-size: var(--text-base);
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--text-primary);
   margin: 0;
 }
 
 .message {
-  font-size: 0.8rem;
-  color: #888;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
   margin: 0;
 }

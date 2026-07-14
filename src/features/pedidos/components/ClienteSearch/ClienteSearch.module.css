@@ -1,0 +1,162 @@
+/* ── Buscador de clientes tipo YouTube ── */
+
+.wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.inputWrap {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.inputIcon {
+  position: absolute;
+  left: 12px;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.input {
+  width: 100%;
+  padding: 0.6rem 0.85rem 0.6rem 2.2rem;
+  border: 0.5px solid var(--border-glass);
+  border-radius: 10px;
+  background: var(--bg-elevated);
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  transition: border-color 0.2s ease, border-radius 0.2s ease;
+  font-family: inherit;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--border-glass-hover);
+  background: var(--bg-elevated);
+}
+
+.inputOpen {
+  border-radius: 10px 10px 0 0;
+  border-color: var(--border-glass-hover);
+  background: var(--bg-elevated);
+}
+
+.inputError {
+  border-color: #dc2626;
+  background: rgba(220, 38, 38, 0.06);
+}
+
+.inputError:focus {
+  border-color: #dc2626;
+}
+
+/* ── Spinner de carga ── */
+.spinner {
+  position: absolute;
+  right: 12px;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border-glass);
+  border-top-color: var(--accent-gold);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Desplegable ── */
+.dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  background: var(--bg-elevated);
+  border: 0.5px solid var(--border-glass);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.option {
+  padding: 0.55rem 0.85rem 0.55rem 2.2rem;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.15s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.option:hover,
+.optionHighlighted {
+  background: var(--bg-glass-hover);
+}
+
+.optionId {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-family: monospace;
+  margin-left: 0.5rem;
+  flex-shrink: 0;
+}
+
+.defaultOption {
+  border-top: 1px solid var(--border-glass);
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.defaultOption .optionId {
+  color: var(--text-muted);
+}
+
+.noResults {
+  padding: 0.75rem 0.85rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+/* ── Botón agregar cliente ── */
+.addBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 0.5px solid var(--border-glass);
+  border-radius: 10px;
+  background: var(--bg-elevated);
+  color: var(--accent-gold);
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.addBtn:hover {
+  background: var(--accent-gold);
+  color: #1a1a1a;
+}
+
+/* ── Error ── */
+.fieldError {
+  font-size: 0.72rem;
+  color: #dc2626;
+  margin-top: 0.2rem;
+}
