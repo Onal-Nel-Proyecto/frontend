@@ -3,13 +3,13 @@
 // Diseño dark theme (develop)
 // ================================================================
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { FiArrowLeft, FiPlus, FiUserCheck, FiUsers, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
+import { FiArrowLeft, FiPlus, FiUsers, FiCheckCircle, FiAlertCircle } from 'react-icons/fi';
 import { useAuth } from '../../../auth/hooks/usuAuth.js';
 import { useDocumentTitle } from '../../../../hooks/useDocumentTitle.js';
 import UsuarioForm from '../../../proveedores/components/ModalRegistrarUsuario/Usuarioform.jsx';
-import TablaUsuarios from '../../components/tablaUsuarios/TablaUsuarios.jsx';
+import TablaUsuarios from '../../components/TablaUsuarios/TablaUsuarios.jsx';
 import { getUsuarios, changeEstadoUsuario } from '../../services/user.services.js';
 
 import styles from './gestion-usuarios.module.css';
