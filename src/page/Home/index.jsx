@@ -4,7 +4,7 @@
 // stock crítico y acceso rápido a funcionalidades principales.
 // ================================================================
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -20,11 +20,14 @@ import {
   FiShoppingCart,
   FiBarChart2,
   FiPackage,
-  FiArrowRight
+  FiArrowRight,
+  FiUser,
+  FiTruck,
 } from "react-icons/fi";
 import Card from "../../components/common/Card";
 import { useDocumentTitle } from "../../hooks/useDocumentTitle";
 import { isAdmin } from "../../utils/session.js";
+import { formatDate } from "../../utils/format";
 import { getDashboardResumen } from "../../api/endpoints/dashboardEndpoints";
 import styles from "./home.module.css";
 
@@ -32,42 +35,29 @@ import styles from "./home.module.css";
 // Cada objeto define: key (para mapear desde la API), label visible,
 // icono de react-icons y color pastel asociado.
 const kpiConfig = [
-  { key: "activos", label: "Pedidos Activos", icon: <FiShoppingBag />, color: "var(--pastel-blue)" },
-  { key: "pendientes", label: "Pendientes", icon: <FiClock />, color: "var(--pastel-orange)" },
-  { key: "en_proceso", label: "En Proceso", icon: <FiActivity />, color: "var(--pastel-violet)" },
-  { key: "terminados", label: "Entregados", icon: <FiCheckCircle />, color: "var(--pastel-green)" },
+  { key: "activos", label: "Pedidos Activos", icon: <FiShoppingBag />, color: "var(--accent-blue)" },
+  { key: "pendientes", label: "Pendientes", icon: <FiClock />, color: "var(--accent-amber)" },
+  { key: "en_proceso", label: "En Proceso", icon: <FiActivity />, color: "var(--accent-violet)" },
+  { key: "terminados", label: "Terminados", icon: <FiCheckCircle />, color: "var(--accent-emerald)" },
 ];
 
 // Mapa de estados que vienen del backend → etiqueta + color para el gráfico
 const estadoMap = {
-  pendiente: { label: "Pendiente", color: "var(--pastel-orange)" },
-  en_proceso: { label: "En proceso", color: "var(--pastel-violet)" },
-  terminado: { label: "Terminado", color: "var(--pastel-green)" },
+  pendiente: { label: "Pendiente", color: "var(--accent-amber)" },
+  en_proceso: { label: "En proceso", color: "var(--accent-violet)" },
+  terminado: { label: "Terminado", color: "var(--accent-emerald)" },
 };
 
-// ─── Datos mock (provisionales hasta que existan endpoints) ───
-
-const activities = [
-  { type: "critical", msg: "Stock bajo: Tela seda blanca (5mts)", time: "hace 5 min", icon: <FiAlertTriangle /> },
-  { type: "warning", msg: "Pago pendiente: Cliente Juan Pérez", time: "hace 20 min", icon: <FiClock /> },
-  { type: "info", msg: "Pedido #450 próximo a entrega", time: "hace 1 hora", icon: <FiActivity /> },
-  { type: "blue", msg: "Compra registrada: Insumos costura", time: "hace 3 horas", icon: <FiFileText /> },
-  { type: "success", msg: "Pedido #445 completado", time: "hace 5 horas", icon: <FiCheckCircle /> },
-];
-
-const stockCritico = [
-  { nombre: "Tela Seda Blanca", cantidad: 5, max: 50, color: "#ef4444" },
-  { nombre: "Hilo Dorado", cantidad: 12, max: 60, color: "#f59e0b" },
-  { nombre: "Botones Perla", cantidad: 8, max: 40, color: "#ef4444" },
-];
+// ─── Datos ahora vienen desde la API (getDashboardResumen) ───
 
 // ─── Acciones de acceso rápido ───
 // admin: true → solo visible para usuarios con rol ADMINISTRADOR
 const actions = [
   { label: "Nuevo Pedido", icon: <FiPlusCircle />, path: "/pedidos", color: "#3b82f6", admin: false },
-  { label: "Registrar Cliente", icon: <FiUserPlus />, path: "/gestion-clientes", color: "#8b5cf6", admin: false },
-  { label: "Registrar Compra", icon: <FiShoppingCart />, path: "/compras", color: "#10b981", admin: false },
-  { label: "Generar Reporte", icon: <FiBarChart2 />, path: "/reportes", color: "#f59e0b", admin: true },
+  { label: "Registrar Cliente", icon: <FiUserPlus />, path: "/gestion-personal/clientes", color: "#8b5cf6", admin: false },
+  { label: "Registrar Venta", icon: <FiShoppingCart />, path: "/ventas", color: "#10b981", admin: false },
+  { label: "Registrar Compra", icon: <FiTruck />, path: "/inventario/abastecimiento", color: "#10b981", admin: false },
+  { label: "Generar Reporte", icon: <FiBarChart2 />, path: "/ventas/reportes", color: "#f59e0b", admin: true },
 ];
 
 // ================================================================
@@ -81,6 +71,8 @@ const Home = () => {
   // Estado: resumen de pedidos, datos para el gráfico y bandera de carga
   const [resumen, setResumen] = useState(null);
   const [pedidosEstado, setPedidosEstado] = useState([]);
+  const [stockCritico, setStockCritico] = useState([]);
+  const [actividadSistema, setActividadSistema] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Al montar el componente → pide datos al backend
@@ -92,6 +84,10 @@ const Home = () => {
         if (cancelled) return;
         setResumen(resp.data.resumen);               // { total_pedidos, pendientes, en_proceso, terminados, cancelados }
         setPedidosEstado(resp.data.pedidos_por_estado || []); // [{ estado, cantidad }, ...]
+        setActividadSistema(resp.data.actividadSistema || []);
+        setStockCritico(resp.data.stockCritico || []);
+        setStockCritico(resp.data.stock_critico || []); // [{ estado, cantidad }, ...]
+        setActividadSistema(resp.data.actividad_sistema || []); // [{ estado, cantidad }, ...]
       } catch {
         // Si falla la API el dashboard se muestra sin datos
       } finally {
@@ -136,7 +132,6 @@ const chartData = pedidosEstado
 
   })
   .filter(Boolean);
-  console.log(chartData)
   const chartTotal = chartData.reduce((s, d) => s + d.value, 0);
 
   return (
@@ -161,10 +156,10 @@ const chartData = pedidosEstado
 
       {/* ── Fila inferior: actividades + gráfico + acceso rápido ── */}
       <div className={styles.bottomRow}>
-        <SystemActivities />
+        <SystemActivities actividades={actividadSistema} />
         <div className={styles.middleCol}>
           <EstadoPedidos data={chartData} total={chartTotal} />
-          <StockCritico navigate={navigate} />
+          <StockCritico stock={stockCritico} navigate={navigate} />
         </div>
         <QuickActions navigate={navigate} />
       </div>
@@ -179,7 +174,7 @@ const chartData = pedidosEstado
 // ─── Tarjeta KPI individual ───
 // Muestra un icono con fondo coloreado, una etiqueta y el valor numérico.
 // loading = true → muestra un skeleton animado en lugar del número.
-const KPICard = ({ label, value, icon, color, delay, loading }) => (
+const KPICard = memo(({ label, value, icon, color, delay, loading }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
@@ -190,7 +185,7 @@ const KPICard = ({ label, value, icon, color, delay, loading }) => (
       {/* Círculo decorativo en la esquina superior derecha */}
       <div className={styles.kpiGlow} style={{ background: color }} />
       <div className={styles.kpiBody}>
-        <div className={styles.kpiIcon} style={{ background: `${color}22`, color }}>
+        <div className={styles.kpiIcon} style={{ background: `${color}25`, color, boxShadow: `${color}30 0 0 12px` }}>
           {icon}
         </div>
         <div className={styles.kpiInfo}>
@@ -206,41 +201,58 @@ const KPICard = ({ label, value, icon, color, delay, loading }) => (
       </div>
     </Card>
   </motion.div>
-);
+));
 
 // ─── Actividades del Sistema ───
 // Lista de alertas/notificaciones con icono coloreado según el tipo.
 // Cada activity tiene: tipo (critical/warning/info/blue/success), mensaje y tiempo.
-const typeStyle = {
-  critical: { bg: "#fef2f2", text: "#ef4444", border: "#fecaca" },
-  warning: { bg: "#fffbeb", text: "#f59e0b", border: "#fde68a" },
-  success: { bg: "#ecfdf5", text: "#10b981", border: "#a7f3d0" },
-  blue: { bg: "#eff6ff", text: "#3b82f6", border: "#bfdbfe" },
-  info: { bg: "#f0f9ff", text: "#0ea5e9", border: "#bae6fd" },
+const moduloStyle = {
+  PEDIDOS: { bg: "rgba(167, 139, 250, 0.08)", text: "var(--accent-violet)", icon: <FiShoppingBag /> },
+  INVENTARIO: { bg: "rgba(251, 191, 36, 0.08)", text: "var(--accent-amber)", icon: <FiPackage /> },
+  COMPRAS: { bg: "rgba(52, 211, 153, 0.08)", text: "var(--accent-emerald)", icon: <FiFileText /> },
+  USUARIOS: { bg: "rgba(96, 165, 250, 0.08)", text: "var(--accent-blue)", icon: <FiUser /> },
 };
 
-const SystemActivities = () => (
+const formatRelativeTime = (dateStr) => {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffMin = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+  if (diffMin < 1) return 'Ahora';
+  if (diffMin < 60) return `hace ${diffMin} min`;
+  if (diffHours < 24) return `hace ${diffHours} hora${diffHours > 1 ? 's' : ''}`;
+  if (diffDays < 7) return `hace ${diffDays} día${diffDays > 1 ? 's' : ''}`;
+  return formatDate(dateStr);
+};
+
+const SystemActivities = memo(({ actividades }) => (
   <Card className={styles.activitiesCard}>
     <h3 className={styles.sectionTitle}>Actividades del Sistema</h3>
     <div className={styles.activityList}>
-      {activities.map((a, i) => {
-        const s = typeStyle[a.type] || typeStyle.info;
-        return (
-          <div key={i} className={styles.activityItem}>
-            {/* Icono con color según el tipo de alerta */}
-            <div className={styles.activityIcon} style={{ background: s.bg, color: s.text, borderColor: s.border }}>
-              {a.icon}
+      {actividades.length > 0 ? (
+        actividades.map((a) => {
+          const s = moduloStyle[a.modulo] || { bg: "rgba(167, 139, 250, 0.08)", text: "var(--accent-violet)", icon: <FiActivity /> };
+          return (
+            <div key={a.actId} className={styles.activityItem}>
+              <div className={styles.activityIcon} style={{ background: s.bg, color: s.text }}>
+                {s.icon}
+              </div>
+              <div className={styles.activityBody}>
+                <p className={styles.activityMsg} title={a.descripcion}>{a.descripcion}</p>
+                <p className={styles.activityTime}>{a.usuario} &middot; {formatRelativeTime(a.fecha)}</p>
+              </div>
             </div>
-            <div className={styles.activityBody}>
-              <p className={styles.activityMsg}>{a.msg}</p>
-              <p className={styles.activityTime}>{a.time}</p>
-            </div>
-          </div>
-        );
-      })}
+          );
+        })
+      ) : (
+        <p className={styles.chartEmpty}>Sin actividades recientes</p>
+      )}
     </div>
   </Card>
-);
+));
 
 // ─── Gráfico de Estado de Pedidos ───
 // SVG donut minimalista con arcos. Al hacer hover sobre un segmento
@@ -276,9 +288,31 @@ const EstadoPedidos = ({ data, total }) => {
         <div className={styles.chartBody}>
           {/* SVG del donut */}
           <div className={styles.svgWrapper}>
-            <svg width={150} height={150} viewBox="0 0 150 150">
+            <svg width={150} height={150} viewBox="0 0 150 150" role="img" aria-label={`Gráfico de estado de pedidos: ${arcs.map(s => `${s.label} ${Math.round(s.pct)}%`).join(', ')}`}>
               {arcs.map((seg) => {
                 if (seg.start === seg.end) return null;
+
+                // Cuando un segmento ocupa ~100% del círculo, el arco SVG
+                // degenera en un punto porque inicio y fin coinciden.
+                // Usamos un <circle> en su lugar.
+                if (seg.end - seg.start >= 359.99) {
+                  return (
+                    <circle
+                      key={seg.label}
+                      cx={cx}
+                      cy={cy}
+                      r={r}
+                      fill="none"
+                      stroke={seg.color}
+                      strokeWidth={14}
+                      className={styles.arc}
+                      style={{ opacity: hovered && hovered !== seg.label ? 0.25 : 1 }}
+                      onMouseEnter={() => setHovered(seg.label)}
+                      onMouseLeave={() => setHovered(null)}
+                    />
+                  );
+                }
+
                 const s = polar(cx, cy, r, seg.start);
                 const e = polar(cx, cy, r, seg.end);
                 const large = seg.end - seg.start > 180 ? 1 : 0;
@@ -336,40 +370,46 @@ const EstadoPedidos = ({ data, total }) => {
 // ─── Stock Crítico ───
 // Muestra 3 productos con cantidad actual, barra de progreso
 // y un enlace para ver el inventario completo.
-const StockCritico = ({ navigate }) => (
+const StockCritico = memo(({ stock, navigate }) => (
   <Card className={styles.stockCard}>
     <h3 className={styles.sectionTitle}>Stock Crítico</h3>
     <div className={styles.stockList}>
-      {stockCritico.map((item) => (
-        <div key={item.nombre} className={styles.stockItem}>
-          <div className={styles.stockHeader}>
-            <span className={styles.stockName}>
-              <FiPackage className={styles.stockIcon} style={{ color: item.color }} />
-              {item.nombre}
-            </span>
-            <span className={styles.stockQty}>{item.cantidad} uds</span>
-          </div>
-          {/* Barra de progreso: ancho = (cantidad/max)*100% */}
-          <div className={styles.progressBar}>
-            <div
-              className={styles.progressFill}
-              style={{ width: `${(item.cantidad / item.max) * 100}%`, background: item.color }}
-            />
-          </div>
-        </div>
-      ))}
+      {stock.length > 0 ? (
+        stock.map((item) => {
+          const pct = Math.min((item.cantidad / item.max) * 100, 100);
+          const barColor = pct <= 25 ? '#ef4444' : pct <= 50 ? '#f97316' : '#f59e0b';
+          return (
+            <div key={item.nombre} className={styles.stockItem}>
+              <div className={styles.stockHeader}>
+                <span className={styles.stockName}>
+                  <FiPackage className={styles.stockIcon} style={{ color: barColor }} />
+                  {item.nombre}
+                </span>
+                <span className={styles.stockQty} style={{ color: barColor }}>{item.cantidad} uds</span>
+              </div>
+              <div className={styles.progressBar}>
+                <div
+                  className={styles.progressFill}
+                  style={{ width: `${pct}%`, background: barColor }}
+                />
+              </div>
+            </div>
+          );
+        })
+      ) : (
+        <p className={styles.chartEmpty}>Sin stock crítico</p>
+      )}
     </div>
-    {/* Enlace centrado al inventario */}
     <button className={styles.stockLink} onClick={() => navigate("/inventario")}>
       <FiArrowRight /> Ver Inventario
     </button>
   </Card>
-);
+));
 
 // ─── Acceso Rápido ───
 // Botones con icono + texto. Los items con admin:true solo se muestran
 // si el usuario logueado tiene rol ADMINISTRADOR.
-const QuickActions = ({ navigate }) => {
+const QuickActions = memo(({ navigate }) => {
   const admin = isAdmin();
   return (
     <div className={styles.actionsCol}>
@@ -384,7 +424,7 @@ const QuickActions = ({ navigate }) => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.35 + i * 0.1 }}
               className={styles.actionBtn}
-              onClick={() => navigate(a.path)}
+              onClick={() => navigate(a.path, { state: { openForm: true } })}
             >
               <Card className={styles.actionCard} as="div">
                 <div className={styles.actionIconBox} style={{ background: `${a.color}14`, color: a.color }}>
@@ -397,6 +437,6 @@ const QuickActions = ({ navigate }) => {
       </div>
     </div>
   );
-};
+});
 
 export default Home;

@@ -61,11 +61,16 @@ const ProduccionForm = ({ isOpen, onClose, detalles, onSuccess }) => {
       setAlert({ type: 'error', title: 'Error', message: 'Selecciona un detalle', onClose: () => setAlert(null) });
       return;
     }
-    if (!form.cantidad || form.cantidad < 1) {
+    const cant = Number(form.cantidad);
+    if (!form.cantidad || isNaN(cant) || cant < 1) {
       setAlert({ type: 'error', title: 'Error', message: 'La cantidad debe ser mayor a 0', onClose: () => setAlert(null) });
       return;
     }
-    if (form.cantidad > (detalleSeleccionado?.pendiente || 0)) {
+    if (cant > 99999) {
+      setAlert({ type: 'error', title: 'Error', message: 'Cantidad demasiado alta', onClose: () => setAlert(null) });
+      return;
+    }
+    if (cant > (detalleSeleccionado?.pendiente || 0)) {
       setAlert({ type: 'error', title: 'Error', message: `Solo faltan ${detalleSeleccionado?.pendiente} por producir`, onClose: () => setAlert(null) });
       return;
     }
@@ -89,14 +94,14 @@ const ProduccionForm = ({ isOpen, onClose, detalles, onSuccess }) => {
           onClose: () => { setAlert(null); window.location.reload(); },
         });
       } else {
-        setAlert({ type: 'error', title: 'Error', message: resp?.msg || 'Error al iniciar producción', onClose: () => setAlert(null) });
+        setAlert({ type: 'error', title: 'Error', message: resp?.error || resp?.msg || 'Error al iniciar producción', onClose: () => setAlert(null) });
       }
     } catch (err) {
       setLoading(false);
       setAlert({
         type: 'error',
         title: 'Error',
-        message: err?.response?.data?.error || 'No se pudo iniciar la producción',
+        message: err?.response?.data?.error || err?.response?.data?.msg || 'No se pudo iniciar la producción',
         onClose: () => setAlert(null),
       });
     } finally {
@@ -146,12 +151,36 @@ const ProduccionForm = ({ isOpen, onClose, detalles, onSuccess }) => {
           <div className={styles.field}>
             <label className={styles.label}>Cantidad a producir</label>
             <input
-              type="number"
+              type="text"
+              inputMode="numeric"
               className={styles.input}
               value={form.cantidad}
-              onChange={(e) => setForm((p) => ({ ...p, cantidad: Number(e.target.value) }))}
-              min={1}
-              max={detalleSeleccionado?.pendiente || 1}
+              onChange={(e) => {
+                // Solo dígitos, sin signos ni letras
+                const digits = e.target.value.replace(/[^0-9]/g, '');
+                // Eliminar ceros a la izquierda (ej: "011" → "11")
+                const cleaned = digits.replace(/^0+(?!$)/, '');
+                if (cleaned === '') {
+                  setForm((p) => ({ ...p, cantidad: '' }));
+                  return;
+                }
+                const num = Number(cleaned);
+                const max = Math.min(detalleSeleccionado?.pendiente || 1, 99999);
+                setForm((p) => ({ ...p, cantidad: Math.min(num, max) }));
+              }}
+              onBlur={() => {
+                setForm((p) => {
+                  let val = p.cantidad;
+                  if (val === '' || val === 0 || isNaN(Number(val)) || Number(val) < 1) {
+                    val = 1;
+                  }
+                  const max = Math.min(detalleSeleccionado?.pendiente || 1, 99999);
+                  if (Number(val) > max) {
+                    val = max;
+                  }
+                  return { ...p, cantidad: val };
+                });
+              }}
             />
             {detalleSeleccionado && (
               <span className={styles.hint}>

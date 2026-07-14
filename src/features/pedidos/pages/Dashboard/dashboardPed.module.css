@@ -1,0 +1,11 @@
+/* ================================================================
+   Dashboard de Pedidos — Punto de entrada de estilos
+   Submódulos:
+     - dash-base.module.css      → Page, header, KPI cards
+     - dash-calendar.module.css  → Calendario, navegación
+     - dash-table.module.css     → Tabla, badges, producción
+   ================================================================ */
+
+@import './dash-base.module.css';
+@import './dash-calendar.module.css';
+@import './dash-table.module.css';

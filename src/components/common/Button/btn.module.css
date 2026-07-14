@@ -1,17 +1,68 @@
-.btnLogin {
-    width: 100%;
-    padding: 14px;
-    background-color: var(--text-dark);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.3s;
+/* ───────────────────────────────────────
+   Button — Variantes gold y outline
+   ─────────────────────────────────────── */
+
+.btnPrimary,
+.btnOutline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.85rem 1.5rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-base);
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    all var(--transition-base);
+  position: relative;
+  overflow: hidden;
 }
 
-.btnLogin:hover {
-    background-color: #333;
-    transform: translateY(-1px);
+.btnPrimary:disabled,
+.btnOutline:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ── Primary (gold) ── */
+.btnPrimary {
+  background: linear-gradient(135deg, var(--accent-gold), #B8922E);
+  color: #1a1a1a;
+  border: none;
+  box-shadow: var(--shadow-gold);
+}
+
+.btnPrimary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-gold-lg);
+  background: linear-gradient(135deg, var(--accent-gold-light), var(--accent-gold));
+}
+
+.btnPrimary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: var(--shadow-gold);
+}
+
+/* ── Outline (gold border) ── */
+.btnOutline {
+  background: transparent;
+  color: var(--accent-gold);
+  border: 1.5px solid var(--accent-gold);
+}
+
+.btnOutline:hover:not(:disabled) {
+  background: var(--accent-gold-subtle);
+  border-color: var(--accent-gold-light);
+  color: var(--accent-gold-light);
+  transform: translateY(-1px);
+}
+
+.btnOutline:active:not(:disabled) {
+  transform: translateY(0);
 }

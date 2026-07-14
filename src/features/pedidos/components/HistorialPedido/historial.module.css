@@ -1,0 +1,350 @@
+/* ═══════════════════════════════════════════
+   HistorialPedido — Dark theme
+   ═══════════════════════════════════════════ */
+
+.historialContent {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  animation: fadeIn 0.4s ease both;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Card section ── */
+
+.cardSection {
+  background: var(--bg-glass);
+  backdrop-filter: var(--blur-glass);
+  -webkit-backdrop-filter: var(--blur-glass);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1.5rem;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.sectionTitle {
+  font-size: var(--text-md);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sectionTitle svg {
+  font-size: 1.15rem;
+  color: var(--accent-gold);
+}
+
+.countBadge {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-left: 0.25rem;
+}
+
+/* ── Botón refrescar ── */
+
+.btnRefresh {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: var(--radius-full);
+  background: var(--bg-glass);
+  color: var(--text-muted);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.btnRefresh:hover {
+  background: var(--bg-glass-hover);
+  color: var(--text-primary);
+}
+
+.btnRefresh:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.spin {
+  animation: btnSpin 0.8s linear infinite;
+}
+
+@keyframes btnSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Timeline ── */
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.timelineItem {
+  display: flex;
+  gap: 1rem;
+  position: relative;
+}
+
+/* ── Dot + línea conectora ── */
+
+.timelineDot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 1.25rem;
+  flex-shrink: 0;
+  padding-top: 0.25rem;
+}
+
+.dot {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+  z-index: 1;
+  box-shadow: 0 0 0 3px var(--bg-glass);
+}
+
+.timelineLine {
+  width: 1.5px;
+  flex: 1;
+  background: var(--border-glass);
+  margin-top: 0.25rem;
+  min-height: 1.5rem;
+}
+
+.timelineItem:last-child .timelineLine {
+  display: none;
+}
+
+/* ── Colores del dot por estado ── */
+
+.dotDefault {
+  background: var(--text-muted);
+}
+
+.dotPending {
+  background: var(--accent-amber);
+}
+
+.dotInProcess {
+  background: var(--accent-violet);
+}
+
+.dotTerminado {
+  background: var(--accent-emerald);
+}
+
+.dotEntregado {
+  background: var(--accent-emerald);
+}
+
+.dotCancelado {
+  background: #f87171;
+}
+
+/* ── Card de cada evento ── */
+
+.timelineCard {
+  flex: 1;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-sm);
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  transition: border-color var(--transition-fast);
+}
+
+.timelineCard:hover {
+  border-color: var(--border-glass-hover);
+}
+
+/* ── Meta: fecha + usuario ── */
+
+.timelineMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.timelineDate {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.timelineUser {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Acción: transición de estados ── */
+
+.timelineAction {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.stateBadge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-full);
+  font-size: 0.68rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.statePrev {
+  background: var(--bg-glass);
+  color: var(--text-muted);
+}
+
+.stateNext {
+  background: var(--accent-violet-subtle);
+  color: var(--accent-violet);
+}
+
+/* Sobrescritura de color según estado actual */
+.timelineItem .stateNext {
+  /* Por defecto violeta; se puede extender si se quiere colorear por estado */
+}
+
+.arrow {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+/* ── Observación ── */
+
+.timelineObs {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0;
+  padding: 0.35rem 0.5rem;
+  background: var(--bg-glass);
+  border-left: 2px solid var(--border-glass);
+  border-radius: var(--radius-xs);
+}
+
+/* ── Vacío ── */
+
+.historyEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 2.5rem 1rem;
+  text-align: center;
+}
+
+.historyEmptyIcon {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  background: var(--bg-glass);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  color: var(--text-muted);
+  opacity: 0.4;
+}
+
+.historyEmptyText {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.historyEmptySub {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* ── Paginación (reservado) ── */
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  padding-top: 1rem;
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--border-glass);
+}
+
+.pagInfo {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+/* ── Responsive ── */
+
+@media (max-width: 768px) {
+  .cardSection {
+    padding: 1rem;
+  }
+
+  .sectionHeader {
+    flex-direction: row;
+  }
+
+  .timelineMeta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .timelineCard {
+    padding: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .timelineAction {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .arrow {
+    transform: rotate(90deg);
+    align-self: center;
+  }
+}

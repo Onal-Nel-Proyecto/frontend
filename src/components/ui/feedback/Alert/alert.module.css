@@ -1,4 +1,6 @@
-/* ── Overlay de fondo ── */
+/* ───────────────────────────────────────
+   Alert Modal — Dark glass
+   ─────────────────────────────────────── */
 
 .overlay {
   position: fixed;
@@ -6,22 +8,21 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.35);
-  backdrop-filter: blur(4px);
-  z-index: 999;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 10000;
   padding: 1rem;
 }
 
-/* ── Card principal ── */
+/* ── Card ── */
 
 .card {
   width: 100%;
   max-width: 380px;
   padding: 2rem;
-  border-radius: 1.5rem;
-  background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(16px);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+  border-radius: var(--radius-xl);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-glass);
+  box-shadow: var(--shadow-xl);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -43,18 +44,18 @@
 }
 
 .success .iconWrapper {
-  background: #ecfdf5;
-  color: #10b981;
+  background: var(--accent-emerald-subtle);
+  color: var(--accent-emerald);
 }
 
 .error .iconWrapper {
-  background: #fef2f2;
-  color: #ef4444;
+  background: rgba(239, 68, 68, 0.12);
+  color: #f87171;
 }
 
 .confirm .iconWrapper {
-  background: #fffbeb;
-  color: #f59e0b;
+  background: var(--accent-amber-subtle);
+  color: var(--accent-amber);
 }
 
 /* ── Texto ── */
@@ -66,14 +67,14 @@
 }
 
 .title {
-  font-size: 1.1rem;
+  font-size: var(--text-md);
   font-weight: 700;
-  color: var(--text-dark);
+  color: var(--text-primary);
 }
 
 .message {
-  font-size: 0.88rem;
-  color: var(--text-soft);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
   line-height: 1.55;
 }
 
@@ -86,59 +87,45 @@
   margin-top: 0.25rem;
 }
 
-.btnClose {
+.btnClose,
+.btnCancel {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.35rem;
   padding: 0.65rem 1rem;
-  border: none;
-  border-radius: 0.85rem;
-  font-size: 0.88rem;
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s ease;
-  background: var(--main-bg);
-  color: var(--text-dark);
+  background: var(--bg-glass);
+  color: var(--text-primary);
+  transition: all var(--transition-fast);
 }
 
-.btnClose:hover {
-  background: rgba(0, 0, 0, 0.06);
-}
-
-.btnCancel {
-  flex: 1;
-  padding: 0.65rem 1rem;
-  border: none;
-  border-radius: 0.85rem;
-  font-size: 0.88rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s ease;
-  background: var(--main-bg);
-  color: var(--text-dark);
-}
-
+.btnClose:hover,
 .btnCancel:hover {
-  background: rgba(0, 0, 0, 0.06);
+  background: var(--bg-glass-hover);
+  border-color: var(--border-glass-hover);
 }
 
 .btnConfirm {
   flex: 1;
   padding: 0.65rem 1rem;
   border: none;
-  border-radius: 0.85rem;
-  font-size: 0.88rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s ease;
-  background: #f59e0b;
-  color: white;
+  transition: all var(--transition-fast);
+  background: var(--accent-gold);
+  color: #1a1a1a;
 }
 
 .btnConfirm:hover {
-  background: #d97706;
+  background: var(--accent-gold-light);
 }
 
 /* ── Responsive ── */
@@ -147,7 +134,7 @@
   .card {
     padding: 1.5rem;
     max-width: 100%;
-    border-radius: 1.25rem;
+    border-radius: var(--radius-lg);
   }
 
   .iconWrapper {
@@ -157,10 +144,10 @@
   }
 
   .title {
-    font-size: 1rem;
+    font-size: var(--text-base);
   }
 
   .message {
-    font-size: 0.82rem;
+    font-size: var(--text-xs);
   }
 }

@@ -1,0 +1,92 @@
+/* ── Botón acciones ── */
+
+.actionBtn {
+  border: none;
+  background: transparent;
+  color: #aaa;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.actionBtn:hover {
+  color: #555;
+  background: #f0f0f0;
+}
+
+/* ── Menú de acciones ── */
+
+.actionsWrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.actionsMenu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 20;
+  min-width: 140px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+  padding: 0.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.actionsUpward {
+  top: auto;
+  bottom: calc(100% + 4px);
+}
+
+/* ── Menú portaleado a body (evita recorte por overflow del contenedor) ── */
+.actionsMenuPortal {
+  min-width: 140px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+  padding: 0.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.actionItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 0.82rem;
+  color: #444;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.actionItem:hover {
+  background: #f5f5f5;
+}
+
+.actionItem:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.actionItem:disabled:hover {
+  background: transparent;
+}
+
+.actionItem svg {
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+

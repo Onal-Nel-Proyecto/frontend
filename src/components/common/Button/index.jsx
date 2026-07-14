@@ -1,38 +1,14 @@
-const Button = ({ children, active, type, eventoClick, tipoDeEstilo, disable }) => {
+import styles from './btn.module.css';
 
-  const styleFinal = tipoDeEstilo
-    ? {
-        backgroundColor: active ? "#333" : "#1a1a1a",
-        color: "white",
-        border: "none",
-        borderRadius: "12px",
-        padding: "14px",
-        width: "100%",
-        fontSize: "1rem",
-        fontWeight: "600",
-        cursor: "pointer",
-        transition: "0.3s",
-        transform: active ? "translateY(-1px)" : "none"
-      }
-    : {
-        backgroundColor: "transparent",
-        color: "#fff",
-        border: "2px solid #fff",
-        borderRadius: "12px",
-        padding: "14px",
-        width: "100%",
-        fontSize: "1rem",
-        fontWeight: "600",
-        cursor: "pointer",
-        transition: "0.3s"
-      };
+const Button = ({ children, type, disabled, tipoDeEstilo, eventoClick }) => {
+  const className = tipoDeEstilo ? styles.btnPrimary : styles.btnOutline;
 
   return (
     <button
       type={type}
-      style={styleFinal}
+      className={className}
       onClick={eventoClick}
-      disabled={disable}
+      disabled={disabled}
     >
       {children}
     </button>

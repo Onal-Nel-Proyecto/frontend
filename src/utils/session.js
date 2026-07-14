@@ -13,6 +13,7 @@ export const getStoredUser = () => {
     const raw = sessionStorage.getItem("user");
     return raw ? JSON.parse(raw) : null;
   } catch {
+    // Catch silencioso intencional: JSON corrupto → null
     return null;
   }
 };
