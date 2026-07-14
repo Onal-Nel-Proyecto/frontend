@@ -27,7 +27,7 @@ import {
 } from '../../../usuarios/services/user.services.js';
 import { logoutUser } from '../../../auth/services/authService.js';
 
-import styles from './UsuarioForm.module.css';
+import styles from './Usuarioform.module.css';
 
 const UsuarioForm = ({
   isOpen,
