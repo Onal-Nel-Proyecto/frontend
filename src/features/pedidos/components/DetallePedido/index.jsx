@@ -33,8 +33,8 @@ const DetallePedido = () => {
       setImages(pedido.fotos_pedido.map((f) => ({
         id: f.foto_id,
         foto_id: f.foto_id,
-        preview: `${API_URL}${f.foto_url}`,
-        // preview: `${f.foto_url}`,
+        // preview: `${API_URL}${f.foto_url}`,
+        preview: `${f.foto_url}`,
         name: f.foto_url.split('/').pop() || `foto-${f.foto_id}`,
         isExisting: true,
       })));
